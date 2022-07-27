@@ -1,0 +1,48 @@
+@import "./base.css";
+
+#app {
+    position:absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+header {
+    z-index: 100;
+}
+
+main {
+    height:100%;
+    display: flex;
+    flex-direction: row;
+}
+
+main .map {
+    flex:50%;
+    height:100%;
+    position:relative;
+    flex-shrink: 0;
+}
+
+main .map:only-child {
+    flex:100%
+}
+
+main #contentview {
+    flex:50%;
+    height:100%;
+    padding:20pt 0pt 0pt 20pt;
+}
+
+main #content {
+    height:100%;
+    padding-right:20pt;
+    overflow-y:scroll;
+}
+
+@media screen and (max-width:1024px) {
+    main {
+        flex-direction: column;
+    }
+}
