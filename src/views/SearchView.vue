@@ -40,8 +40,10 @@ type SearchResult = {
 
 enum SearchResultType {
     BEZEICHNUNG=1,
-    FLUR=2,
-    ORT=3
+    BEZEICHNUNG_LINE=2,
+    GEWAESSER=3,
+    FLUR=4,
+    ORT=5
 }
 
 export default {
@@ -80,7 +82,7 @@ export default {
                         locationDesc: flur != null ? `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem} > Flur ${flur.nr} gnt. ${flur.name}` : "",
                         location: bz.l,
                         name: bz.n,
-                        typeEnum: bz.t==null || bz.t == 0 ? SearchResultType.BEZEICHNUNG : SearchResultType.ORT
+                        typeEnum: this.mapTypeToEnum(bz.t)
                     } as SearchResult);
                 }
             }
@@ -109,7 +111,10 @@ export default {
                 case SearchResultType.ORT:
                     return "Dorf/Stadt";
                 case SearchResultType.BEZEICHNUNG:
+                case SearchResultType.BEZEICHNUNG_LINE:
                     return "Bezeichnung";
+                case SearchResultType.GEWAESSER:
+                    return "Gewässer";
             }
         },
         getTypeCss: function(type:SearchResultType) {
@@ -119,8 +124,27 @@ export default {
                 case SearchResultType.ORT:
                     return "town";
                 case SearchResultType.BEZEICHNUNG:
+                case SearchResultType.BEZEICHNUNG_LINE:
                     return "name";
+                case SearchResultType.GEWAESSER:
+                    return "gewaesser";
             }
+        },
+        mapTypeToEnum : function(type:number):SearchResultType {
+            if( type == null ) {
+                return SearchResultType.BEZEICHNUNG;
+            }
+            switch(type) {
+            case 0:
+                return SearchResultType.BEZEICHNUNG;
+            case 1:
+                return SearchResultType.ORT;
+            case 101:
+                return SearchResultType.GEWAESSER;
+            case 102:
+                return SearchResultType.BEZEICHNUNG_LINE;
+            }
+            return SearchResultType.BEZEICHNUNG;
         }
     }
 }
@@ -146,10 +170,16 @@ export default {
     #searchresult li.type-flur {
         background-color:#fdd
     }
-    #searchresult li.type-town:hover
+    #searchresult li.type-town:hover,
     #searchresult li.type-flur:hover {
         background-color:#ecc
-    }    
+    }
+    #searchresult li.type-gewaesser {
+        background-color:#ddf
+    }
+    #searchresult li.type-gewaesser:hover {
+        background-color:#cce
+    } 
     #searchresult .position {
         font-size:80%;
     }
