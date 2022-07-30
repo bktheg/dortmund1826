@@ -1,4 +1,7 @@
 <script setup lang="ts">
+
+</script>
+<script lang="ts">
     import _debounce from 'lodash/debounce';
     import type {DebouncedFunc} from 'lodash'
     import {useFlurStore} from '../stores/flurStore'
@@ -10,26 +13,6 @@
 
     fetchFlure()
     fetchBezeichnungen()
-</script>
-
-<template>
-    <div id="contentview">
-        <div id="content">
-            <p><input type="text" placeholder="Suchtext" v-model="searchtext" @keyup="search()"/></p>
-            <p>
-                <ul id="searchresult">
-                    <li v-for="pos in matches" @click="moveTo(pos)" :class="`type-${getTypeCss(pos.typeEnum)}`">
-                        <div class="position">{{pos.locationDesc}}</div>
-                        <div class="type">{{getTypeLabel(pos.typeEnum)}}</div>
-                        {{pos.name}}
-                    </li>
-                </ul>
-            </p>
-        </div>
-    </div>
-</template>
-
-<script lang="ts">
 
 type SearchResult = {
     locationDesc:string,
@@ -91,7 +74,7 @@ export default {
                     result.push({
                         locationDesc: `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem}`,
                         location: flur.box,
-                        name: flur.name,
+                        name: `Flur ${flur.nr} gnt. ${flur.name}`,
                         typeEnum: SearchResultType.FLUR
                     } as SearchResult);
                 }
@@ -191,3 +174,20 @@ export default {
         font-size:80%;
     }
 </style>
+
+<template>
+    <div id="contentview">
+        <div id="content">
+            <p><input type="text" placeholder="Suchtext" v-model="searchtext" @keyup="search()"/></p>
+            <p>
+                <ul id="searchresult">
+                    <li v-for="pos in matches" @click="moveTo(pos)" :class="`type-${getTypeCss(pos.typeEnum)}`">
+                        <div class="position">{{pos.locationDesc}}</div>
+                        <div class="type">{{getTypeLabel(pos.typeEnum)}}</div>
+                        {{pos.name}}
+                    </li>
+                </ul>
+            </p>
+        </div>
+    </div>
+</template>

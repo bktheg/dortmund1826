@@ -1,13 +1,6 @@
 <script setup lang="ts">
-    import hausnummernJpg from '../assets/hausnummern.jpg'
-    import infotextJpg from '../assets/infotext.jpg'
-    import { storeToRefs } from 'pinia'
-    import {useFlurStore} from '../stores/flurStore'
-
-    const { flure } = storeToRefs(useFlurStore())
-    const { fetchFlure } = useFlurStore()
-
-    fetchFlure()
+import hausnummernJpg from '../assets/hausnummern.jpg'
+import infotextJpg from '../assets/infotext.jpg'
 </script>
 
 <template>
@@ -71,6 +64,14 @@
 </template>
 
 <script lang="ts">
+import { storeToRefs } from 'pinia'
+import {useFlurStore} from '../stores/flurStore'
+
+const { flure } = storeToRefs(useFlurStore())
+const { fetchFlure } = useFlurStore()
+
+fetchFlure()
+
 export default {
     data() {
         return {
