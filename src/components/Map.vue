@@ -1,19 +1,9 @@
 <script setup lang="ts">
-    import type mapboxgl from 'mapbox-gl'
+
 </script>
-
-<template>
-    <div id='map'></div>
-    <nav id='layer'>
-        <div>
-            <label><input type="checkbox" value="true" id="layer1826" v-model="show1826" @change="toggle1826()"/>1826</label>
-            <div><label><input type="checkbox" value="true" id="layer1826grenzen" v-model="show1826Grenzen" @change="toggle1826Grenzen()"/>Grenzen</label></div>
-        </div>
-        <div><label><input type="checkbox" value="true" id="layerHeute" v-model="showHeute" @change="toggleHeute()"/>Heute</label></div>
-    </nav>
-</template>
-
 <script lang="ts">
+import type mapboxgl from 'mapbox-gl'
+
 export default {
   data() {
     return {
@@ -102,6 +92,16 @@ export default {
   }
 }
 </script>
+<template>
+    <div id='map'></div>
+    <nav id='layer'>
+        <div>
+            <label><input type="checkbox" value="true" id="layer1826" v-model="show1826" @change="toggle1826()"/>1826</label>
+            <div><label><input type="checkbox" value="true" id="layer1826grenzen" v-model="show1826Grenzen" @change="toggle1826Grenzen()"/>Grenzen</label></div>
+        </div>
+        <div><label><input type="checkbox" value="true" id="layerHeute" v-model="showHeute" @change="toggleHeute()"/>Heute</label></div>
+    </nav>
+</template>
 
 <style scoped>
    #map {height:100%;position:absolute;top:0;bottom:0;left:0;right:0}
