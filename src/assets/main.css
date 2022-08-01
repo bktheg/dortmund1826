@@ -38,6 +38,7 @@ main #contentview {
 main #content {
     height:100%;
     padding-right:20pt;
+    padding-bottom:10pt;
     overflow-y:scroll;
 }
 
