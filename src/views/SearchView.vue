@@ -29,10 +29,11 @@ type SearchResult = {
 enum SearchResultType {
     BEZEICHNUNG=1,
     BEZEICHNUNG_LINE=2,
-    GEWAESSER=3,
-    FLUR=4,
-    ORT=5,
-    OWNER=6
+    GEBAEUDE=3,
+    GEWAESSER=4,
+    FLUR=5,
+    ORT=6,
+    OWNER=7
 }
 
 export default {
@@ -58,6 +59,9 @@ export default {
         }, 200)
         this.searchtext = this.$router.currentRoute.value.params.term as string
         this.searchType = this.$router.currentRoute.value.params.type as string
+        if( !this.searchType ) {
+            this.searchType = 'lage';
+        }
 
         this.search();
     },
@@ -147,7 +151,7 @@ export default {
         },
         resultSelected: function(match:SearchResult) {
             if( match.location ) {
-                this.emitter.emit("map-highlight-location", match.location);
+                this.emitter.emit("map-highlight-location", {location:match.location});
             }
             else if( match.route != null ) {
                 this.$router.push(match.route)
@@ -164,6 +168,8 @@ export default {
                     return "Bezeichnung";
                 case SearchResultType.GEWAESSER:
                     return "Gewässer";
+                case SearchResultType.GEBAEUDE:
+                    return "Gebäude";
                 case SearchResultType.OWNER:
                     return "Eigentümer";
             }
@@ -179,6 +185,8 @@ export default {
                     return "name";
                 case SearchResultType.GEWAESSER:
                     return "gewaesser";
+                case SearchResultType.GEBAEUDE:
+                    return "gebaeude";
                 case SearchResultType.OWNER:
                     return "owner";
             }
@@ -196,6 +204,8 @@ export default {
                 return SearchResultType.GEWAESSER;
             case 102:
                 return SearchResultType.BEZEICHNUNG_LINE;
+            case 50:
+                return SearchResultType.GEBAEUDE;
             }
             return SearchResultType.BEZEICHNUNG;
         }
@@ -233,6 +243,12 @@ export default {
     #searchresult li.type-gewaesser:hover {
         background-color:#cce
     } 
+    #searchresult li.type-gebaeude {
+        background-color:#fbb
+    }
+    #searchresult li.type-gebaeude:hover {
+        background-color:#e99
+    } 
     #searchresult .position {
         font-size:80%;
     }
@@ -243,13 +259,25 @@ export default {
         font-style:italic;
         font-size:80%;
     }
+    .searchinput input {
+        width:40%;
+        min-width:200pt;
+        height:17pt;
+    }
+    .searchinput select {
+        width:20%;
+        min-width:80pt;
+        height:17pt;
+    }
 </style>
 
 <template>
     <div id="contentview">
         <div id="content">
-            <p><input type="text" placeholder="Suchtext" v-model="searchtext" @keyup="search()"/>
-            <select v-model="searchType" @change="search()"><option value="lage">Ortsangabe</option><option value="person">Eigentümer</option></select></p>
+            <section class="searchinput">
+                <input type="text" placeholder="Suchtext" v-model="searchtext" @keyup="search()"/>
+                <select v-model="searchType" @change="search()"><option value="lage">Ortsangabe</option><option value="owner">Eigentümer</option></select>
+            </section>
             <p>
                 <ul id="searchresult">
                     <li v-for="match in matches" @click="resultSelected(match)" :class="`type-${getTypeCss(match.typeEnum)}`">

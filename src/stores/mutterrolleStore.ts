@@ -7,7 +7,8 @@ type MutterrolleRowExport = {
     k:string,
     t:string,
     l:string,
-    p:string
+    p:string,
+    x:number[]
 }
 
 type MutterrolleExport = {
@@ -15,12 +16,12 @@ type MutterrolleExport = {
     r:MutterrolleRowExport[]
 }
 
-class Mutterrolle {
+export class Mutterrolle {
     constructor(public gemeindeId:string, public id:string, public name:string, public rows:MutterrolleRow[]) {}
 }
 
-class MutterrolleRow {
-    constructor(public flur:number, public flurstueck:string, public flaeche:string, public kulturart:string, public klasse:string, public lage:string) {}
+export class MutterrolleRow {
+    constructor(public flur:number, public flurstueck:string, public flaeche:string, public kulturart:string, public klasse:string, public lage:string, public location:number[]) {}
 }
 
 function sortMutterrolleRow(a:MutterrolleRow, b:MutterrolleRow):number {
@@ -58,7 +59,7 @@ export const useMutterrolleStore = defineStore({
             for( const artikelNr in mutterrollenExport ) {
                 const mutterrolleExport = mutterrollenExport[artikelNr] as MutterrolleExport;              
 
-                const rows = mutterrolleExport.r?.map(r => new MutterrolleRow(r.f, r.p, r.a, r.t, r.k, r.l));
+                const rows = mutterrolleExport.r?.map(r => new MutterrolleRow(r.f, r.p, r.a, r.t, r.k, r.l, r.x));
                 rows?.sort(sortMutterrolleRow);
                 result.set(artikelNr, 
                     new Mutterrolle(gemeinde, artikelNr, mutterrolleExport.n, rows));

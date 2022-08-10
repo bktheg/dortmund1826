@@ -42,18 +42,23 @@ export default {
 
     this.alwaysOff = ['country-label','state-label','settlement-major-label','settlement-minor-label','settlement-subdivision-label','poi-label','admin-0-boundary-disputed','admin-0-boundary','admin-1-boundary','admin-0-boundary-bg','admin-1-boundary-bg'];
 
-    this.emitter.on("map-highlight-location", (location:number[]) => {
+    this.emitter.on("map-highlight-location", (target:any) => {
         if( this.marker ) {
             this.marker.remove();
         }
-        if( location.length > 2 ) {
+        if( target.location.length > 2 ) {
             this.map.fitBounds(location);
         }
         else {
             this.marker = new window.mapboxgl.Marker()
-                .setLngLat(location as [number, number])
+                .setLngLat(target.location as [number, number])
                 .addTo(this.map);
-            this.map.flyTo({center: location});
+            if( target.zoom ) {
+                this.map.flyTo({center: target.location, zoom: target.zoom});
+            }
+            else {
+                this.map.flyTo({center: target.location});
+            }
         }
     });
 

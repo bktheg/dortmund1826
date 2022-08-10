@@ -19,5 +19,6 @@ app.use(createPinia())
 app.use(VueAxios, axios)
 
 app.config.globalProperties.emitter = emitter;
+app.provide('emitter', emitter)
 
 app.mount('#app')

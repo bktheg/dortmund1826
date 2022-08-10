@@ -6,13 +6,6 @@ import infotextJpg from '../assets/infotext.jpg'
 <template>
     <div id="contentview">
         <div id="content">
-            <h1>Quellenangaben</h1>
-            <p>
-            Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände 162/01 (Katasterkarten), 162/02 (Trigonometrische Unterlagen) und 162/03 (Flurbücher) des <a href="https://www.dortmund.de/de/freizeit_und_kultur/stadtarchiv/start_stadtarchiv/index.html">Stadtarchivs Dortmund</a> und der Bestände K551 (Katasterbücher im Regierungsbezirk Arnsberg) und W052/Karten K (Katasterkarten) des <a href="https://www.archive.nrw.de/landesarchiv-nrw/landesarchiv-nrw-abteilung-westfalen-muenster">Landesarchivs NRW Abteilung Westfalen</a> erstellt. Sie zeigt den Zustand Dortmunds, wie dieser im Urkataster 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
-            <p>Die Basis ist das Vermessungsnetz (Polygonnetz) des Urkatasters (Best. 162/02). Mittels des Netzes wurden dann die Urkarten georeferenziert und unter Zuhilfenahme der Übersichtshandrisse und Stückvermessungshandrisse digitalisiert (Best. 162/01). Kulturarten, Größen (in Morgen, Ruten und Fuß) und Eigentumsverhältnisse sind aus den Flurbüchern entnommen (Best. 162/03). Ortsbezeichnungen entstammen den Urkarten, den Stückvermessungshandrissen und teils auch den Flurbüchern. Wegen der teils schlechten Lesbarkeit fehlen einige Angaben. Zudem ist hier mit Fehlern zu rechnen.
-            </p>
-            <p>Auf eine manuelle Korrektur/Einpassung der Karte wurde verzichtet. Es kommt daher zu gewissen Abweichungen zwischen dieser und heutigen Karten.</p>
-
             <h1>Dargestellte Informationen</h1>
             <p>Zur Karte existiert ein kurzes <a href="https://youtu.be/4VQwyPPRPCY">Info-Video</a></p>
             <p>
@@ -27,9 +20,23 @@ import infotextJpg from '../assets/infotext.jpg'
             <p>
                 <img width="300" :src="hausnummernJpg" alt="Hausnummern"/>
             </p>
+            <p>
+                Alle Angaben ohne Gewähr.
+            </p>
             <h1>Administrative Grenzen</h1>
             <p>Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum. 1826 waren die Kreise weiter in Bürgermeistereien untergliedert. Dortmund umfasste die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund. Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.</p>
             <p>Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters. Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum. Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.</p>
+            <h1>Quellenangaben</h1>
+            <p>
+            Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände 162/01 (Katasterkarten), 162/02 (Trigonometrische Unterlagen) und 162/03 (Flurbücher) des <a href="https://www.dortmund.de/de/freizeit_und_kultur/stadtarchiv/start_stadtarchiv/index.html">Stadtarchivs Dortmund</a> und der Bestände K551 (Katasterbücher im Regierungsbezirk Arnsberg) und W052/Karten K (Katasterkarten) des <a href="https://www.archive.nrw.de/landesarchiv-nrw/landesarchiv-nrw-abteilung-westfalen-muenster">Landesarchivs NRW Abteilung Westfalen</a> erstellt. Sie zeigt den Zustand Dortmunds, wie dieser im Urkataster 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
+            <p>Die Basis ist das Vermessungsnetz (Polygonnetz) des Urkatasters (Best. 162/02). Mittels des Netzes wurden dann die Urkarten georeferenziert und unter Zuhilfenahme der Übersichtshandrisse und Stückvermessungshandrisse digitalisiert (Best. 162/01). Kulturarten, Größen (in Morgen, Ruten und Fuß) und Eigentumsverhältnisse sind aus den Flurbüchern entnommen (Best. 162/03). Ortsbezeichnungen entstammen den Urkarten, den Stückvermessungshandrissen und teils auch den Flurbüchern. Wegen der teils schlechten Lesbarkeit fehlen einige Angaben. Zudem ist hier mit Fehlern zu rechnen.</p>
+            <p>Auf eine manuelle Korrektur/Einpassung der Karte wurde verzichtet. Es kommt daher zu gewissen Abweichungen zwischen dieser und heutigen Karten.</p>
+            <p>Weitere Quellen:
+                <ul>
+                    <li>Dortmund: Dortmunder Häuserbuch, Robert von den Berken, 1927; Adressbuch 1874</li>
+                    <li>Mengede: Karte Schott / Heimatverein Mengede e.V.</li>
+                </ul>
+            </p>
             <h1>Umfang der Karte</h1>           
             <p>Die im folgenden aufgelisteten damaligen Flure sind bereits digitalisiert und damit Teil der Karte. Weitere Gemeinden/Flure sind in Vorbereitung. Zu jedem Flur ist aufgeführt, in welchem Archiv sich die Originalquellen (Vermessungsunterlagen, Flurbuch, Urkarten) befinden.</p>
             <table class="flure">
