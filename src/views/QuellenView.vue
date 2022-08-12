@@ -7,7 +7,7 @@ import infotextJpg from '../assets/infotext.jpg'
     <div id="contentview">
         <div id="content">
             <h1>Dargestellte Informationen</h1>
-            <p>Zur Karte existiert ein kurzes <a href="https://youtu.be/4VQwyPPRPCY">Info-Video</a></p>
+            <p>Zur Karte existiert ein kurzes <a href="https://youtu.be/4VQwyPPRPCY">Info-Video</a> (nicht mehr ganz aktuell).</p>
             <p>
                 Zu jedem Flurstück werden, abhängig von der Zoomstufe, weiterführende Informationen angezeigt, soweit diese bereits erfasst sind. Dies können sein: Flur, Flurstück, Eigentümer, Größe in preußischen Morgen, Ruten und Fuß sowie die Kulturart und als was das Flurstück taxiert wurde.
             </p>
@@ -21,7 +21,16 @@ import infotextJpg from '../assets/infotext.jpg'
                 <img width="300" :src="hausnummernJpg" alt="Hausnummern"/>
             </p>
             <p>
-                Alle Angaben ohne Gewähr.
+                Alle Angaben ohne Gewähr. Bei Fehlern, Hinweisen, Anregungen oder Ergänzungsvorschlängen würde ich mich über eine kurze Email (s.u.) sehr freuen.
+            </p>
+            <h1>Suchfunktion</h1>
+            <p>
+                Die Suche ist in der oberen rechten Ecke zu finden. Sie erlaubt die Suche entweder nach Ortsangaben (Dörfer, Orte, Bezeichnungen, Gewässer und dergleichen) oder nach Eigentümern.
+                Die Suche erfolgt automatisch nach Eingabe des Suchtexts. Platzhalter werden bei nicht unterstützt.
+            </p>
+            <p>
+                Beim Klick auf eine Ortsangabe verschiebt sich die Karte automatisch an den entsprechenden Ort. Beim Klick auf einen Eigentümer wird sein Besitz aufgelistet. Dort findet sich auch die Artikelnummer. Diese ist für weitere Recherchen im Kataster sehr hilfreich.
+                Klickt man dort auf eine Parzelle verschiebt sich die Karte wiederum zu dieser. Bei einigen Eigentümern finden sich außerdem Angaben wie "P" und "E" im Namen. Diese stehen für Pächter und Eigentümer. In einigen, jedoch nicht in allen Gemeinden wurde dies im Kataster aufgeschlüsselt.
             </p>
             <h1>Administrative Grenzen</h1>
             <p>Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum. 1826 waren die Kreise weiter in Bürgermeistereien untergliedert. Dortmund umfasste die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund. Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.</p>

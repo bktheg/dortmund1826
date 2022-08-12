@@ -99,7 +99,7 @@
                     ¹ Lage laut Flurbuch. Die Angabe ist mit einiger Vorsicht zu betrachten. Die Lageangaben sind häufig schwer zu lesen und durchaus bereits im Flurbuch falsch geschrieben
                 </p>
                 <p>
-                    ² Steuerklasse 1-5. Einzelne Parzellen waren teils weiter unterteilt, so dass eine Anzahl von x Morgen/Ruten/Fuß einer Steuerklasse zugeordnet wurden, der Rest aber zu einer anderen gehörte
+                    ² Steuerklasse 1-5. Einzelne Parzellen waren weiter unterteilt, so dass eine Anzahl von x Morgen/Ruten/Fuß einer Steuerklasse zugeordnet wurden, der Rest aber zu einer anderen gehörte
                 </p>
                 <p>
                     ³ Angabe der Fläche in Morgen.Ruten.Fuß
