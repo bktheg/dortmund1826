@@ -21,6 +21,9 @@ import infotextJpg from '../assets/infotext.jpg'
                 <img width="300" :src="hausnummernJpg" alt="Hausnummern"/>
             </p>
             <p>
+                Die Karte ersetzt weder eine Katasterauskunft noch Anfragen an Vermessungsämter und soll dies auch ausdrücklich nicht. Die Karte basiert zwar in großen Teilen auf den überlieferten Urkatasterunterlagen, ist aber selbst keine Katasterkarte.
+            </p>
+            <p>
                 Alle Angaben ohne Gewähr. Bei Fehlern, Hinweisen, Anregungen oder Ergänzungsvorschlängen würde ich mich über eine kurze Email (s.u.) sehr freuen.
             </p>
             <h1>Suchfunktion</h1>

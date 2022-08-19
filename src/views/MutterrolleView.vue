@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import { useRoute, useRouter } from 'vue-router';
     import { ref,toRefs,reactive,computed,inject } from 'vue'
-    import type {Emitter,Events} from 'mitt';
+    import type {Emitter} from 'mitt';
 
     import {useFlurStore} from '../stores/flurStore'
     import {useMutterrolleStore} from '../stores/mutterrolleStore'
@@ -31,12 +31,16 @@
     const mutterrolle = computed(() => mutterrollen.value.get(gemeindeId.value)?.get(artikelNr.value));
     const gemeinde = computed(() => getGemeindeById(gemeindeId.value))
 
-    const emitter = inject('emitter') as Emitter<Events>
+    const emitter = inject('emitter') as Emitter<any>
     const moveToFlur = (row:MutterrolleRow) => emitter.emit("map-highlight-location", {location:row.location, zoom:16});
 
     const router = useRouter();
-    const lastPage = router.options.history.state.back?.toString() ?? '/'
-    const back = () => router.push({path: lastPage})
+    const lastPage = router.options.history.state.back?.toString();
+    const back = () => {
+        if( lastPage ) {
+            router.push({path: lastPage})
+        }
+    }
 
     const gesamtflaeche = computed(() => {
         if( !mutterrolle.value ) {
@@ -59,7 +63,7 @@
 <template>
     <div id="contentview">
         <div id="content">
-            <a class="backToSearch" href="#" @click="back">Zurück zum Suchergebnis</a>
+            <a v-if="lastPage" class="backToSearch" href="#" @click="back">Zurück zum Suchergebnis</a>
             <section class="mutterrolleHeader">
                 <div class="name">Gemeinde</div><div class="value">{{gemeinde?.name}}</div>
                 <div class="name">Artikel Nr</div><div class="value">{{mutterrolle?.id}}</div>

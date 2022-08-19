@@ -14,7 +14,7 @@ type FlurExport = {
     box:number[]
 }
 
-class Gemeinde {
+export class Gemeinde {
     constructor( public id:string, public name:string, public kreis:string, public buergermeisterei:string) {}
 }
 
@@ -33,6 +33,15 @@ export const useFlurStore = defineStore({
       getGemeindeById: (state) => (gemeindeId:string):Gemeinde => {
             return state.flure.filter(f => f.gid == gemeindeId)
                 .map(f => new Gemeinde(f.gid, f.gem, f.kreis, f.bmstr))[0]
+      },
+      getAllGemeinden : (state) => ():Gemeinde[] => {
+            const result = new Map<string,Gemeinde>();
+            for(const f of state.flure) {
+                if( !result.has(f.gid) ) {
+                    result.set(f.gid, new Gemeinde(f.gid, f.gem, f.kreis, f.bmstr));
+                } 
+            }
+            return [...result.values()];
       }
     }, 
     actions: {

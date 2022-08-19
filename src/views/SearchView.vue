@@ -1,14 +1,18 @@
 <script setup lang="ts">
-
+    import "vue3-treeselect/dist/vue3-treeselect.css"
 </script>
 <script lang="ts">
     import _debounce from 'lodash/debounce';
     import type {DebouncedFunc} from 'lodash'
+    import type {Gemeinde} from '../stores/flurStore'
     import {useFlurStore} from '../stores/flurStore'
     import {useBezeichnungStore} from '../stores/bezeichnungStore'
     import {useEigentuemerStore} from '../stores/eigentuemerStore'
     import type {BezeichnungExport} from '../stores/bezeichnungStore'
     import type {RouteLocationRaw} from 'vue-router'
+    // @ts-ignore
+    import Treeselect from '@/components/treeselect/components/Treeselect.vue'
+
 
     const { fetchFlure } = useFlurStore()
     const { fetchBezeichnungen } = useBezeichnungStore()
@@ -23,7 +27,8 @@ type SearchResult = {
     name:string,
     location:number[]|null,
     typeEnum:SearchResultType,
-    route:RouteLocationRaw|null
+    route:RouteLocationRaw|null,
+    gemeinde:Gemeinde
 }
 
 enum SearchResultType {
@@ -44,8 +49,12 @@ export default {
             searchtext: "",
             searchType: "lage",
             searchDebounce: null as any as DebouncedFunc<() => void>,
-            maxResults: 100
+            maxResults: 100,
+            filterValue: ['__all']
         }
+    },
+    components: {
+        Treeselect
     },
     async mounted() {
         this.searchDebounce = _debounce(() => {
@@ -54,7 +63,7 @@ export default {
                     return;
                 }
                
-                const text = this.searchtext.trim().toLocaleLowerCase();
+                const text = this.searchtext.trimStart().toLocaleLowerCase();
                 this.matches = this.doSearch(text);
         }, 200)
         this.searchtext = this.$router.currentRoute.value.params.term as string
@@ -66,17 +75,60 @@ export default {
         this.search();
     },
     async beforeRouteUpdate(to, from) {
-        const newType = to.params.type as string;
-        const newTerm = to.params.term as string;
-        if( newType != this.searchType || newTerm != this.searchtext) {
-            this.searchType = newType;
-            this.searchtext = newTerm;
-            if( this.searchtext ) {
-                this.searchDebounce();
+        this.$nextTick(() => {
+            const newType = to.params.type as string;
+            const newTerm = to.params.term as string;
+            if( newType != this.searchType || newTerm != this.searchtext) {
+                this.searchType = newType;
+                this.searchtext = newTerm;
+                if( this.searchtext && this.searchDebounce ) {
+                    this.searchDebounce();
+                }
             }
+        });
+    },
+    watch: {
+        filterValue(oldValue, newValue) {
+            this.search();
+        },
+        searchType(oldValue, newValue) {
+            this.search();
+        }
+    },
+    computed: {
+        calcSearchTypeOptions():any[] {
+            return [{
+                label:"Ortsangabe",
+                id:"lage"
+            },{
+                label:"Eigentümer",
+                id:"owner"
+            }]
+        },
+         calcFilterOptions():any[] {
+            const flurStore = useFlurStore();
+            const result:any[] = [];
+            for( const g of flurStore.getAllGemeinden() ) {
+                let kreis = result.find(e => e.id == `kreis-${g.kreis}`)
+                if( !kreis ) {
+                    kreis = {label:`Kreis ${g.kreis}`, id:`kreis-${g.kreis}`, children:[]};
+                    result.push(kreis);
+                }
+                
+                let bmstr = kreis.children.find((e:any) => e.id == `bmstr-${g.buergermeisterei}`);
+                if( !bmstr ) {
+                    bmstr = {id:`bmstr-${g.buergermeisterei}`,label:`Bürgmstr. ${g.buergermeisterei}`, children:[]};
+                    kreis.children.push(bmstr);
+                }
+                bmstr.children.push({id:g.id, label:g.name});
+            }
+            return [{id:'__all', label:'Provinz Westfalen', children:result}];
         }
     },
     methods: {
+        limitText: function(count:number) {
+            return `+${count}`
+        },
         search: function() {
             if( this.searchtext ) {
                 this.searchDebounce();
@@ -89,7 +141,7 @@ export default {
                 return [];
             }
 
-            const result = [];
+            let result = [];
             const flurStore = useFlurStore();
             
             if( this.searchType == "lage" ) { 
@@ -98,11 +150,13 @@ export default {
                 for( const bz of bezeichnungStore.bezeichnungen ) {
                     if( bz.n.toLocaleLowerCase().includes(term) ) {
                         const flur = flurStore.getFlurById(bz.g, bz.f);
+                        const gemeinde = flurStore.getGemeindeById(bz.g);
                         result.push({
                             locationDesc: flur != null ? `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem} > Flur ${flur.nr} gnt. ${flur.name}` : "",
                             location: bz.l,
                             name: bz.n,
-                            typeEnum: this.mapTypeToEnum(bz.t)
+                            typeEnum: this.mapTypeToEnum(bz.t),
+                            gemeinde: gemeinde
                         } as SearchResult);
 
                         if( result.length > this.maxResults ) {
@@ -111,12 +165,14 @@ export default {
                     }
                 }
                 for( const flur of flurStore.flure ) {
-                    if( flur.name.toLocaleLowerCase().includes(term) ) {
+                    if( this.filterValue.includes(flur.gem) && flur.name.toLocaleLowerCase().includes(term) ) {
+                        const gemeinde = flurStore.getGemeindeById(flur.gid);
                         result.push({
                             locationDesc: `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem}`,
                             location: flur.box,
                             name: `Flur ${flur.nr} gnt. ${flur.name}`,
-                            typeEnum: SearchResultType.FLUR
+                            typeEnum: SearchResultType.FLUR,
+                            gemeinde: gemeinde
                         } as SearchResult);
 
                         if( result.length > this.maxResults ) {
@@ -135,7 +191,8 @@ export default {
                             location: null,
                             name: owner.name,
                             typeEnum: SearchResultType.OWNER,
-                            route: {name: "mutterrolle", params:{gemeinde:owner.gemeindeId, artikelNr: owner.id}}
+                            route: {name: "mutterrolle", params:{gemeinde:owner.gemeindeId, artikelNr: owner.id}},
+                            gemeinde: gemeinde
                         } as SearchResult);
 
                         if( result.length > this.maxResults ) {
@@ -145,6 +202,9 @@ export default {
                 }
             }
 
+            if( !this.filterValue.includes('__all') ) {
+                result = result.filter(r => this.filterValue.includes(r.gemeinde.id) || this.filterValue.includes('kreis-'+r.gemeinde.kreis) || this.filterValue.includes('bmstr-'+r.gemeinde.buergermeisterei));
+            }
             result.sort((a,b) => b.typeEnum-a.typeEnum)
 
             return result;
@@ -214,6 +274,7 @@ export default {
 </script>
 
 <style>
+    
     #searchresult {
         margin:0;
         padding:0
@@ -259,24 +320,46 @@ export default {
         font-style:italic;
         font-size:80%;
     }
-    .searchinput input {
-        width:40%;
+    .searchinput,
+    .searchfilter {
+        width:100%;
+    }
+    .searchfilter {
+        margin-bottom:5pt;
+    }
+    .searchinput .text {
+        width:70%;
         min-width:200pt;
         height:17pt;
+        border: 1px solid #ddd;
+        border-radius: 5px;
     }
-    .searchinput select {
-        width:20%;
+    .searchinput .button {
+        width:25%;
+    }
+    .searchfilter .searchtype {
+        width:15%;
         min-width:80pt;
-        height:17pt;
+    }
+    .searchfilter .filter {
+        width:55%;
+    }
+    .searchfilter .vue-treeselect {
+        display:inline-block;
+        vertical-align:middle;
     }
 </style>
 
 <template>
     <div id="contentview">
         <div id="content">
+            <section class="searchfilter">
+                Suche nach <Treeselect ref="searchTypeRef" class="searchtype" :options="calcSearchTypeOptions" :multiple="false" v-model="searchType" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'" :clearable="false" v-on:search-change="search()"/>
+                in <Treeselect class="filter" :options="calcFilterOptions" :multiple="true" v-model="filterValue" :limit="2" :limitText="limitText" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'"/>
+            </section>
             <section class="searchinput">
-                <input type="text" placeholder="Suchtext" v-model="searchtext" @keyup="search()"/>
-                <select v-model="searchType" @change="search()"><option value="lage">Ortsangabe</option><option value="owner">Eigentümer</option></select>
+                <input class="text" type="text" placeholder="Suchbegriff eingeben" v-model="searchtext" @keyup="search()"/>
+                <input class="button" type="submit" value="Suchen" @click="search()"/>
             </section>
             <p>
                 <ul id="searchresult">
@@ -291,5 +374,6 @@ export default {
                 Es werden maximal {{maxResults}} Treffer angezeigt
             </p>
         </div>
+        <Transition/>
     </div>
 </template>
