@@ -1,7 +1,7 @@
 <script setup lang="ts">
-    import "vue3-treeselect/dist/vue3-treeselect.css"
 </script>
 <script lang="ts">
+    import "vue3-treeselect/dist/vue3-treeselect.css"
     import _debounce from 'lodash/debounce';
     import type {DebouncedFunc} from 'lodash'
     import type {Gemeinde} from '../stores/flurStore'
@@ -10,6 +10,8 @@
     import {useEigentuemerStore} from '../stores/eigentuemerStore'
     import type {BezeichnungExport} from '../stores/bezeichnungStore'
     import type {RouteLocationRaw} from 'vue-router'
+    import type { SearchResult } from "@/services/searchService";
+    import { searchByTerm, SearchResultType } from "@/services/searchService";
     // @ts-ignore
     import Treeselect from '@/components/treeselect/components/Treeselect.vue'
 
@@ -21,25 +23,6 @@
     fetchFlure()
     fetchBezeichnungen()
     fetchEigentuemer()
-
-type SearchResult = {
-    locationDesc:string,
-    name:string,
-    location:number[]|null,
-    typeEnum:SearchResultType,
-    route:RouteLocationRaw|null,
-    gemeinde:Gemeinde
-}
-
-enum SearchResultType {
-    BEZEICHNUNG=1,
-    BEZEICHNUNG_LINE=2,
-    GEBAEUDE=3,
-    GEWAESSER=4,
-    FLUR=5,
-    ORT=6,
-    OWNER=7
-}
 
 export default {
     data() {
@@ -105,7 +88,7 @@ export default {
                 id:"owner"
             }]
         },
-         calcFilterOptions():any[] {
+        calcFilterOptions():any[] {
             const flurStore = useFlurStore();
             const result:any[] = [];
             for( const g of flurStore.getAllGemeinden() ) {
@@ -137,77 +120,7 @@ export default {
         doSearch: function(term:string):SearchResult[] {
             this.$router.replace({name:'search', params:{type:this.searchType, term:this.searchtext}, hash:window.location.hash})
             
-            if( !term ) {
-                return [];
-            }
-
-            let result = [];
-            const flurStore = useFlurStore();
-            
-            if( this.searchType == "lage" ) { 
-                const bezeichnungStore = useBezeichnungStore();
-
-                for( const bz of bezeichnungStore.bezeichnungen ) {
-                    if( bz.n.toLocaleLowerCase().includes(term) ) {
-                        const flur = flurStore.getFlurById(bz.g, bz.f);
-                        const gemeinde = flurStore.getGemeindeById(bz.g);
-                        result.push({
-                            locationDesc: flur != null ? `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem} > Flur ${flur.nr} gnt. ${flur.name}` : "",
-                            location: bz.l,
-                            name: bz.n,
-                            typeEnum: this.mapTypeToEnum(bz.t),
-                            gemeinde: gemeinde
-                        } as SearchResult);
-
-                        if( result.length > this.maxResults ) {
-                            break;
-                        }
-                    }
-                }
-                for( const flur of flurStore.flure ) {
-                    if( this.filterValue.includes(flur.gem) && flur.name.toLocaleLowerCase().includes(term) ) {
-                        const gemeinde = flurStore.getGemeindeById(flur.gid);
-                        result.push({
-                            locationDesc: `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem}`,
-                            location: flur.box,
-                            name: `Flur ${flur.nr} gnt. ${flur.name}`,
-                            typeEnum: SearchResultType.FLUR,
-                            gemeinde: gemeinde
-                        } as SearchResult);
-
-                        if( result.length > this.maxResults ) {
-                            break;
-                        }
-                    }
-                }
-            }
-            else {
-                const eigentuemerStore = useEigentuemerStore();
-                for( const owner of eigentuemerStore.eigentuemer ) {
-                    if( owner.name && owner.name.toLocaleLowerCase().includes(term) ) {
-                        const gemeinde = flurStore.getGemeindeById(owner.gemeindeId);
-                        result.push({
-                            locationDesc: `Kreis ${gemeinde.kreis} > Bürgermeisterei ${gemeinde.buergermeisterei} > Gemeinde ${gemeinde.name}`,
-                            location: null,
-                            name: owner.name,
-                            typeEnum: SearchResultType.OWNER,
-                            route: {name: "mutterrolle", params:{gemeinde:owner.gemeindeId, artikelNr: owner.id}},
-                            gemeinde: gemeinde
-                        } as SearchResult);
-
-                        if( result.length > this.maxResults ) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if( !this.filterValue.includes('__all') ) {
-                result = result.filter(r => this.filterValue.includes(r.gemeinde.id) || this.filterValue.includes('kreis-'+r.gemeinde.kreis) || this.filterValue.includes('bmstr-'+r.gemeinde.buergermeisterei));
-            }
-            result.sort((a,b) => b.typeEnum-a.typeEnum)
-
-            return result;
+            return searchByTerm(term, this.searchType, this.filterValue, this.maxResults);
         },
         resultSelected: function(match:SearchResult) {
             if( match.location ) {
@@ -250,24 +163,6 @@ export default {
                 case SearchResultType.OWNER:
                     return "owner";
             }
-        },
-        mapTypeToEnum : function(type:number):SearchResultType {
-            if( type == null ) {
-                return SearchResultType.BEZEICHNUNG;
-            }
-            switch(type) {
-            case 0:
-                return SearchResultType.BEZEICHNUNG;
-            case 1:
-                return SearchResultType.ORT;
-            case 101:
-                return SearchResultType.GEWAESSER;
-            case 102:
-                return SearchResultType.BEZEICHNUNG_LINE;
-            case 50:
-                return SearchResultType.GEBAEUDE;
-            }
-            return SearchResultType.BEZEICHNUNG;
         }
     }
 }

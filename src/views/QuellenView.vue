@@ -29,7 +29,7 @@ import infotextJpg from '../assets/infotext.jpg'
             <h1>Suchfunktion</h1>
             <p>
                 Die Suche ist in der oberen rechten Ecke zu finden. Sie erlaubt die Suche entweder nach Ortsangaben (Dörfer, Orte, Bezeichnungen, Gewässer und dergleichen) oder nach Eigentümern.
-                Die Suche erfolgt automatisch nach Eingabe des Suchtexts. Platzhalter werden bei nicht unterstützt.
+                Die Suche erfolgt automatisch nach Eingabe des Suchtexts. Platzhalter werden bei nicht unterstützt. Die Suche kann auf einzelne Kreise, Bürgermeistereien oder Gemeinden eingeschränkt werden.
             </p>
             <p>
                 Beim Klick auf eine Ortsangabe verschiebt sich die Karte automatisch an den entsprechenden Ort. Beim Klick auf einen Eigentümer wird sein Besitz aufgelistet. Dort findet sich auch die Artikelnummer. Diese ist für weitere Recherchen im Kataster sehr hilfreich.
@@ -37,7 +37,7 @@ import infotextJpg from '../assets/infotext.jpg'
             </p>
             <h1>Administrative Grenzen</h1>
             <p>Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum. 1826 waren die Kreise weiter in Bürgermeistereien untergliedert. Dortmund umfasste die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund. Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.</p>
-            <p>Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters. Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum. Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.</p>
+            <p>Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters. Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum, auch wird teils zwischen Steuergemeinden und Etatgemeinden unterschieden. Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.</p>
             <h1>Quellenangaben</h1>
             <p>
             Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände 162/01 (Katasterkarten), 162/02 (Trigonometrische Unterlagen) und 162/03 (Flurbücher) des <a href="https://www.dortmund.de/de/freizeit_und_kultur/stadtarchiv/start_stadtarchiv/index.html">Stadtarchivs Dortmund</a> und der Bestände K551 (Katasterbücher im Regierungsbezirk Arnsberg) und W052/Karten K (Katasterkarten) des <a href="https://www.archive.nrw.de/landesarchiv-nrw/landesarchiv-nrw-abteilung-westfalen-muenster">Landesarchivs NRW Abteilung Westfalen</a> erstellt. Sie zeigt den Zustand Dortmunds, wie dieser im Urkataster 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
