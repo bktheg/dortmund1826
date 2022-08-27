@@ -15,7 +15,7 @@ const router = createRouter({
       component: () => import('../views/QuellenView.vue')
     },
     {
-      path: '/search/:type?/:term?',
+      path: '/search/:type?/:term?/:filter?',
       name: 'search',
       component: () => import('../views/SearchView.vue')
     },

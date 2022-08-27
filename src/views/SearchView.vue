@@ -4,12 +4,10 @@
     import "vue3-treeselect/dist/vue3-treeselect.css"
     import _debounce from 'lodash/debounce';
     import type {DebouncedFunc} from 'lodash'
-    import type {Gemeinde} from '../stores/flurStore'
     import {useFlurStore} from '../stores/flurStore'
     import {useBezeichnungStore} from '../stores/bezeichnungStore'
     import {useEigentuemerStore} from '../stores/eigentuemerStore'
     import type {BezeichnungExport} from '../stores/bezeichnungStore'
-    import type {RouteLocationRaw} from 'vue-router'
     import type { SearchResult } from "@/services/searchService";
     import { searchByTerm, SearchResultType } from "@/services/searchService";
     // @ts-ignore
@@ -51,6 +49,7 @@ export default {
         }, 200)
         this.searchtext = this.$router.currentRoute.value.params.term as string
         this.searchType = this.$router.currentRoute.value.params.type as string
+        this.filterValue = this.unserializeFilter(this.$router.currentRoute.value.params.filter as string);
         if( !this.searchType ) {
             this.searchType = 'lage';
         }
@@ -61,9 +60,11 @@ export default {
         this.$nextTick(() => {
             const newType = to.params.type as string;
             const newTerm = to.params.term as string;
-            if( newType != this.searchType || newTerm != this.searchtext) {
+            const newFilter = to.params.filter as string;
+            if( newType != this.searchType || newTerm != this.searchtext || newFilter != this.serializeFilter(this.filterValue) ) {
                 this.searchType = newType;
                 this.searchtext = newTerm;
+                this.filterValue = this.unserializeFilter(newFilter);
                 if( this.searchtext && this.searchDebounce ) {
                     this.searchDebounce();
                 }
@@ -117,8 +118,20 @@ export default {
                 this.searchDebounce();
             }
         },
+        serializeFilter(filters:string[]) {
+            if( filters.includes('__all') ) {
+                return null;
+            }
+            return filters.join(',');
+        },
+        unserializeFilter(filterString:string):string[] {
+            if( !filterString ) {
+                return ['__all'];
+            }
+            return filterString.split(',');
+        },
         doSearch: function(term:string):SearchResult[] {
-            this.$router.replace({name:'search', params:{type:this.searchType, term:this.searchtext}, hash:window.location.hash})
+            this.$router.replace({name:'search', params:{type:this.searchType, term:this.searchtext, filter:this.serializeFilter(this.filterValue)}, hash:window.location.hash})
             
             return searchByTerm(term, this.searchType, this.filterValue, this.maxResults);
         },
