@@ -39,11 +39,32 @@ import infotextJpg from '../assets/infotext.jpg'
             <p>Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum. 1826 waren die Kreise weiter in Bürgermeistereien untergliedert. Dortmund umfasste die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund. Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.</p>
             <p>Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters. Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum, auch wird teils zwischen Steuergemeinden und Etatgemeinden unterschieden. Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.</p>
             <h1>Quellenangaben</h1>
+            <p>Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände verschiedener Archive und Katasterämter erstellt. Die genaue Quellenangabe der einzelnen Bestände eines jeden Flurs ist in der Tabelle weiter unten zu finden. Die Karte zeigt hierbei den Zustand, wie dieser im Urkataster um 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
+            <p>Die Basis ist das Vermessungsnetz (Polygonnetz) des Urkatasters (Best. 162/02). Mittels des Netzes wurden dann die Urkarten georeferenziert und unter Zuhilfenahme der Übersichtshandrisse und Stückvermessungshandrisse digitalisiert (Best. 162/01). Kulturarten, Größen (in Morgen, Ruten und Fuß) und Eigentumsverhältnisse sind aus den Flurbüchern entnommen. Ortsbezeichnungen entstammen den Urkarten, den Stückvermessungshandrissen und teils auch den Flurbüchern. Wegen der teils schlechten Lesbarkeit fehlen einige Angaben. Zudem ist hier mit Fehlern zu rechnen. Auf eine manuelle Korrektur/Einpassung der Karte wurde verzichtet. Es kommt daher zu gewissen Abweichungen zwischen dieser und heutigen Karten.</p>
+            <p>Konkret wurde von mir Material der folgenden Archive und Katasterämter verwendet. <b>Allen an dieser Stelle einen ganz herzlichen Dank für die Bereitstellung!</b></p>
+            
+            <h2 id="quelle-sta-dortmund">Stadtarchiv Dortmund</h2>
+            <p>Basis für das heutige Dortmunder Stadtgebiet sind die Bestände 162/001 (Katasterkarten), 162/002 (Trigonometrische Unterlagen) und 162/003 (Flurbücher) des <a href="https://www.dortmund.de/de/freizeit_und_kultur/stadtarchiv/start_stadtarchiv/index.html">Stadtarchivs Dortmund</a>. Zur Validierung und Vervollständigung der Eigentümernamen wurde teils auch auf die Mutterrollen (Best. 162/005) und Güterverzeichnisse (Best. 162/007) zurückgegriffen.</p>
+            
+            <h2 id="quelle-lav-nrw-w">Landesarchiv NRW Abteilung Westfalen</h2>
+            <p>Basis sind die Bestände K551 (Katasterbücher im Regierungsbezirk Arnsberg) und W052/Karten K (Katasterkarten) des <a href="https://www.archive.nrw.de/landesarchiv-nrw/landesarchiv-nrw-abteilung-westfalen-muenster">Landesarchivs NRW Abteilung Westfalen</a></p>
+            
+            <template v-if="hasSource('KA Recklinghausen')">
+                <h2 id="quelle-ka-recklinghausen">Katasteramt des Kreises Recklinghausen</h2>
+                <p>
+                    Basis sind die vom Katasteramt des Kreises Recklinghausen für dortmund1826.de bereitgestellten Urkarten, Stückvermessungshandrisse und Flurbücher. Die Georeferenzierung der Urkarten wurde durch das Katasteramt selbst vorgenommen.
+                </p>
+                <p class="legal">
+                    Grundlage: Urkarten und Geobasisdaten © Kreis Recklinghausen<br/>
+                    Veröffentlicht mit freundlicher Genehmigung des Katasteramtes des Kreises Recklinghausen<br/>
+                    <br />
+                    Weitere historischen Urkarten stehen im <a target="_blank" href="https://www.kreis-re.de/Inhalte/Buergerservice/_index2.asp?seite=angebot&id=19543"><b>geo</b>atlas</a> des Kreises Recklinghausen zur Einsicht bereit.<br/>
+                    Im Kreisgebiet gibt es ca. 1.300 historische Urkarten aus dem Zeitraum von 1820 bis 1888, welche in einer interaktiven Karte und als Einzelkarte eingesehen werden können.
+                </p>
+            </template>
+            
+            <h2>Weitere Quellen</h2>
             <p>
-            Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände 162/01 (Katasterkarten), 162/02 (Trigonometrische Unterlagen) und 162/03 (Flurbücher) des <a href="https://www.dortmund.de/de/freizeit_und_kultur/stadtarchiv/start_stadtarchiv/index.html">Stadtarchivs Dortmund</a> und der Bestände K551 (Katasterbücher im Regierungsbezirk Arnsberg) und W052/Karten K (Katasterkarten) des <a href="https://www.archive.nrw.de/landesarchiv-nrw/landesarchiv-nrw-abteilung-westfalen-muenster">Landesarchivs NRW Abteilung Westfalen</a> erstellt. Sie zeigt den Zustand Dortmunds, wie dieser im Urkataster 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
-            <p>Die Basis ist das Vermessungsnetz (Polygonnetz) des Urkatasters (Best. 162/02). Mittels des Netzes wurden dann die Urkarten georeferenziert und unter Zuhilfenahme der Übersichtshandrisse und Stückvermessungshandrisse digitalisiert (Best. 162/01). Kulturarten, Größen (in Morgen, Ruten und Fuß) und Eigentumsverhältnisse sind aus den Flurbüchern entnommen (Best. 162/03). Ortsbezeichnungen entstammen den Urkarten, den Stückvermessungshandrissen und teils auch den Flurbüchern. Wegen der teils schlechten Lesbarkeit fehlen einige Angaben. Zudem ist hier mit Fehlern zu rechnen.</p>
-            <p>Auf eine manuelle Korrektur/Einpassung der Karte wurde verzichtet. Es kommt daher zu gewissen Abweichungen zwischen dieser und heutigen Karten.</p>
-            <p>Weitere Quellen:
                 <ul>
                     <li>Dortmund: Dortmunder Häuserbuch, Robert von den Berken, 1927; Adressbuch 1874</li>
                     <li>Mengede: Karte Schott / Heimatverein Mengede e.V.</li>
@@ -69,13 +90,12 @@ import infotextJpg from '../assets/infotext.jpg'
                         <td>{{flur.gem}}</td>
                         <td>{{flur.nr}}</td>
                         <td>{{flur.name}}</td>
-                        <td>{{expandSource(flur.qverm)}}</td>
-                        <td>{{expandSource(flur.qbuch)}}</td>
-                        <td>{{expandSource(flur.qmap)}}</td>
+                        <td><abbr :title="expandSourceToText(flur.qverm)" v-html="expandSourceToAbbr(flur.qverm)"></abbr></td>
+                        <td><abbr :title="expandSourceToText(flur.qbuch)" v-html="expandSourceToAbbr(flur.qbuch)"></abbr></td>
+                        <td><abbr :title="expandSourceToText(flur.qmap)" v-html="expandSourceToAbbr(flur.qmap)"></abbr></td>
                     </tr>
                 </tbody>
             </table>
-            <p v-for="quelle in flureQuellen">{{quelle}}</p>
             <h1>Autor</h1>
             <p>Christopher Jung • dortmund1909@email.de • <a href="https://www.youtube.com/c/ChristopherJung/">YouTube</a> • <a href="https://www.facebook.com/christopher.jung.370">Facebook</a></p>
         </div>
@@ -94,7 +114,7 @@ fetchFlure()
 export default {
     data() {
         return {
-            flureQuellen:[] as string[]
+            quellenIds:new Set<string|null>
         }
     },
     async mounted() {
@@ -103,24 +123,40 @@ export default {
             const sources = new Set<string|null>();
 
             state.flure.forEach((f) => {sources.add(f.qbuch); sources.add(f.qmap); sources.add(f.qverm)});
-
-            const quellen = [];
-            if( sources.has(null) || sources.has("") ) {
-                quellen.push("¹ Stadtarchiv Dortmund. Bestände 162/001 (Karten), 162/002 (Vermessung) und 162/003 (Flurbücher)")
-            }
-            if( sources.has("LAV") ) {
-                quellen.push("² Landesarchiv NRW Abteilung Westfalen. Bestände K551 (Vermessung und Flurbücher) und W052/Karten K (Karten)")
-            }
-            this.flureQuellen = quellen;
+            this.quellenIds = sources;
         })
     },
     methods: {
-        expandSource: function(source:string) {
+        hasSource: function(sourceId:string|null) {
+            return this.quellenIds.has(sourceId);
+        },
+        expandSourceToAbbr: function(source:string|null) {
             if( source == null || source.trim() == "" ) {
-                return "StDo¹";
+                return '<a href="#quelle-sta-dortmund">StADo</a>';
             }
             if( source == "LAV" ) {
-                return "LAV NRW W²"
+                return '<a href="#quelle-lav-nrw-w">LAV NRW W</a>'
+            }
+            if( source == "KA Recklinghausen" ) {
+                return '<a href="#quelle-ka-recklinghausen">Recklinghausen</a>'
+            }
+            if( source == "KA Ennepe-Ruhr" ) {
+                return '<a href="#quelle-ka-ennepe-ruhr">Ennepe-Ruhr</a>'
+            }
+            return source;
+        },
+        expandSourceToText: function(source:string|null) {
+            if( source == null || source.trim() == "" ) {
+                return "Stadtarchiv Dortmund. Bestände 162/001 (Karten), 162/002 (Vermessung) und 162/003 (Flurbücher)";
+            }
+            if( source == "LAV" ) {
+                return "Landesarchiv NRW Abteilung Westfalen. Bestände K551 (Vermessung und Flurbücher) und W052/Karten K (Karten)"
+            }
+            if( source == "KA Recklinghausen" ) {
+                return "Katasteramt des Kreises Recklinghausen. Grundlage: Urkarten und Geobasisdaten © Kreis Recklinghausen. Veröffentlicht mit freundlicher Genehmigung des Katasteramtes des Kreises Recklinghausen."
+            }
+            if( source == "KA Ennepe-Ruhr" ) {
+                return "Katasteramt des Kreises Ennepe-Ruhr"
             }
             return source;
         }
@@ -129,6 +165,18 @@ export default {
 </script>
 
 <style>
+    h1 {
+        margin-top:12pt;
+    }
+    h2 {
+        margin-top:6pt;
+    }
+    h1:first-child, h2:first-child {
+        margin-top:0pt;
+    }
+    .legal {
+        margin-top:10pt;
+    }
     .flure th {
         text-align: left;
         font-weight: bold;
@@ -139,5 +187,9 @@ export default {
     }
     .flure {
         margin-bottom:10pt;
+    }
+    .flure abbr a {
+        color: rgb(44,62,80);
+        text-decoration:none;
     }
 </style>
