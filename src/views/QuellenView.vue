@@ -9,7 +9,7 @@ import infotextJpg from '../assets/infotext.jpg'
             <h1>Dargestellte Informationen</h1>
             <p>Zur Karte existiert ein kurzes <a href="https://youtu.be/4VQwyPPRPCY">Info-Video</a> (nicht mehr ganz aktuell).</p>
             <p>
-                Zu jedem Flurstück werden, abhängig von der Zoomstufe, weiterführende Informationen angezeigt, soweit diese bereits erfasst sind. Dies können sein: Flur, Flurstück, Eigentümer, Größe in preußischen Morgen, Ruten und Fuß sowie die Kulturart und als was das Flurstück taxiert wurde.
+                Zu jeder Parzelle werden, abhängig von der Zoomstufe, weiterführende Informationen angezeigt, soweit diese bereits erfasst sind. Dies können sein: Flur, Flurstück, Eigentümer, Größe in preußischen Morgen, Ruten und Fuß sowie die Kulturart und als was die Parzelle taxiert wurde.
             </p>
             <p>
                 <img width="400" :src="infotextJpg" alt="Dargestellte Informationen"/>
@@ -39,7 +39,7 @@ import infotextJpg from '../assets/infotext.jpg'
             <p>Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum. 1826 waren die Kreise weiter in Bürgermeistereien untergliedert. Dortmund umfasste die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund. Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.</p>
             <p>Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters. Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum, auch wird teils zwischen Steuergemeinden und Etatgemeinden unterschieden. Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.</p>
             <h1>Quellenangaben</h1>
-            <p>Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände verschiedener Archive und Katasterämter erstellt. Die genaue Quellenangabe der einzelnen Bestände eines jeden Flurs ist in der Tabelle weiter unten zu finden. Die Karte zeigt hierbei den Zustand, wie dieser im Urkataster um 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
+            <p>Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände verschiedener Archive und Katasterämter erstellt. Die genaue Quellenangabe der einzelnen Bestände einer jeden Flur ist in der Tabelle weiter unten zu finden. Die Karte zeigt hierbei den Zustand, wie dieser im Urkataster um 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
             <p>Die Basis ist das Vermessungsnetz (Polygonnetz) des Urkatasters (Best. 162/02). Mittels des Netzes wurden dann die Urkarten georeferenziert und unter Zuhilfenahme der Übersichtshandrisse und Stückvermessungshandrisse digitalisiert (Best. 162/01). Kulturarten, Größen (in Morgen, Ruten und Fuß) und Eigentumsverhältnisse sind aus den Flurbüchern entnommen. Ortsbezeichnungen entstammen den Urkarten, den Stückvermessungshandrissen und teils auch den Flurbüchern. Wegen der teils schlechten Lesbarkeit fehlen einige Angaben. Zudem ist hier mit Fehlern zu rechnen. Auf eine manuelle Korrektur/Einpassung der Karte wurde verzichtet. Es kommt daher zu gewissen Abweichungen zwischen dieser und heutigen Karten.</p>
             <p>Konkret wurde von mir Material der folgenden Archive und Katasterämter verwendet. <b>Allen an dieser Stelle einen ganz herzlichen Dank für die Bereitstellung!</b></p>
             
@@ -71,8 +71,9 @@ import infotextJpg from '../assets/infotext.jpg'
                 </ul>
             </p>
             <h1>Umfang der Karte</h1>           
-            <p>Die im folgenden aufgelisteten damaligen Flure sind bereits digitalisiert und damit Teil der Karte. Weitere Gemeinden/Flure sind in Vorbereitung. Zu jedem Flur ist aufgeführt, in welchem Archiv sich die Originalquellen (Vermessungsunterlagen, Flurbuch, Urkarten) befinden.</p>
-            <table class="flure">
+            <p>Die im folgenden aufgelisteten damaligen Fluren sind bereits digitalisiert und damit Teil der Karte. Weitere Gemeinden/Fluren des Kreises Dortmund sind in Vorbereitung. Die gesuchte Gemeinde (in der Umgebung Dortmunds) ist noch nicht dabei? Meldet euch gerne per Mail bei mir (siehe unten). Auch Hilfe bei der Digitalisierung ist jederzeit willkommen und wenn es nur die Suche nach Unterlagen oder das Abschreiben von Flurbüchern ist.</p>
+            <p>Zu jeder Flur ist aufgeführt, in welchem Archiv sich die Originalquellen (Vermessungsunterlagen, Flurbuch, Urkarten) befinden.</p>
+            <table class="fluren">
                 <thead>
                     <th>Kreis</th>
                     <th>Bürgermeisterei</th>
@@ -96,6 +97,14 @@ import infotextJpg from '../assets/infotext.jpg'
                     </tr>
                 </tbody>
             </table>
+            <h1>Literatur</h1>
+            <p>Weiterführende Literaturempfehlungen zum Thema Katasterwesen und Urkataster:
+                <ul>
+                    <li>Vermessung in Dortmund. Beiträge zur Geschichte des Vermessungs- und Katasterwesens. Stadt Dortmund, Vermessungs- und Katasteramt. Dortmund, 1976</li>
+                    <li>Geschichte des Grundsteuer- und Vermessungswesens im Herzogtum Westfalen. Klemens Wiesemann. Herausgegeben vom Schieferbergbau- und Heimatmuseum Holthausen. Fredeburg, 1993</li>
+                    <li>Die Urkatasteraufnahme in Westfalen. Veröffentlichungen des Landesarchivs Nordrhein-Westfalen 20. Gerald Kreucher. Düsseldorf, 2008</li>
+                </ul>
+            </p>
             <h1>Autor</h1>
             <p>Christopher Jung • dortmund1909@email.de • <a href="https://www.youtube.com/c/ChristopherJung/">YouTube</a> • <a href="https://www.facebook.com/christopher.jung.370">Facebook</a></p>
         </div>
@@ -177,18 +186,18 @@ export default {
     .legal {
         margin-top:10pt;
     }
-    .flure th {
+    .fluren th {
         text-align: left;
         font-weight: bold;
         padding: 2pt 8pt 0pt 0pt;
     }
-    .flure td {
+    .fluren td {
         padding: 2pt 8pt 0pt 0pt;
     }
-    .flure {
+    .fluren {
         margin-bottom:10pt;
     }
-    .flure abbr a {
+    .fluren abbr a {
         color: rgb(44,62,80);
         text-decoration:none;
     }
