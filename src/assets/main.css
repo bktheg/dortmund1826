@@ -47,3 +47,7 @@ main #content {
         flex-direction: column;
     }
 }
+
+.mapboxgl-control-container {
+    position:static;
+}
