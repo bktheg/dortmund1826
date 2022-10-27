@@ -2,6 +2,7 @@
 
 </script>
 <script lang="ts">
+import router from '@/router';
 import type mapboxgl from 'mapbox-gl'
 
 class WmsLayer {
@@ -20,10 +21,18 @@ export default {
         showHeute: true,
         disabledUraufnahme: false,
         marker: null as any as mapboxgl.Marker,
+        clickEnabled: false,
+        hoveredArea: null as mapboxgl.MapboxGeoJSONFeature | null,
+        hoverLayer: 'kataster_areas_1826v2',
         wmsLayers: new Map<string,WmsLayer>()
     }
   },
   mounted() {
+    this.clickEnabled = new URLSearchParams(window.location.search).get('click-enabled') === '1' || window.localStorage.getItem('click-enabled') === '1'
+    if( this.clickEnabled ) {
+        window.localStorage.setItem('click-enabled', '1');
+    }
+
     this.wmsLayers.set('uraufnahme', new WmsLayer(
         'uraufnahme',
         'Uraufnahme (1836-1850)',
@@ -67,6 +76,9 @@ export default {
 
         this.updateWmsDisabledStatus();
 
+        if( this.clickEnabled ) {
+            this.setupHover();
+        }
     });
 
     this.map.on('zoom', () => this.updateWmsDisabledStatus());
@@ -108,6 +120,78 @@ export default {
   },
 
   methods: {
+    setupHover() {
+        this.map.addLayer({
+            'id': 'areas-hovered',
+            'type': 'line',
+            'source': 'composite',
+            'source-layer': this.hoverLayer,
+            'layout': {},
+            'paint': {
+                'line-color': '#BB5555',
+                'line-width': 4,
+                'line-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    1,
+                    0.0
+                ]
+            }
+        });
+
+        this.map.addLayer({
+            'id': 'areas-hover',
+            'type': 'fill',
+            'source': 'composite',
+            'source-layer': this.hoverLayer,
+            'layout': {},
+            'paint': {
+                'fill-opacity': 0.0
+            }
+        });
+
+        this.map.on('mousemove', 'areas-hover', (e:mapboxgl.MapLayerMouseEvent) => {
+            if (e.features && e.features.length > 0) {
+                if (this.hoveredArea !== null) {
+                    this.map.setFeatureState(
+                        { source: 'composite', sourceLayer:this.hoverLayer, id: this.hoveredArea.id },
+                        { hover: false }
+                    );
+                }
+                this.hoveredArea = e.features.find(f => f.properties?.typ === 0) || e.features[0]
+                this.map.setFeatureState(
+                    { source: 'composite', sourceLayer:this.hoverLayer, id: this.hoveredArea.id },
+                    { hover: true }
+                );
+            }
+        });
+
+        this.map.on('mouseleave', 'areas-hover', () => {
+            if (this.hoveredArea !== null) {
+                this.map.setFeatureState(
+                    { source: 'composite', sourceLayer:this.hoverLayer, id: this.hoveredArea.id },
+                    { hover: false }
+                );
+            }
+            this.hoveredArea = null;
+        });
+
+        this.map.on('click', 'areas-hover', () => {
+            this.hoverSelected();
+        });
+    },
+    hoverSelected() {
+        if( this.hoveredArea && this.hoveredArea.properties) {
+                router.push({
+                    name: 'parzelle',
+                    params: {
+                        gemeinde: this.hoveredArea.properties['gemeinde'] as string,
+                        flur: this.hoveredArea.properties['flur'] as number,
+                        nr: this.hoveredArea.properties['flurstueck'] as string
+                    }
+                })
+            }
+    },
     toggle1826() {
         this.toggleLayer((l) => l.startsWith('kataster-'), this.show1826);
 	    this.toggleLayer((l) => l.startsWith('kataster-gemeindegrenzen'), this.show1826Grenzen);

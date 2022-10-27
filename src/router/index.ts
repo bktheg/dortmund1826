@@ -23,6 +23,11 @@ const router = createRouter({
       path: '/mutterrolle/:gemeinde/:artikelNr',
       name: 'mutterrolle',
       component: () => import('../views/MutterrolleView.vue')
+    },
+    {
+      path: '/parzelle/:gemeinde/:flur/:nr',
+      name: 'parzelle',
+      component: () => import('../views/ParzelleView.vue')
     }
   ]
 })
