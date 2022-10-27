@@ -4,6 +4,12 @@
 <script lang="ts">
 import type mapboxgl from 'mapbox-gl'
 
+class WmsLayer {
+    public enabled:boolean = false;
+    public disabled:boolean = false;
+    constructor(public id:string, public name:string, public url:string, public minZoom:number, public maxZoom:number, public attribution:string) {}
+}
+
 export default {
   data() {
     return {
@@ -12,11 +18,27 @@ export default {
         show1826: true,
         show1826Grenzen: true,
         showHeute: true,
-        marker: null as any as mapboxgl.Marker
+        disabledUraufnahme: false,
+        marker: null as any as mapboxgl.Marker,
+        wmsLayers: new Map<string,WmsLayer>()
     }
   },
   mounted() {
-    console.log(window.mapboxgl)
+    this.wmsLayers.set('uraufnahme', new WmsLayer(
+        'uraufnahme',
+        'Uraufnahme (1836-1850)',
+        'http://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=false&width=256&height=256&layers=WMS_NW_URAUFNAHME',
+        12.5,
+        24,
+        'Geobasis NRW'));
+    this.wmsLayers.set('neuaufnahme', new WmsLayer(
+        'neuaufnahme',
+        'Neuaufnahme (1891-1912)',
+        'http://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=false&width=256&height=256&layers=nw_neuaufnahme',
+        12,
+        24,
+        'Geobasis NRW'));
+
     window.mapboxgl.accessToken = 'pk.eyJ1IjoiYmt0aGVnIiwiYSI6ImNrZ3dnZnpkazA5d3AyeXBmNGhwdTZrbzYifQ.brEDeLH2Z1BPGZmQNcqwSQ';
     this.map = new window.mapboxgl.Map({
         container: 'map',
@@ -30,6 +52,24 @@ export default {
         touchPitch: false,
         customAttribution:"Christopher Jung"
     });
+
+    this.map.on('load', () => {
+        for( const layer of this.wmsLayers.values() ) {
+            this.map?.addSource(`wms-${layer.id}-source`, {
+                        'type': 'raster',
+                        'tiles': [layer.url],
+                        'tileSize': 256,
+                        'attribution': layer.attribution,
+                        'minzoom': layer.minZoom,
+                        'maxzoom': layer.maxZoom
+                        });
+        }
+
+        this.updateWmsDisabledStatus();
+
+    });
+
+    this.map.on('zoom', () => this.updateWmsDisabledStatus());
 
     const nav = new window.mapboxgl.NavigationControl();
     this.map.addControl(nav, 'top-left');
@@ -80,7 +120,7 @@ export default {
     },
 
     toggleHeute() {
-        this.toggleLayer((l) => !l.startsWith('kataster-'), this.showHeute);
+        this.toggleLayer((l) => !l.startsWith('kataster-') && !l.startsWith('wms-'), this.showHeute);
     },
 
 
@@ -93,6 +133,31 @@ export default {
                 this.map?.setLayoutProperty(elem, 'visibility', visible ? 'visible' : 'none');
             }
         }
+    },
+
+    toggleWmsLayer(id:string, show:boolean) {
+        if( show ) {
+            if( this.map?.getLayer(`wms-${id}-layer`) == null ) {
+                this.map?.addLayer({
+                    'id': `wms-${id}-layer`,
+                    'type': 'raster',
+                    'source': `wms-${id}-source`,
+                    'paint': {},
+                    'minzoom': this.map?.getSource(`wms-${id}-source`).minzoom,
+                    'maxzoom': this.map?.getSource(`wms-${id}-source`).maxzoom,
+                });
+                this.map?.moveLayer(`wms-${id}-layer`, 'Kataster-Kulturarten')
+            }
+        }
+        else {
+            this.map?.removeLayer(`wms-${id}-layer`);
+        }
+    },
+
+    updateWmsDisabledStatus() {
+        for( const layer of this.wmsLayers.values() ) {
+            layer.disabled = this.map?.getZoom() < layer.minZoom
+        }
     }
   }
 }
@@ -104,12 +169,13 @@ export default {
             <label><input type="checkbox" value="true" id="layer1826" v-model="show1826" @change="toggle1826()"/>1826</label>
             <div><label><input type="checkbox" value="true" id="layer1826grenzen" v-model="show1826Grenzen" @change="toggle1826Grenzen()"/>Grenzen</label></div>
         </div>
+        <div v-for="layer of wmsLayers.values()"><label :class="layer.disabled?'disabled' : ''"><input type="checkbox" value="true" v-model="layer.enabled" @change="toggleWmsLayer(layer.id, layer.enabled)"/>{{layer.name}}</label></div>
         <div><label><input type="checkbox" value="true" id="layerHeute" v-model="showHeute" @change="toggleHeute()"/>Heute</label></div>
     </nav>
 </template>
 
 <style scoped>
-   #map {height:100%;position:absolute;top:0;bottom:0;left:0;right:0}
+    #map {height:100%;position:absolute;top:0;bottom:0;left:0;right:0}
 		
     #layer {
         background-color:hsla(0,0%,100%,.5);
@@ -137,5 +203,9 @@ export default {
     
     #layer div:last-child {
         border: none;
+    }
+
+    label.disabled {
+        color:darkgray
     }
 </style>

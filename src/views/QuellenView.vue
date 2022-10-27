@@ -97,6 +97,13 @@ import infotextJpg from '../assets/infotext.jpg'
                     </tr>
                 </tbody>
             </table>
+            <h1>Hintergrundkarten</h1>
+            <h2>Uraufnahme (1836-1850)</h2>
+            <p>Die Preußische Kartenaufnahme wurde in den Jahren 1836-1850 für die Provinzen Rheinland und Westfalen im Maßstab 1:25.000 angefertigt. Die Karte wird von <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/topographische_karten/historisch/1836/index.html">Geobasis NRW</a> im Onlineverfahren ohne Einschränkungen oder Bedingungen bereitgestellt. Die Karte steht nicht in allen Zoomstufen zur Verfügung.</p>
+            <h2>Neuaufnahme (1891-1912)</h2>
+            <p>Die Preußische Kartenaufnahme wurde als Neuaufnahme in den Jahren 1891-1912 für das gesamten Landesgebiet Preußens im Maßstab 1:25.000 angefertigt. Die Karte wird von <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/topographische_karten/historisch/1891/index.html">Geobasis NRW</a> im Onlineverfahren ohne Einschränkungen oder Bedingungen bereitgestellt. Die Karte steht nicht in allen Zoomstufen zur Verfügung.</p>
+            <h2>Heute</h2>
+            <p>Eine Karte des heutigen Zustands. Die Karte wird bereitgestellt von <a href="https://www.mapbox.com/about/maps/">Mapbox</a> und basiert auf den Daten von <a href="https://www.openstreetmap.org/about/">OpenStreetMap</a>.</p>
             <h1>Literatur</h1>
             <p>Weiterführende Literaturempfehlungen zum Thema Katasterwesen und Urkataster:
                 <ul>
