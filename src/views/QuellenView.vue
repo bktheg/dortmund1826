@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import hausnummernJpg from '../assets/hausnummern.jpg'
 import infotextJpg from '../assets/infotext.jpg'
+import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService'
 </script>
 
 <template>
     <div id="contentview">
         <div id="content">
-            <h1>Dargestellte Informationen</h1>
+            <ol class="table-of-contents" role="list">
+                <li><a href="#dargestellte-informationen">Dargestellte Informationen</a></li>
+                <li><a href="#suchfunktion">Suchfunktion</a></li>
+                <li><a href="#administrative-grenzen">Administrative Grenzen</a></li>
+                <li><a href="#quellen">Quellen</a></li>
+                <li><a href="#umfang-der-karte">Umfang der Karte</a></li>
+                <li><a href="#hintergrundkarten">Hintergrundkarten</a></li>
+                <li><a href="#literatur">Literatur</a></li>
+                <li><a href="#autor">Autor/Kontakt</a></li>
+            </ol>
+
+
+            <h1 id="dargestellte-informationen">Dargestellte Informationen</h1>
             <p>Zur Karte existiert ein kurzes <a href="https://youtu.be/4VQwyPPRPCY">Info-Video</a> (nicht mehr ganz aktuell).</p>
             <p>
                 Zu jeder Parzelle werden, abhängig von der Zoomstufe, weiterführende Informationen angezeigt, soweit diese bereits erfasst sind. Dies können sein: Flur, Flurstück, Eigentümer, Größe in preußischen Morgen, Ruten und Fuß sowie die Kulturart und als was die Parzelle taxiert wurde.
@@ -26,7 +39,9 @@ import infotextJpg from '../assets/infotext.jpg'
             <p>
                 Alle Angaben ohne Gewähr. Bei Fehlern, Hinweisen, Anregungen oder Ergänzungsvorschlängen würde ich mich über eine kurze Email (s.u.) sehr freuen.
             </p>
-            <h1>Suchfunktion</h1>
+
+
+            <h1 id="suchfunktion">Suchfunktion</h1>
             <p>
                 Die Suche ist in der oberen rechten Ecke zu finden. Sie erlaubt die Suche entweder nach Ortsangaben (Dörfer, Orte, Bezeichnungen, Gewässer und dergleichen) oder nach Eigentümern.
                 Die Suche erfolgt automatisch nach Eingabe des Suchtexts. Platzhalter werden bei nicht unterstützt. Die Suche kann auf einzelne Kreise, Bürgermeistereien oder Gemeinden eingeschränkt werden.
@@ -35,10 +50,14 @@ import infotextJpg from '../assets/infotext.jpg'
                 Beim Klick auf eine Ortsangabe verschiebt sich die Karte automatisch an den entsprechenden Ort. Beim Klick auf einen Eigentümer wird sein Besitz aufgelistet. Dort findet sich auch die Artikelnummer. Diese ist für weitere Recherchen im Kataster sehr hilfreich.
                 Klickt man dort auf eine Parzelle verschiebt sich die Karte wiederum zu dieser. Bei einigen Eigentümern finden sich außerdem Angaben wie "P" und "E" im Namen. Diese stehen für Pächter und Eigentümer. In einigen, jedoch nicht in allen Gemeinden wurde dies im Kataster aufgeschlüsselt.
             </p>
-            <h1>Administrative Grenzen</h1>
+
+
+            <h1 id="administrative-grenzen">Administrative Grenzen</h1>
             <p>Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum. 1826 waren die Kreise weiter in Bürgermeistereien untergliedert. Dortmund umfasste die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund. Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.</p>
             <p>Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters. Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum, auch wird teils zwischen Steuergemeinden und Etatgemeinden unterschieden. Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.</p>
-            <h1>Quellenangaben</h1>
+            
+
+            <h1 id="quellen">Quellen</h1>
             <p>Die <a href="https://dortmund1826.de">Karte Dortmunds um 1826</a> wurde auf Basis der Bestände verschiedener Archive und Katasterämter erstellt. Die genaue Quellenangabe der einzelnen Bestände einer jeden Flur ist in der Tabelle weiter unten zu finden. Die Karte zeigt hierbei den Zustand, wie dieser im Urkataster um 1826/27 dokumentiert wurde, ohne Berücksichtigung von Fortschreibungen und Nachtragungen.</p>
             <p>Die Basis ist das Vermessungsnetz (Polygonnetz) des Urkatasters (Best. 162/02). Mittels des Netzes wurden dann die Urkarten georeferenziert und unter Zuhilfenahme der Übersichtshandrisse und Stückvermessungshandrisse digitalisiert (Best. 162/01). Kulturarten, Größen (in Morgen, Ruten und Fuß) und Eigentumsverhältnisse sind aus den Flurbüchern entnommen. Ortsbezeichnungen entstammen den Urkarten, den Stückvermessungshandrissen und teils auch den Flurbüchern. Wegen der teils schlechten Lesbarkeit fehlen einige Angaben. Zudem ist hier mit Fehlern zu rechnen. Auf eine manuelle Korrektur/Einpassung der Karte wurde verzichtet. Es kommt daher zu gewissen Abweichungen zwischen dieser und heutigen Karten.</p>
             <p>Konkret wurde von mir Material der folgenden Archive und Katasterämter verwendet. <b>Allen an dieser Stelle einen ganz herzlichen Dank für die Bereitstellung!</b></p>
@@ -70,7 +89,9 @@ import infotextJpg from '../assets/infotext.jpg'
                     <li>Mengede: Karte Schott / Heimatverein Mengede e.V.</li>
                 </ul>
             </p>
-            <h1>Umfang der Karte</h1>           
+
+
+            <h1 id="umfang-der-karte">Umfang der Karte</h1>           
             <p>Die im folgenden aufgelisteten damaligen Fluren sind bereits digitalisiert und damit Teil der Karte. Weitere Gemeinden/Fluren des Kreises Dortmund sind in Vorbereitung. Die gesuchte Gemeinde (in der Umgebung Dortmunds) ist noch nicht dabei? Meldet euch gerne per Mail bei mir (siehe unten). Auch Hilfe bei der Digitalisierung ist jederzeit willkommen und wenn es nur die Suche nach Unterlagen oder das Abschreiben von Flurbüchern ist.</p>
             <p>Zu jeder Flur ist aufgeführt, in welchem Archiv sich die Originalquellen (Vermessungsunterlagen, Flurbuch, Urkarten) befinden.</p>
             <table class="fluren">
@@ -97,14 +118,18 @@ import infotextJpg from '../assets/infotext.jpg'
                     </tr>
                 </tbody>
             </table>
-            <h1>Hintergrundkarten</h1>
+
+
+            <h1 id="hintergrundkarten">Hintergrundkarten</h1>
             <h2>Uraufnahme (1836-1850)</h2>
             <p>Die Preußische Kartenaufnahme wurde in den Jahren 1836-1850 für die Provinzen Rheinland und Westfalen im Maßstab 1:25.000 angefertigt. Die Karte wird von <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/topographische_karten/historisch/1836/index.html">Geobasis NRW</a> im Onlineverfahren ohne Einschränkungen oder Bedingungen bereitgestellt. Die Karte steht nicht in allen Zoomstufen zur Verfügung.</p>
             <h2>Neuaufnahme (1891-1912)</h2>
             <p>Die Preußische Kartenaufnahme wurde als Neuaufnahme in den Jahren 1891-1912 für das gesamten Landesgebiet Preußens im Maßstab 1:25.000 angefertigt. Die Karte wird von <a href="https://www.bezreg-koeln.nrw.de/brk_internet/geobasis/topographische_karten/historisch/1891/index.html">Geobasis NRW</a> im Onlineverfahren ohne Einschränkungen oder Bedingungen bereitgestellt. Die Karte steht nicht in allen Zoomstufen zur Verfügung.</p>
             <h2>Heute</h2>
             <p>Eine Karte des heutigen Zustands. Die Karte wird bereitgestellt von <a href="https://www.mapbox.com/about/maps/">Mapbox</a> und basiert auf den Daten von <a href="https://www.openstreetmap.org/about/">OpenStreetMap</a>.</p>
-            <h1>Literatur</h1>
+            
+            
+            <h1 id="literatur">Literatur</h1>
             <p>Weiterführende Literaturempfehlungen zum Thema Katasterwesen und Urkataster:
                 <ul>
                     <li>Vermessung in Dortmund. Beiträge zur Geschichte des Vermessungs- und Katasterwesens. Stadt Dortmund, Vermessungs- und Katasteramt. Dortmund, 1976</li>
@@ -112,7 +137,9 @@ import infotextJpg from '../assets/infotext.jpg'
                     <li>Die Urkatasteraufnahme in Westfalen. Veröffentlichungen des Landesarchivs Nordrhein-Westfalen 20. Gerald Kreucher. Düsseldorf, 2008</li>
                 </ul>
             </p>
-            <h1>Autor</h1>
+
+
+            <h1 id="autor">Autor/Kontakt</h1>
             <p>Christopher Jung • dortmund1909@email.de • <a href="https://www.youtube.com/c/ChristopherJung/">YouTube</a> • <a href="https://www.facebook.com/christopher.jung.370">Facebook</a></p>
         </div>
     </div>
@@ -145,36 +172,6 @@ export default {
     methods: {
         hasSource: function(sourceId:string|null) {
             return this.quellenIds.has(sourceId);
-        },
-        expandSourceToAbbr: function(source:string|null) {
-            if( source == null || source.trim() == "" ) {
-                return '<a href="#quelle-sta-dortmund">StADo</a>';
-            }
-            if( source == "LAV" ) {
-                return '<a href="#quelle-lav-nrw-w">LAV NRW W</a>'
-            }
-            if( source == "KA Recklinghausen" ) {
-                return '<a href="#quelle-ka-recklinghausen">Recklinghausen</a>'
-            }
-            if( source == "KA Ennepe-Ruhr" ) {
-                return '<a href="#quelle-ka-ennepe-ruhr">Ennepe-Ruhr</a>'
-            }
-            return source;
-        },
-        expandSourceToText: function(source:string|null) {
-            if( source == null || source.trim() == "" ) {
-                return "Stadtarchiv Dortmund. Bestände 162/001 (Karten), 162/002 (Vermessung) und 162/003 (Flurbücher)";
-            }
-            if( source == "LAV" ) {
-                return "Landesarchiv NRW Abteilung Westfalen. Bestände K551 (Vermessung und Flurbücher) und W052/Karten K (Karten)"
-            }
-            if( source == "KA Recklinghausen" ) {
-                return "Katasteramt des Kreises Recklinghausen. Grundlage: Urkarten und Geobasisdaten © Kreis Recklinghausen. Veröffentlicht mit freundlicher Genehmigung des Katasteramtes des Kreises Recklinghausen."
-            }
-            if( source == "KA Ennepe-Ruhr" ) {
-                return "Katasteramt des Kreises Ennepe-Ruhr"
-            }
-            return source;
         }
     }
 }
@@ -182,7 +179,7 @@ export default {
 
 <style>
     h1 {
-        margin-top:12pt;
+        margin-top:15pt;
     }
     h2 {
         margin-top:6pt;
@@ -208,4 +205,33 @@ export default {
         color: rgb(44,62,80);
         text-decoration:none;
     }
+
+    .table-of-contents, .table-of-contents ol {
+        list-style-type: none;
+    }
+
+    .table-of-contents {
+        padding: 7pt 10pt;
+        border: 1px solid darkgray;
+        display: inline-block;
+        background-color: #EEE;
+    }
+
+    .table-of-contents ol {
+        padding-inline-start: 2ch;
+    }
+
+    .table-of-contents li:first-child::before {
+        content:'Inhalt';
+        font-weight:bold;
+    }
+
+    .table-of-contents li > a {
+        text-decoration: none;
+        color: var(--color-text);
+        display: grid;
+        grid-template-columns: auto max-content;
+        align-items: end;
+    }
+
 </style>
