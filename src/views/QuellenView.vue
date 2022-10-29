@@ -107,14 +107,14 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 </thead>
                 <tbody>
                     <tr v-for="flur in flure">
-                        <td>{{flur.kreis}}</td>
-                        <td>{{flur.bmstr}}</td>
-                        <td>{{flur.gem}}</td>
+                        <td>{{flur.gemeinde?.kreis}}</td>
+                        <td>{{flur.gemeinde?.buergermeisterei}}</td>
+                        <td>{{flur.gemeinde?.name}}</td>
                         <td>{{flur.nr}}</td>
                         <td>{{flur.name}}</td>
-                        <td><abbr :title="expandSourceToText(flur.qverm)" v-html="expandSourceToAbbr(flur.qverm)"></abbr></td>
-                        <td><abbr :title="expandSourceToText(flur.qbuch)" v-html="expandSourceToAbbr(flur.qbuch)"></abbr></td>
-                        <td><abbr :title="expandSourceToText(flur.qmap)" v-html="expandSourceToAbbr(flur.qmap)"></abbr></td>
+                        <td><abbr :title="expandSourceToText(flur.gemeinde?.quelleVermessung)" v-html="expandSourceToAbbr(flur.gemeinde?.quelleVermessung)"></abbr></td>
+                        <td><abbr :title="expandSourceToText(flur.gemeinde?.quelleFlurbuch)" v-html="expandSourceToAbbr(flur.gemeinde?.quelleFlurbuch)"></abbr></td>
+                        <td><abbr :title="expandSourceToText(flur.quelleUrkarten)" v-html="expandSourceToAbbr(flur.quelleUrkarten)"></abbr></td>
                     </tr>
                 </tbody>
             </table>
@@ -165,7 +165,7 @@ export default {
         flurStore.$subscribe((mutation,state) => {
             const sources = new Set<string|null>();
 
-            state.flure.forEach((f) => {sources.add(f.qbuch); sources.add(f.qmap); sources.add(f.qverm)});
+            state.flure.forEach((f) => {sources.add(f.gemeinde?.quelleFlurbuch); sources.add(f.quelleUrkarten); sources.add(f.gemeinde?.quelleVermessung)});
             this.quellenIds = sources;
         })
     },

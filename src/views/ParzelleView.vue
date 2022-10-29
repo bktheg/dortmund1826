@@ -25,7 +25,7 @@
         parzelleStore.fetchParzellen(params.gemeinde as string, parseInt(params.flur as string));
     }, {immediate:true});
 
-    const gemeinde = computed(() => getGemeindeById(location.value.gemeindeId))
+    const gemeinde = computed(() => getGemeindeById(location.value.gemeindeId) || null)
     const flur = computed(() => getFlurById(location.value.gemeindeId, location.value.flurId))
 
     const parzelle = computed(() => parzellen.value.get(location.value.gemeindeId)?.get(location.value.flurId)?.find(e => e.parzelle == location.value.parzelleNr))
@@ -38,7 +38,7 @@
 <template>
     <div id="contentview">
         <div id="content">
-            <section class="location">Kreis {{flur?.kreis}} > Bürgermeisterei {{flur?.bmstr}} > Gemeinde {{flur?.gem}} > Flur {{flur?.nr}} gnt. {{flur?.name}} > Parzelle {{location.parzelleNr}}</section>
+            <section class="location">Kreis {{gemeinde?.kreis}} > Bürgermeisterei {{gemeinde?.buergermeisterei}} > Gemeinde {{gemeinde?.name}} > Flur {{flur?.nr}} gnt. {{flur?.name}} > Parzelle {{location.parzelleNr}}</section>
             <h1>Parzelle</h1>
             <dl class="properties">
                 <dd>Eigentümer</dd>
@@ -59,11 +59,13 @@
             <h1>Quellen</h1>
             <dl class="properties">
                 <dd>Vermessung</dd>
-                <dt>{{expandSourceToDetailedSource(flur.qverm)}}</dt>
+                <dt>{{expandSourceToDetailedSource(gemeinde?.quelleVermessung)}}</dt>
                 <dd>Urkarte</dd>
-                <dt>{{expandSourceToDetailedSource(flur.qmap)}}</dt>
+                <dt>{{expandSourceToDetailedSource(flur.quelleUrkarten)}}</dt>
                 <dd>Flurbuch</dd>
-                <dt>{{expandSourceToDetailedSource(flur.qbuch)}}</dt>
+                <dt>{{expandSourceToDetailedSource(gemeinde?.quelleFlurbuch)}}</dt>
+                <dd>Mutterrollen</dd>
+                <dt>{{expandSourceToDetailedSource(gemeinde?.quelleMutterrollen)}}</dt>
             </dl>
             <section class="footnotes">
                 <p>

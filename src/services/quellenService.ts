@@ -8,7 +8,10 @@ function extractArchivPart(source:string|null):string {
     return source.toLocaleLowerCase();
 }
 
-export function expandSourceToAbbr(source:string|null) {
+export function expandSourceToAbbr(source:string|null|undefined) {
+    if( typeof source === 'undefined' ) {
+        return '';
+    }
     source = extractArchivPart(source);
     switch( source ) {
     case 'stado':
@@ -29,7 +32,10 @@ export function expandSourceToAbbr(source:string|null) {
     return source;
 }
 
-export function expandSourceToDetailedSource(source:string|null) {
+export function expandSourceToDetailedSource(source:string|null|undefined) {
+    if( typeof source === 'undefined' ) {
+        return '';
+    }
     let archiv = "";
     switch( extractArchivPart(source) ) {
     case 'stado':
@@ -61,7 +67,10 @@ export function expandSourceToDetailedSource(source:string|null) {
     return archiv;
 }
 
-export function expandSourceToText(source:string|null) {
+export function expandSourceToText(source:string|null|undefined) {
+    if( typeof source === 'undefined' ) {
+        return '';
+    }
     source = extractArchivPart(source);
     switch( source ) {
     case 'stado':

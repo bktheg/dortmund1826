@@ -40,7 +40,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                 const flur = flurStore.getFlurById(bz.g, bz.f);
                 const gemeinde = flurStore.getGemeindeById(bz.g);
                 result.push({
-                    locationDesc: flur != null ? `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem} > Flur ${flur.nr} gnt. ${flur.name}` : "",
+                    locationDesc: flur != null ? `Kreis ${flur.gemeinde.kreis} > Bürgermeisterei ${flur.gemeinde.buergermeisterei} > Gemeinde ${flur.gemeinde.name} > Flur ${flur.nr} gnt. ${flur.name}` : "",
                     location: bz.l,
                     name: bz.n,
                     typeEnum: mapTypeToEnum(bz.t),
@@ -49,11 +49,11 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             }
         }
         for( const flur of flurStore.flure ) {
-            const gemeinde = flurStore.getGemeindeById(flur.gid);
+            const gemeinde = flur.gemeinde;
             if( flur.name.toLocaleLowerCase().includes(term) ) {
                 result.push({
-                    locationDesc: `Kreis ${flur.kreis} > Bürgermeisterei ${flur.bmstr} > Gemeinde ${flur.gem}`,
-                    location: flur.box,
+                    locationDesc: `Kreis ${gemeinde.kreis} > Bürgermeisterei ${gemeinde.buergermeisterei} > Gemeinde ${gemeinde.name}`,
+                    location: flur.bbox,
                     name: `Flur ${flur.nr} gnt. ${flur.name}`,
                     typeEnum: SearchResultType.FLUR,
                     gemeinde: gemeinde
