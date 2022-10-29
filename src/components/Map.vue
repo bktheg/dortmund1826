@@ -99,7 +99,9 @@ export default {
             this.marker.remove();
         }
         if( target.location.length > 2 ) {
-            this.map.fitBounds(location);
+            const loc = target.location as number[][];
+            const latlng = [loc[0], loc[2]];
+            this.map.fitBounds(latlng);
         }
         else {
             this.marker = new window.mapboxgl.Marker()
