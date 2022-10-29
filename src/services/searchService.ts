@@ -18,9 +18,10 @@ export enum SearchResultType {
     BEZEICHNUNG_LINE=2,
     GEBAEUDE=3,
     GEWAESSER=4,
-    FLUR=5,
-    ORT=6,
-    OWNER=7
+    ADMIN=5,
+    FLUR=6,
+    ORT=7,
+    OWNER=8
 }
 
 
@@ -44,6 +45,17 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     location: bz.l,
                     name: bz.n,
                     typeEnum: mapTypeToEnum(bz.t),
+                    gemeinde: gemeinde
+                } as SearchResult);
+            }
+        }
+        for( const gemeinde of flurStore.gemeinden ) {
+            if( gemeinde.name.toLocaleLowerCase().includes(term) ) {
+                result.push({
+                    locationDesc: `Kreis ${gemeinde.kreis} > Bürgermeisterei ${gemeinde.buergermeisterei}`,
+                    location: gemeinde.bbox,
+                    name: `Gemeinde ${gemeinde.name}`,
+                    typeEnum: SearchResultType.ADMIN,
                     gemeinde: gemeinde
                 } as SearchResult);
             }

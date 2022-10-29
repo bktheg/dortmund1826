@@ -92,7 +92,7 @@ export default {
         calcFilterOptions():any[] {
             const flurStore = useFlurStore();
             const result:any[] = [];
-            for( const g of flurStore.getAllGemeinden() ) {
+            for( const g of flurStore.gemeinden ) {
                 let kreis = result.find(e => e.id == `kreis-${g.kreis}`)
                 if( !kreis ) {
                     kreis = {label:`Kreis ${g.kreis}`, id:`kreis-${g.kreis}`, children:[]};
@@ -145,6 +145,8 @@ export default {
         },
         getTypeLabel: function(type:SearchResultType) {
             switch(type) {
+                case SearchResultType.ADMIN:
+                    return "Verwaltungseinheit";
                 case SearchResultType.FLUR:
                     return "Flur";
                 case SearchResultType.ORT:
@@ -162,6 +164,8 @@ export default {
         },
         getTypeCss: function(type:SearchResultType) {
             switch(type) {
+                case SearchResultType.ADMIN:
+                    return "admin";
                 case SearchResultType.FLUR:
                     return "flur";
                 case SearchResultType.ORT:
@@ -199,10 +203,12 @@ export default {
         background-color: #ddd
     }
     #searchresult li.type-town,
+    #searchresult li.type-admin,
     #searchresult li.type-flur {
         background-color:#fdd
     }
     #searchresult li.type-town:hover,
+    #searchresult li.type-admin:hover,
     #searchresult li.type-flur:hover {
         background-color:#ecc
     }
