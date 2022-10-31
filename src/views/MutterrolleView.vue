@@ -1,12 +1,13 @@
 <script setup lang="ts">
     import { useRoute, useRouter } from 'vue-router';
-    import { ref,toRefs,reactive,computed,inject } from 'vue'
+    import { ref,toRefs,reactive,computed,inject,watch,onBeforeUnmount } from 'vue'
     import type {Emitter} from 'mitt';
 
     import {useFlurStore} from '../stores/flurStore'
     import {useMutterrolleStore} from '../stores/mutterrolleStore'
     import {storeToRefs} from 'pinia'
     import type {MutterrolleRow} from '../stores/mutterrolleStore'
+    import type {HighlightEvent} from '../components/Map.vue'
 
     const FACTOR_F = 100;
 
@@ -47,13 +48,37 @@
             return '';
         }
         const sum = mutterrolle.value.rows.map(r => toFeet(r.flaeche)).reduce((a,b) => a+b, 0);
-        console.log("total f", sum)
         
         const m = Math.floor(sum/(180*FACTOR_F));
         const r = Math.floor((sum-m*180*FACTOR_F)/FACTOR_F);
         const f = sum-m*180*FACTOR_F-r*FACTOR_F;
         return `${m}.${r}.${f}`
     });
+
+    watch(() => mutterrolle.value, (value) => {
+        if( value != null ) {
+            emitter.emit('map-highlight-areas', {eigentuemer:value.name, gemeindeId:value.gemeindeId} as HighlightEvent);
+            const min = [value.rows[0].location[0],value.rows[0].location[1]];
+            const max = [value.rows[0].location[0],value.rows[0].location[1]];
+            for( const row of value.rows ) {
+                min[0] = Math.min(min[0], row.location[0]);
+                min[1] = Math.min(min[1], row.location[1]);
+                max[0] = Math.max(max[0], row.location[0]);
+                max[1] = Math.max(max[1], row.location[1]);
+            }
+            const bufferX = Math.max((max[0]-min[0])*0.1,0.001);
+            const bufferY = Math.max((max[1]-min[1])*0.1,0.001);
+            min[0] -= bufferX;
+            min[1] -= bufferY;
+            max[0] += bufferX;
+            max[1] += bufferY;
+            emitter.emit("map-highlight-location", {location:[min,max]});
+        }
+    }, {immediate:true});
+
+    onBeforeUnmount(() => {
+        emitter.emit('map-highlight-areas', null);
+    })
 </script>
 
 <style>
@@ -81,7 +106,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="row in mutterrolle?.rows">
-                        <td>{{row.flur}} gnt. {{getFlurById(gemeindeId, row.flur).name}}</td>
+                        <td>{{row.flur}} gnt. {{getFlurById(gemeindeId, row.flur)?.name}}</td>
                         <td><a href="#" @click="moveToFlur(row)">{{row.flurstueck}}</a></td>
                         <td>{{row.lage}}</td>
                         <td>{{row.kulturart}}</td>

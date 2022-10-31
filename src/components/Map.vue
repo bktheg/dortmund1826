@@ -5,6 +5,11 @@
 import router from '@/router';
 import type mapboxgl from 'mapbox-gl'
 
+export type HighlightEvent = {
+    gemeindeId:string;
+    eigentuemer:string;
+}
+
 class WmsLayer {
     public enabled:boolean = false;
     public disabled:boolean = false;
@@ -103,6 +108,11 @@ export default {
             const latlng = [loc[0], loc[2]];
             this.map.fitBounds(latlng);
         }
+        else if( Array.isArray(target.location[0]) ) {
+            const loc = target.location as number[][];
+            const latlng = [loc[0], loc[1]];
+            this.map.fitBounds(latlng);
+        }
         else {
             this.marker = new window.mapboxgl.Marker()
                 .setLngLat(target.location as [number, number])
@@ -115,6 +125,10 @@ export default {
             }
         }
     });
+
+    this.emitter.on('map-highlight-areas', (target:HighlightEvent) => {
+        this.onHighlightAreas(target);
+    })
 
     this.emitter.on("map-resize", () => {
       setTimeout(() => this.map.resize(), 50)
@@ -138,17 +152,6 @@ export default {
                     1,
                     0.0
                 ]
-            }
-        });
-
-        this.map.addLayer({
-            'id': 'areas-hover',
-            'type': 'fill',
-            'source': 'composite',
-            'source-layer': this.hoverLayer,
-            'layout': {},
-            'paint': {
-                'fill-opacity': 0.0
             }
         });
 
@@ -243,6 +246,53 @@ export default {
     updateWmsDisabledStatus() {
         for( const layer of this.wmsLayers.values() ) {
             layer.disabled = this.map?.getZoom() < layer.minZoom
+        }
+    },
+
+    onHighlightAreas(target:HighlightEvent) {
+        if( this.map?.getLayer('areas-highlight') == null ) {
+            this.map?.addLayer({
+                'id': 'areas-highlight-fill',
+                'type': 'fill',
+                'source': 'composite',
+                'source-layer': this.hoverLayer,
+                'layout': {},
+                'paint': {
+                    'fill-color': '#DD7744',
+                    'fill-opacity':0.15
+                },
+                'filter': false
+            });
+            this.map?.moveLayer('areas-highlight-fill', 'Kataster-Gebaeude')
+
+            this.map?.addLayer({
+                'id': 'areas-highlight',
+                'type': 'line',
+                'source': 'composite',
+                'source-layer': this.hoverLayer,
+                'layout': {},
+                'paint': {
+                    'line-color': '#DD7744',
+                    'line-width': 2,
+                    'line-opacity':1
+                },
+                'filter': false
+            });
+            this.map?.moveLayer('areas-highlight', 'Kataster-Gebaeude')
+        }
+
+        if( target != null ) {
+            this.map?.setFilter('areas-highlight',[
+                        'all',['match',['get','eigentuemer'],[target.eigentuemer],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
+            );
+
+            this.map?.setFilter('areas-highlight-fill',[
+                        'all',['match',['get','eigentuemer'],[target.eigentuemer],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
+            );
+        }
+        else {
+            this.map?.setFilter('areas-highlight', false);
+            this.map?.setFilter('areas-highlight-fill', false);
         }
     }
   }
