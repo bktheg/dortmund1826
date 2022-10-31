@@ -2,17 +2,11 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 type FlurExport = {
-    kreis:string,
-    bmstr:string,
-    gem:string,
     gid:string,
     nr:number,
     name:string,
-    qverm:string,
-    qbuch:string,
     qmap:string,
-    box:number[],
-    gemeinde:Gemeinde
+    box:number[]
 }
 
 type GemeindeExport = {
@@ -62,6 +56,9 @@ export const useFlurStore = defineStore({
       },
       getFlurById: (state) => (gemeindeId:string, flurId:number) => (state.flure.filter((f) => f.gemeindeId == gemeindeId && f.nr == flurId)[0]),
       getGemeindeById: (state) => (gemeindeId:string):Gemeinde => {
+            if( state.loading ) {
+                return new Gemeinde('','','','','','','',[])
+            }
             const gemeinde = state.gemeinden.find(f => f.id == gemeindeId)
             if( !gemeinde ) {
                 throw new Error("Unknown: Gemeinde "+gemeinde);
