@@ -7,7 +7,35 @@ import type mapboxgl from 'mapbox-gl'
 
 export type HighlightEvent = {
     gemeindeId:string;
-    eigentuemer:string;
+    artikel:string;
+}
+
+class ParzellenDetailControl {
+    private map:mapboxgl.Map | null = null;
+    private container:HTMLElement | null = null;
+
+    onAdd(map:mapboxgl.Map){
+        this.map = map;
+        this.container = document.createElement('div');
+        this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group ctrl-parzellen-detail';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.ariaLabel = 'Parzelle untersuchen';
+
+        const span = document.createElement('span');
+        span.className = 'mapboxgl-ctrl-icon';
+        span.ariaHidden = 'true';
+        span.title = 'Parzellen untersuchen';
+        button.appendChild(span);
+
+        this.container.appendChild(button);
+        return this.container;
+    }
+    onRemove(){
+        this.container?.parentNode?.removeChild(this.container);
+        this.map = null;
+    }
 }
 
 class WmsLayer {
@@ -33,11 +61,6 @@ export default {
     }
   },
   mounted() {
-    this.clickEnabled = new URLSearchParams(window.location.search).get('click-enabled') === '1' || window.localStorage.getItem('click-enabled') === '1'
-    if( this.clickEnabled ) {
-        window.localStorage.setItem('click-enabled', '1');
-    }
-
     this.wmsLayers.set('uraufnahme', new WmsLayer(
         'uraufnahme',
         'Uraufnahme (1836-1850)',
@@ -81,9 +104,11 @@ export default {
 
         this.updateWmsDisabledStatus();
 
-        if( this.clickEnabled ) {
-            this.setupHover();
-        }
+        document.getElementsByClassName('ctrl-parzellen-detail').item(0)?.addEventListener('click', () => {
+            this.clickEnabled = !this.clickEnabled;
+        });
+
+        this.setupHover();
     });
 
     this.map.on('zoom', () => this.updateWmsDisabledStatus());
@@ -96,6 +121,7 @@ export default {
         unit: 'metric'
     });
     this.map.addControl(scale);
+    this.map.addControl(new ParzellenDetailControl(), 'top-left');
 
     this.alwaysOff = ['country-label','state-label','settlement-major-label','settlement-minor-label','settlement-subdivision-label','poi-label','admin-0-boundary-disputed','admin-0-boundary','admin-1-boundary','admin-0-boundary-bg','admin-1-boundary-bg'];
 
@@ -155,8 +181,19 @@ export default {
             }
         });
 
+        this.map.addLayer({
+            'id': 'areas-hover',
+            'type': 'fill',
+            'source': 'composite',
+            'source-layer': this.hoverLayer,
+            'layout': {},
+            'paint': {
+                'fill-opacity': 0.0
+            }
+        });
+
         this.map.on('mousemove', 'areas-hover', (e:mapboxgl.MapLayerMouseEvent) => {
-            if (e.features && e.features.length > 0) {
+            if (this.clickEnabled && e.features && e.features.length > 0) {
                 if (this.hoveredArea !== null) {
                     this.map.setFeatureState(
                         { source: 'composite', sourceLayer:this.hoverLayer, id: this.hoveredArea.id },
@@ -283,11 +320,11 @@ export default {
 
         if( target != null ) {
             this.map?.setFilter('areas-highlight',[
-                        'all',['match',['get','eigentuemer'],[target.eigentuemer],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
+                        'all',['match',['get','artikel'],[target.artikel],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
             );
 
             this.map?.setFilter('areas-highlight-fill',[
-                        'all',['match',['get','eigentuemer'],[target.eigentuemer],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
+                        'all',['match',['get','artikel'],[target.artikel],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
             );
         }
         else {
@@ -299,7 +336,7 @@ export default {
 }
 </script>
 <template>
-    <div id='map'></div>
+    <div id='map' :class="clickEnabled ? 'map-cursor-parzellen-info' : ''"></div>
     <nav id='layer'>
         <div>
             <label><input type="checkbox" value="true" id="layer1826" v-model="show1826" @change="toggle1826()"/>1826</label>
@@ -343,5 +380,17 @@ export default {
 
     label.disabled {
         color:darkgray
+    }
+</style>
+<style>
+    .map-cursor-parzellen-info .ctrl-parzellen-detail {
+        background-color:lightgray;
+    }
+    .ctrl-parzellen-detail .mapboxgl-ctrl-icon {
+        background-image:url('/infobutton.svg');
+        background-size:26px 26px;
+    }
+    .map-cursor-parzellen-info .mapboxgl-canvas-container {
+        cursor:url('/infobutton.svg') 5 5, help;
     }
 </style>
