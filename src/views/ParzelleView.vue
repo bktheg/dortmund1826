@@ -29,6 +29,28 @@
     const flur = computed(() => getFlurById(location.value.gemeindeId, location.value.flurId))
 
     const parzelle = computed(() => parzellen.value.get(location.value.gemeindeId)?.get(location.value.flurId)?.find(e => e.parzelle == location.value.parzelleNr))
+
+    const gebaeudeText = computed(() => {
+        if( !parzelle.value ) {
+            return "";
+        }
+        let importantBuildings = [];
+        let normalBuildingCount = 0;
+        for( const building of parzelle.value?.buildings ) {
+            if( building.bezeichnung ) {
+                importantBuildings.push(building.bezeichnung);
+            }
+            else {
+                normalBuildingCount++;
+            }
+        }
+
+        if( importantBuildings.length == 0 ) {
+            return normalBuildingCount == 0 ? '' : `${normalBuildingCount} Gebäude`;
+        }
+
+        return importantBuildings.join(', ') + (normalBuildingCount > 1 ? ` sowie ${normalBuildingCount} weitere Gebäude` : (normalBuildingCount > 0 ? ` sowie ein weiteres Gebäude` : ''))
+    });
 </script>
 
 <style>
@@ -55,6 +77,11 @@
 
                 <dd>Größe³</dd>
                 <dt>{{parzelle?.flaeche}}</dt>
+
+                <template v-if="gebaeudeText">
+                    <dd>Gebäude</dd>
+                    <dt>{{gebaeudeText}}</dt>
+                </template>
             </dl>
             <h1>Quellen</h1>
             <dl class="properties">
@@ -67,6 +94,10 @@
                 <dd>Mutterrollen</dd>
                 <dt>{{expandSourceToDetailedSource(gemeinde?.quelleMutterrollen)}}</dt>
             </dl>
+            <template v-if="flur?.legalText">
+                <h2>Weitere Quellenhinweise</h2>
+                <p v-html="flur?.legalText"></p>
+            </template>
             <section class="footnotes">
                 <p>
                     ¹ Lage laut Flurbuch. Die Angabe ist mit einiger Vorsicht zu betrachten. Die Lageangaben sind häufig schwer zu lesen und durchaus bereits im Flurbuch falsch geschrieben
@@ -123,5 +154,13 @@
     h1 {
         margin-top:5pt;
         font-size:14pt;
+    }
+
+    h2 {
+        font-size:12pt;
+    }
+
+    .footnotes {
+        margin-top:10pt;
     }
 </style>

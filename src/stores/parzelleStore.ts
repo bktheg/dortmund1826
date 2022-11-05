@@ -1,19 +1,40 @@
 import { defineStore, storeToRefs } from 'pinia'
 import axios from 'axios'
 
+type ParzelleBuildingExport = {
+    b:string, // Bezeichnung
+    n:string // hnr
+}
+
 type ParzelleExport = {
     n:string, // nr
     f:string, // flaeche
     e:string, // eigentuemer
     a:string, // mutterrolle (artikel)
     k:string, // klasse
-    l:string, // lage
+    l:string, // lage,
     t:string, // typ
-    p:number[]// position
+    p:number[],// position
+    b:ParzelleBuildingExport[] // buildings
+}
+
+export class ParzelleBuilding {
+    constructor(public bezeichnung:string, hnr:string) {}
 }
 
 export class Parzelle {
-    constructor(public gemeindeId:string, public flur:number, public parzelle:string, public eigentuemer:string, public artikelNr:string, public flaeche:string, public typ:string, public klasse:string, public lage:string, public position:number[]) {}
+    constructor(
+        public gemeindeId:string, 
+        public flur:number, 
+        public parzelle:string, 
+        public eigentuemer:string, 
+        public artikelNr:string, 
+        public flaeche:string,
+        public typ:string, 
+        public klasse:string, 
+        public lage:string, 
+        public position:number[], 
+        public buildings:ParzelleBuilding[]) {}
 }
 
 export const useParzelleStore = defineStore({
@@ -35,7 +56,7 @@ export const useParzelleStore = defineStore({
                 .then((response) => response.data) as ParzelleExport[]
             const result:Parzelle[] = [];
             for( const p of parzellenExport ) {
-                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.t, p.k, p.l, p.p));
+                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.t, p.k, p.l, p.p, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n))));
             }
             this.$patch((state) => {
                 if( !this.parzellen.has(gemeinde) ) {

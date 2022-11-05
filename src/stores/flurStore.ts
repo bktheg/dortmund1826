@@ -6,7 +6,8 @@ type FlurExport = {
     nr:number,
     name:string,
     qmap:string,
-    box:number[]
+    box:number[],
+    lt:string
 }
 
 type GemeindeExport = {
@@ -27,7 +28,8 @@ export class Flur {
         public gemeindeId:string, 
         public quelleUrkarten:string, 
         public bbox:number[],
-        public gemeinde:Gemeinde) {}
+        public gemeinde:Gemeinde,
+        public legalText:string) {}
 }
 
 export class Gemeinde {
@@ -84,7 +86,7 @@ export const useFlurStore = defineStore({
                 await Promise.all([flurePromise, gemeindePromise]);
 
                 for( const f of await flurePromise ) {
-                    this.flure.push(new Flur(f.nr,f.name,f.gid,f.qmap,f.box,this.getGemeindeById(f.gid)))
+                    this.flure.push(new Flur(f.nr,f.name,f.gid,f.qmap,f.box,this.getGemeindeById(f.gid),f.lt))
                 }
             } catch (error) {
                 this.error = error
