@@ -57,7 +57,7 @@
 
     watch(() => mutterrolle.value, (value) => {
         if( value != null ) {
-            emitter.emit('map-highlight-areas', {eigentuemer:value.name, gemeindeId:value.gemeindeId} as HighlightEvent);
+            emitter.emit('map-highlight-areas', {artikel:value.id, gemeindeId:value.gemeindeId} as HighlightEvent);
             const min = [value.rows[0].location[0],value.rows[0].location[1]];
             const max = [value.rows[0].location[0],value.rows[0].location[1]];
             for( const row of value.rows ) {
