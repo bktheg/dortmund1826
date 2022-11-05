@@ -178,12 +178,6 @@ export default {
 </script>
 
 <style>
-    h1 {
-        margin-top:15pt;
-    }
-    h2 {
-        margin-top:6pt;
-    }
     h1:first-child, h2:first-child {
         margin-top:0pt;
     }

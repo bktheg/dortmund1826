@@ -51,3 +51,10 @@ main #content {
 .mapboxgl-control-container {
     position:static;
 }
+
+h1 {
+    margin-top:15pt;
+}
+h2 {
+    margin-top:6pt;
+}

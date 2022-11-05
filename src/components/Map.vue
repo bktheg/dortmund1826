@@ -153,7 +153,12 @@ export default {
     });
 
     this.emitter.on('map-highlight-areas', (target:HighlightEvent) => {
-        this.onHighlightAreas(target);
+        if( this.map.loaded() ) {
+            this.onHighlightAreas(target);
+        }
+        else {
+            this.map.on('load', () => this.onHighlightAreas(target));
+        }
     })
 
     this.emitter.on("map-resize", () => {

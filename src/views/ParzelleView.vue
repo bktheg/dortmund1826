@@ -1,5 +1,5 @@
 <script setup lang="ts">
-    import { useRoute, useRouter } from 'vue-router';
+    import { useRoute, useRouter,RouterLink } from 'vue-router';
     import { ref,toRefs,reactive,computed,inject,watch } from 'vue'
     import { storeToRefs } from 'pinia'
     import type {Emitter} from 'mitt';
@@ -61,10 +61,10 @@
     <div id="contentview">
         <div id="content">
             <section class="location">Kreis {{gemeinde?.kreis}} > Bürgermeisterei {{gemeinde?.buergermeisterei}} > Gemeinde {{gemeinde?.name}} > Flur {{flur?.nr}} gnt. {{flur?.name}} > Parzelle {{location.parzelleNr}}</section>
-            <h1>Parzelle</h1>
+            <h2>Parzelle</h2>
             <dl class="properties">
                 <dd>Eigentümer</dd>
-                <dt>{{parzelle?.eigentuemer}} ({{parzelle?.artikelNr}})</dt>
+                <dt><RouterLink :to="{name:'mutterrolle', params: {gemeinde: gemeinde?.id, artikelNr:parzelle?.artikelNr}}">{{parzelle?.eigentuemer}} ({{parzelle?.artikelNr}})</RouterLink></dt>
 
                 <dd>Kulturart</dd>
                 <dt>{{parzelle?.typ}}</dt>
@@ -78,12 +78,17 @@
                 <dd>Größe³</dd>
                 <dt>{{parzelle?.flaeche}}</dt>
 
+                <template v-if="parzelle?.reinertrag">
+                    <dd>Reinertrag⁴</dd>
+                    <dt>{{parzelle?.reinertrag}}</dt>
+                </template>
+
                 <template v-if="gebaeudeText">
                     <dd>Gebäude</dd>
                     <dt>{{gebaeudeText}}</dt>
                 </template>
             </dl>
-            <h1>Quellen</h1>
+            <h2>Quellen</h2>
             <dl class="properties">
                 <dd>Vermessung</dd>
                 <dt>{{expandSourceToDetailedSource(gemeinde?.quelleVermessung)}}</dt>
@@ -107,6 +112,9 @@
                 </p>
                 <p>
                     ³ Angabe der Fläche in Morgen.Ruten.Fuß
+                </p>
+                <p v-if="parzelle?.reinertrag">
+                    ⁴ Angabe des Reinertrags in Taler.Groschen.Pfennig. 30 Groschen = 1 Taler, 12 Pfennig = 1 Groschen.
                 </p>
             </section>
         </div>
@@ -149,15 +157,6 @@
 
     .properties {
         margin-bottom:5pt;
-    }
-
-    h1 {
-        margin-top:5pt;
-        font-size:14pt;
-    }
-
-    h2 {
-        font-size:12pt;
     }
 
     .footnotes {

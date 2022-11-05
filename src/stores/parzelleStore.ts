@@ -9,6 +9,7 @@ type ParzelleBuildingExport = {
 type ParzelleExport = {
     n:string, // nr
     f:string, // flaeche
+    r:string, // reinertrag
     e:string, // eigentuemer
     a:string, // mutterrolle (artikel)
     k:string, // klasse
@@ -30,6 +31,7 @@ export class Parzelle {
         public eigentuemer:string, 
         public artikelNr:string, 
         public flaeche:string,
+        public reinertrag:string,
         public typ:string, 
         public klasse:string, 
         public lage:string, 
@@ -56,7 +58,7 @@ export const useParzelleStore = defineStore({
                 .then((response) => response.data) as ParzelleExport[]
             const result:Parzelle[] = [];
             for( const p of parzellenExport ) {
-                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.t, p.k, p.l, p.p, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n))));
+                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.r, p.t, p.k, p.l, p.p, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n))));
             }
             this.$patch((state) => {
                 if( !this.parzellen.has(gemeinde) ) {

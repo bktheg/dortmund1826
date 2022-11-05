@@ -2,13 +2,14 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 type MutterrolleRowExport = {
-    f:number,
-    a:string,
-    k:string,
-    t:string,
-    l:string,
-    p:string,
-    x:number[]
+    f:number, // flurNr
+    a:string, // flaeche
+    k:string, // klasse
+    t:string, // kulturart
+    l:string, // lage
+    p:string, // parzelle
+    e:string, // reinertrag
+    x:number[] // coords
 }
 
 type MutterrolleExport = {
@@ -21,7 +22,7 @@ export class Mutterrolle {
 }
 
 export class MutterrolleRow {
-    constructor(public flur:number, public flurstueck:string, public flaeche:string, public kulturart:string, public klasse:string, public lage:string, public location:number[]) {}
+    constructor(public flur:number, public flurstueck:string, public flaeche:string, public kulturart:string, public klasse:string, public lage:string, public reinertrag:string, public location:number[]) {}
 }
 
 function sortMutterrolleRow(a:MutterrolleRow, b:MutterrolleRow):number {
@@ -59,7 +60,7 @@ export const useMutterrolleStore = defineStore({
             for( const artikelNr in mutterrollenExport ) {
                 const mutterrolleExport = mutterrollenExport[artikelNr] as MutterrolleExport;              
 
-                const rows = mutterrolleExport.r?.map(r => new MutterrolleRow(r.f, r.p, r.a, r.t, r.k, r.l, r.x));
+                const rows = mutterrolleExport.r?.map(r => new MutterrolleRow(r.f, r.p, r.a, r.t, r.k, r.l, r.e, r.x));
                 rows?.sort(sortMutterrolleRow);
                 result.set(artikelNr, 
                     new Mutterrolle(gemeinde, artikelNr, mutterrolleExport.n, rows));

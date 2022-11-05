@@ -11,9 +11,17 @@
 
     const FACTOR_F = 100;
 
+    const FACTOR_TALER = 30;
+    const FACTOR_GROSCHEN = 12;
+
     function toFeet(flaeche:String):number {
         const parts = flaeche.split('.');
         return parseInt(parts[0])*180*FACTOR_F+parseInt(parts[1])*FACTOR_F+parseInt(parts[2]);
+    }
+
+    function toPfennig(money:String):number {
+        const parts = money.split('.');
+        return parseInt(parts[0])*FACTOR_TALER*FACTOR_GROSCHEN+parseInt(parts[1])*FACTOR_GROSCHEN+parseInt(parts[2]);
     }
 
     const { fetchFlure, getGemeindeById, getFlurById } = useFlurStore()
@@ -43,6 +51,13 @@
         }
     }
 
+    const showReinertrag = computed(() => {
+        if( !mutterrolle.value ) {
+            return false;
+        }
+        return mutterrolle.value.rows.some(r => r.reinertrag);
+    });
+
     const gesamtflaeche = computed(() => {
         if( !mutterrolle.value ) {
             return '';
@@ -53,6 +68,18 @@
         const r = Math.floor((sum-m*180*FACTOR_F)/FACTOR_F);
         const f = sum-m*180*FACTOR_F-r*FACTOR_F;
         return `${m}.${r}.${f}`
+    });
+
+    const gesamtErtrag = computed(() => {
+        if( !mutterrolle.value ) {
+            return '';
+        }
+        const sum = mutterrolle.value.rows.map(r => toPfennig(r.reinertrag)).reduce((a,b) => a+b, 0);
+        
+        const t = Math.floor(sum/(FACTOR_TALER*FACTOR_GROSCHEN));
+        const g = Math.floor((sum-t*FACTOR_TALER*FACTOR_GROSCHEN)/FACTOR_GROSCHEN);
+        const p = sum-t*FACTOR_TALER*FACTOR_GROSCHEN-g*FACTOR_GROSCHEN;
+        return `${t}.${g}.${p}`
     });
 
     watch(() => mutterrolle.value, (value) => {
@@ -88,7 +115,7 @@
 <template>
     <div id="contentview">
         <div id="content">
-            <a v-if="lastPage" class="backToSearch" href="#" @click="back">Zurück zum Suchergebnis</a>
+            <a v-if="lastPage" class="backToSearch" href="#" @click="back">Zurück</a>
             <section class="mutterrolleHeader">
                 <div class="name">Gemeinde</div><div class="value">{{gemeinde?.name}}</div>
                 <div class="name">Artikel Nr</div><div class="value">{{mutterrolle?.id}}</div>
@@ -103,6 +130,7 @@
                     <th>Kulturart</th>
                     <th>Klasse²</th>
                     <th>Fläche³</th>
+                    <th v-if="showReinertrag">Reinertrag⁴</th>
                 </thead>
                 <tbody>
                     <tr v-for="row in mutterrolle?.rows">
@@ -112,6 +140,7 @@
                         <td>{{row.kulturart}}</td>
                         <td>{{row.klasse}}</td>
                         <td>{{row.flaeche}}</td>
+                        <td v-if="showReinertrag">{{row.reinertrag}}</td>
                     </tr>
                 </tbody>
                 <tfoot>
@@ -121,6 +150,7 @@
                     <td></td>
                     <td></td>
                     <td>{{gesamtflaeche}}</td>
+                    <td v-if="showReinertrag">{{gesamtErtrag}}</td>
                 </tfoot>
             </table>
             <section class="footnotes">
@@ -132,6 +162,9 @@
                 </p>
                 <p>
                     ³ Angabe der Fläche in Morgen.Ruten.Fuß
+                </p>
+                <p v-if="showReinertrag">
+                    ⁴ Angabe des Reinertrags in Taler.Groschen.Pfennig. 30 Groschen = 1 Taler, 12 Pfennig = 1 Groschen.
                 </p>
             </section>
         </div>
