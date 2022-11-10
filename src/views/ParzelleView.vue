@@ -64,7 +64,11 @@
             <h2>Parzelle</h2>
             <dl class="properties">
                 <dd>Eigentümer</dd>
-                <dt><RouterLink :to="{name:'mutterrolle', params: {gemeinde: gemeinde?.id, artikelNr:parzelle?.artikelNr}}">{{parzelle?.eigentuemer}} ({{parzelle?.artikelNr}})</RouterLink></dt>
+                <dt>
+                    <template v-if="parzelle?.artikelNr">
+                        <RouterLink :to="{name:'mutterrolle', params: {gemeinde: gemeinde?.id, artikelNr:parzelle?.artikelNr}}">{{parzelle?.eigentuemer}} ({{parzelle?.artikelNr}})</RouterLink>
+                    </template>
+                </dt>
 
                 <dd>Kulturart</dd>
                 <dt>{{parzelle?.typ}}</dt>
@@ -93,11 +97,13 @@
                 <dd>Vermessung</dd>
                 <dt>{{expandSourceToDetailedSource(gemeinde?.quelleVermessung)}}</dt>
                 <dd>Urkarte</dd>
-                <dt>{{expandSourceToDetailedSource(flur.quelleUrkarten)}}</dt>
+                <dt>{{expandSourceToDetailedSource(flur?.quelleUrkarten)}}</dt>
                 <dd>Flurbuch</dd>
                 <dt>{{expandSourceToDetailedSource(gemeinde?.quelleFlurbuch)}}</dt>
-                <dd>Mutterrollen</dd>
-                <dt>{{expandSourceToDetailedSource(gemeinde?.quelleMutterrollen)}}</dt>
+                <template v-if="gemeinde?.quelleMutterrollen && gemeinde?.quelleMutterrollen != '?'">
+                    <dd>Mutterrollen</dd>
+                    <dt>{{expandSourceToDetailedSource(gemeinde?.quelleMutterrollen)}}</dt>
+                </template>
             </dl>
             <template v-if="flur?.legalText">
                 <h2>Weitere Quellenhinweise</h2>
