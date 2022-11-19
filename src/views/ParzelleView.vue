@@ -4,9 +4,10 @@
     import { storeToRefs } from 'pinia'
     import type {Emitter} from 'mitt';
     import {expandSourceToDetailedSource} from '../services/quellenService'
+    import WikipediaInfoComponent from '@/components/wikipediaInfo.vue'
 
     import {useFlurStore} from '../stores/flurStore'
-    import {useParzelleStore} from '../stores/parzelleStore'
+    import {useParzelleStore,WikipediaInfo} from '../stores/parzelleStore'
 
     const { fetchFlure, getGemeindeById, getFlurById } = useFlurStore()
     const parzelleStore = useParzelleStore()
@@ -51,6 +52,13 @@
 
         return importantBuildings.join(', ') + (normalBuildingCount > 1 ? ` sowie ${normalBuildingCount} weitere Gebäude` : (normalBuildingCount > 0 ? ` sowie ein weiteres Gebäude` : ''))
     });
+
+    const wikipediaInfos = computed(() => {
+        if( !parzelle.value ) {
+            return null;
+        }
+        return parzelle.value.info.filter(i => i instanceof WikipediaInfo) as WikipediaInfo[];
+    })
 </script>
 
 <style>
@@ -92,6 +100,10 @@
                     <dt>{{gebaeudeText}}</dt>
                 </template>
             </dl>
+            <template v-if="wikipediaInfos?.length">
+                <h2>Wikipedia</h2>
+                <WikipediaInfoComponent v-for="info of wikipediaInfos" :page="info.page"/>
+            </template>
             <h2>Quellen</h2>
             <dl class="properties">
                 <dd>Vermessung</dd>

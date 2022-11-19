@@ -6,6 +6,11 @@ type ParzelleBuildingExport = {
     n:string // hnr
 }
 
+type InfoExport = {
+    t:string // typ
+    a:any // attributes
+}
+
 type ParzelleExport = {
     n:string, // nr
     f:string, // flaeche
@@ -16,11 +21,22 @@ type ParzelleExport = {
     l:string, // lage,
     t:string, // typ
     p:number[],// position
+    i:InfoExport[], // infos
     b:ParzelleBuildingExport[] // buildings
 }
 
 export class ParzelleBuilding {
     constructor(public bezeichnung:string, hnr:string) {}
+}
+
+export abstract class Info {
+    constructor(public type:string) {}
+}
+
+export class WikipediaInfo extends Info {
+    constructor(type:string, public page:string) {
+        super(type);
+    }
 }
 
 export class Parzelle {
@@ -35,8 +51,16 @@ export class Parzelle {
         public typ:string, 
         public klasse:string, 
         public lage:string, 
-        public position:number[], 
+        public position:number[],
+        public info:Info[],
         public buildings:ParzelleBuilding[]) {}
+}
+
+function mapInfo(i:InfoExport):Info|null {
+    if( i.t == 'wikipedia' ) {
+        return new WikipediaInfo(i.t, i.a['page'] as string);
+    }
+    return null;
 }
 
 export const useParzelleStore = defineStore({
@@ -56,10 +80,13 @@ export const useParzelleStore = defineStore({
         try {
             const parzellenExport = await axios.get(`/parzellen_${gemeinde}_${flur}.json`)
                 .then((response) => response.data) as ParzelleExport[]
+                
             const result:Parzelle[] = [];
             for( const p of parzellenExport ) {
-                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.r, p.t, p.k, p.l, p.p, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n))));
+                const infos = p.i.map(i => mapInfo(i)).filter(i => i != null) as Info[];
+                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.r, p.t, p.k, p.l, p.p, infos, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n))));
             }
+
             this.$patch((state) => {
                 if( !this.parzellen.has(gemeinde) ) {
                     this.parzellen.set(gemeinde, new Map<number, Parzelle[]>());

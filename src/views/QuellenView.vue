@@ -76,13 +76,17 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 <p>
                     Basis sind die vom Katasteramt des Kreises Recklinghausen für dortmund1826.de bereitgestellten Urkarten, Stückvermessungshandrisse und Flurbücher. Die Georeferenzierung der Urkarten wurde durch das Katasteramt selbst vorgenommen.
                 </p>
-                <p class="legal">
-                    Grundlage: Urkarten und Geobasisdaten © Kreis Recklinghausen<br/>
-                    Veröffentlicht mit freundlicher Genehmigung des Katasteramtes des Kreises Recklinghausen<br/>
-                    <br />
-                    Weitere historischen Urkarten stehen im <a target="_blank" href="https://www.kreis-re.de/Inhalte/Buergerservice/_index2.asp?seite=angebot&id=19543"><b>geo</b>atlas</a> des Kreises Recklinghausen zur Einsicht bereit.<br/>
-                    Im Kreisgebiet gibt es ca. 1.300 historische Urkarten aus dem Zeitraum von 1820 bis 1888, welche in einer interaktiven Karte und als Einzelkarte eingesehen werden können.
+
+                <p class="legal" v-html="getLegalText('KA Recklinghausen')"/>
+            </template>
+
+            <template v-if="hasSource('KA Ennepe-Ruhr')">
+                <h2 id="quelle-ka-ennepe-ruhr">Liegenschaftskataster u. Geoinformation des Ennepe-Ruhr-Kreises</h2>
+                <p>
+                    Basis sind die vom Liegenschaftskataster u. Geoinformation des Ennepe-Ruhr-Kreises für dortmund1826.de bereitgestellten Urkarten, Stückvermessungshandrisse, Flurbücher und Vermessungsunterlagen.
                 </p>
+
+                <p class="legal" v-html="getLegalText('KA Ennepe-Ruhr')"/>
             </template>
             
             <h2>Weitere Quellen</h2>
@@ -160,21 +164,37 @@ fetchFlure()
 export default {
     data() {
         return {
-            quellenIds:new Set<string|null>
+            quellenIds:new Map<string|null,Set<string|null>>()
         }
     },
     async mounted() {
         const flurStore = useFlurStore();
         flurStore.$subscribe((mutation,state) => {
-            const sources = new Set<string|null>();
-
-            state.flure.forEach((f) => {sources.add(f.gemeinde?.quelleFlurbuch); sources.add(f.quelleUrkarten); sources.add(f.gemeinde?.quelleVermessung)});
-            this.quellenIds = sources;
+            state.flure.forEach((f) => {
+                this.addSource(f.gemeinde?.quelleFlurbuch, null);
+                this.addSource(f.gemeinde?.quelleVermessung, null);
+                this.addSource(f.quelleUrkarten, f.legalText);
+            });
         })
     },
     methods: {
         hasSource: function(sourceId:string|null) {
             return this.quellenIds.has(sourceId);
+        },
+        getLegalText: function(sourceId:string|null) {
+            const value = this.quellenIds.get(sourceId)
+            if( !value ) {
+                return null;
+            }
+            return [...value.values()].filter(t => t != null && t != '').join("<br/><br/>");
+        },
+        addSource: function(sourceId:string, legalText:string|null) {
+            if( this.quellenIds.has(sourceId) ) {
+                this.quellenIds.get(sourceId)?.add(legalText);
+            }
+            else {
+                this.quellenIds.set(sourceId, new Set<string|null>([legalText]));
+            }
         }
     }
 }
