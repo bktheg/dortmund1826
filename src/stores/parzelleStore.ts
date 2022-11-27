@@ -26,7 +26,7 @@ type ParzelleExport = {
 }
 
 export class ParzelleBuilding {
-    constructor(public bezeichnung:string, hnr:string) {}
+    constructor(public bezeichnung:string, public hnr:string) {}
 }
 
 export abstract class Info {
@@ -78,7 +78,7 @@ export const useParzelleStore = defineStore({
         }
         this.loading.add(loadingId);
         try {
-            const parzellenExport = await axios.get(`/parzellen_${gemeinde}_${flur}.json`)
+            const parzellenExport = await axios.get(`/parzellen_${gemeinde}_${flur}.json?v=${__APP_VERSION__}`)
                 .then((response) => response.data) as ParzelleExport[]
                 
             const result:Parzelle[] = [];

@@ -24,7 +24,7 @@ export const useBezeichnungStore = defineStore({
         this.bezeichnungen = []
         this.loading = true
         try {
-          this.bezeichnungen = await axios.get("/bezeichnungen.json")
+          this.bezeichnungen = await axios.get("/bezeichnungen.json?v="+__APP_VERSION__)
             .then((response) => response.data) 
         } catch (error) {
           this.error = error

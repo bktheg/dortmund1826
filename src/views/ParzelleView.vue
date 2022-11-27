@@ -38,8 +38,14 @@
         let importantBuildings = [];
         let normalBuildingCount = 0;
         for( const building of parzelle.value?.buildings ) {
-            if( building.bezeichnung ) {
+            if( building.bezeichnung && building.hnr ) {
+                importantBuildings.push(building.bezeichnung+` (Hausnummer ${building.hnr})`);
+            }
+            else if( building.bezeichnung ) {
                 importantBuildings.push(building.bezeichnung);
+            }
+            else if( building.hnr ) {
+                importantBuildings.push(`Gebäude (Hausnummer ${building.hnr})`)
             }
             else {
                 normalBuildingCount++;

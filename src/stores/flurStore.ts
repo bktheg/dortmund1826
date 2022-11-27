@@ -77,16 +77,21 @@ export const useFlurStore = defineStore({
             this.gemeinden = []
             this.loading = true
             try {              
-                const gemeindePromise = axios.get("/gemeinden.json")
+                const gemeindePromise = axios.get("/gemeinden.json?v="+__APP_VERSION__)
                     .then((response) => response.data as GemeindeExport[])
                     .then((data) => this.gemeinden = data.map(g => new Gemeinde(g.i,g.n,g.k,g.b,g.qv,g.qb,g.qm,g.bb)));
                 
-                const flurePromise = axios.get("/flure.json")
+                const flurePromise = axios.get("/flure.json?v="+__APP_VERSION__)
                     .then((response) => response.data as FlurExport[])
                 await Promise.all([flurePromise, gemeindePromise]);
 
                 for( const f of await flurePromise ) {
-                    this.flure.push(new Flur(f.nr,f.name,f.gid,f.qmap,f.box,this.getGemeindeById(f.gid),f.lt))
+                    const gemeinde = this.gemeinden.find(g => g.id == f.gid)
+                    if( !gemeinde ) {
+                        console.log("Unbekannte Gemeinde", f.gid);
+                        continue;
+                    }
+                    this.flure.push(new Flur(f.nr,f.name,f.gid,f.qmap,f.box,gemeinde,f.lt))
                 }
             } catch (error) {
                 this.error = error

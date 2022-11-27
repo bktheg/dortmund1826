@@ -25,7 +25,7 @@ export const useEigentuemerStore = defineStore({
         this.loading = true
         this.eigentuemer = []
         try {
-            const eigentuemerExport = await axios.get("/eigentuemer.json")
+            const eigentuemerExport = await axios.get("/eigentuemer.json?v="+__APP_VERSION__)
                 .then((response) => response.data)
             const eigentuemerResult = []
             for( const gemeinde in eigentuemerExport ) {
