@@ -18,6 +18,7 @@ type GemeindeExport = {
     qv:string, // quelle vermessung
     qb:string, // quelle flurbuch
     qm:string, // quelle mutterrollen
+    qg:string, // quelle gueterverzeichnis
     bb:number[] // bbox
 }
 
@@ -40,7 +41,8 @@ export class Gemeinde {
         public buergermeisterei:string, 
         public quelleVermessung:string, 
         public quelleFlurbuch:string, 
-        public quelleMutterrollen:string, 
+        public quelleMutterrollen:string,
+        public quelleGueterverzeichnis:string,
         public bbox:number[]) {}
 }
 
@@ -59,7 +61,7 @@ export const useFlurStore = defineStore({
       getFlurById: (state) => (gemeindeId:string, flurId:number) => (state.flure.filter((f) => f.gemeindeId == gemeindeId && f.nr == flurId)[0]),
       getGemeindeById: (state) => (gemeindeId:string):Gemeinde => {
             if( state.loading ) {
-                return new Gemeinde('','','','','','','',[])
+                return new Gemeinde('','','','','','','','',[])
             }
             const gemeinde = state.gemeinden.find(f => f.id == gemeindeId)
             if( !gemeinde ) {
@@ -79,7 +81,7 @@ export const useFlurStore = defineStore({
             try {              
                 const gemeindePromise = axios.get("/gemeinden.json?v="+__APP_VERSION__)
                     .then((response) => response.data as GemeindeExport[])
-                    .then((data) => this.gemeinden = data.map(g => new Gemeinde(g.i,g.n,g.k,g.b,g.qv,g.qb,g.qm,g.bb)));
+                    .then((data) => this.gemeinden = data.map(g => new Gemeinde(g.i,g.n,g.k,g.b,g.qv,g.qb,g.qm,g.qg,g.bb)));
                 
                 const flurePromise = axios.get("/flure.json?v="+__APP_VERSION__)
                     .then((response) => response.data as FlurExport[])

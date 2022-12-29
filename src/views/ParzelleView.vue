@@ -119,8 +119,12 @@
                 <dd>Flurbuch</dd>
                 <dt>{{expandSourceToDetailedSource(gemeinde?.quelleFlurbuch)}}</dt>
                 <template v-if="gemeinde?.quelleMutterrollen && gemeinde?.quelleMutterrollen != '?'">
-                    <dd>Mutterrollen</dd>
+                    <dd>Mutterrolle</dd>
                     <dt>{{expandSourceToDetailedSource(gemeinde?.quelleMutterrollen)}}</dt>
+                </template>
+                <template v-if="gemeinde?.quelleGueterverzeichnis && gemeinde?.quelleGueterverzeichnis != '?'">
+                    <dd>Güterverzeichnis</dd>
+                    <dt>{{expandSourceToDetailedSource(gemeinde?.quelleGueterverzeichnis)}}</dt>
                 </template>
             </dl>
             <template v-if="flur?.legalText">
