@@ -3,11 +3,12 @@
     import { ref,toRefs,reactive,computed,inject,watch } from 'vue'
     import { storeToRefs } from 'pinia'
     import type {Emitter} from 'mitt';
-    import {expandSourceToDetailedSource} from '../services/quellenService'
-    import WikipediaInfoComponent from '@/components/wikipediaInfo.vue'
+    import {expandSourceToDetailedSource} from '@/services/quellenService'
+    import InfoListComponent from '@/components/infoList.vue'
 
-    import {useFlurStore} from '../stores/flurStore'
-    import {useParzelleStore,WikipediaInfo} from '../stores/parzelleStore'
+    import {useFlurStore} from '@/stores/flurStore'
+    import {useParzelleStore} from '@/stores/parzelleStore'
+    import {CommonInfo, WikipediaInfo} from '@/services/infoService'
 
     const { fetchFlure, getGemeindeById, getFlurById } = useFlurStore()
     const parzelleStore = useParzelleStore()
@@ -63,6 +64,7 @@
         if( !parzelle.value ) {
             return null;
         }
+        console.log(parzelle.value.info);
         return parzelle.value.info.filter(i => i instanceof WikipediaInfo) as WikipediaInfo[];
     })
 </script>
@@ -74,7 +76,19 @@
 <template>
     <div id="contentview">
         <div id="content">
-            <section class="location">Kreis {{gemeinde?.kreis}} > Bürgermeisterei {{gemeinde?.buergermeisterei}} > Gemeinde {{gemeinde?.name}} > Flur {{flur?.nr}} gnt. {{flur?.name}} > Parzelle {{location.parzelleNr}}</section>
+            <section class="location">Kreis {{gemeinde?.buergermeisterei.kreis.name}} > Bürgermeisterei {{gemeinde?.buergermeisterei.name}} > Gemeinde {{gemeinde?.name}} > Flur {{flur?.nr}} gnt. {{flur?.name}} > Parzelle {{location.parzelleNr}}</section>
+            <template v-if="gemeinde?.buergermeisterei.kreis.infos.length>0">
+                <h2>Kreis {{gemeinde?.buergermeisterei.kreis.name }}</h2>
+                <InfoListComponent :infos="gemeinde?.buergermeisterei.kreis.infos"/>
+            </template>
+            <template v-if="gemeinde?.buergermeisterei.infos.length>0">
+                <h2>Bürgermeisterei {{gemeinde?.buergermeisterei.name }}</h2>
+                <InfoListComponent :infos="gemeinde?.buergermeisterei.infos"/>
+            </template>
+            <template v-if="gemeinde?.infos.length>0">
+                <h2>Gemeinde {{gemeinde?.name }}</h2>
+                <InfoListComponent :infos="gemeinde?.infos"/>
+            </template>
             <h2>Parzelle</h2>
             <dl class="properties">
                 <dd>Eigentümer</dd>
@@ -106,9 +120,8 @@
                     <dt>{{gebaeudeText}}</dt>
                 </template>
             </dl>
-            <template v-if="wikipediaInfos?.length">
-                <h2>Wikipedia</h2>
-                <WikipediaInfoComponent v-for="info of wikipediaInfos" :page="info.page"/>
+            <template v-if="parzelle?.info">
+                <InfoListComponent :infos="parzelle?.info"/>
             </template>
             <h2>Quellen</h2>
             <dl class="properties">

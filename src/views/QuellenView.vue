@@ -114,8 +114,8 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 </thead>
                 <tbody>
                     <tr v-for="flur in flure">
-                        <td>{{flur.gemeinde?.kreis}}</td>
-                        <td>{{flur.gemeinde?.buergermeisterei}}</td>
+                        <td>{{flur.gemeinde?.buergermeisterei.kreis.name}}</td>
+                        <td>{{flur.gemeinde?.buergermeisterei.name}}</td>
                         <td>{{flur.gemeinde?.name}}</td>
                         <td>{{flur.nr}}</td>
                         <td>{{flur.name}}</td>

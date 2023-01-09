@@ -1,14 +1,11 @@
 import { defineStore, storeToRefs } from 'pinia'
 import axios from 'axios'
+import type { InfoExport } from '@/services/infoService'
+import { mapInfos,Info } from '@/services/infoService'
 
 type ParzelleBuildingExport = {
     b:string, // Bezeichnung
     n:string // hnr
-}
-
-type InfoExport = {
-    t:string // typ
-    a:any // attributes
 }
 
 type ParzelleExport = {
@@ -29,16 +26,6 @@ export class ParzelleBuilding {
     constructor(public bezeichnung:string, public hnr:string) {}
 }
 
-export abstract class Info {
-    constructor(public type:string) {}
-}
-
-export class WikipediaInfo extends Info {
-    constructor(type:string, public page:string) {
-        super(type);
-    }
-}
-
 export class Parzelle {
     constructor(
         public gemeindeId:string, 
@@ -56,12 +43,6 @@ export class Parzelle {
         public buildings:ParzelleBuilding[]) {}
 }
 
-function mapInfo(i:InfoExport):Info|null {
-    if( i.t == 'wikipedia' ) {
-        return new WikipediaInfo(i.t, i.a['page'] as string);
-    }
-    return null;
-}
 
 export const useParzelleStore = defineStore({
     id: 'parzelle',
@@ -83,7 +64,7 @@ export const useParzelleStore = defineStore({
                 
             const result:Parzelle[] = [];
             for( const p of parzellenExport ) {
-                const infos = p.i.map(i => mapInfo(i)).filter(i => i != null) as Info[];
+                const infos = mapInfos(p.i);
                 result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.r, p.t, p.k, p.l, p.p, infos, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n))));
             }
 

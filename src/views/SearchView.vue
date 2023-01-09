@@ -93,15 +93,15 @@ export default {
             const flurStore = useFlurStore();
             const result:any[] = [];
             for( const g of flurStore.gemeinden ) {
-                let kreis = result.find(e => e.id == `kreis-${g.kreis}`)
+                let kreis = result.find(e => e.id == `kreis-${g.buergermeisterei.kreis.id}`)
                 if( !kreis ) {
-                    kreis = {label:`Kreis ${g.kreis}`, id:`kreis-${g.kreis}`, children:[]};
+                    kreis = {label:`Kreis ${g.buergermeisterei.kreis.name}`, id:`kreis-${g.buergermeisterei.kreis.id}`, children:[]};
                     result.push(kreis);
                 }
                 
-                let bmstr = kreis.children.find((e:any) => e.id == `bmstr-${g.buergermeisterei}`);
+                let bmstr = kreis.children.find((e:any) => e.id == `bmstr-${g.buergermeisterei.id}`);
                 if( !bmstr ) {
-                    bmstr = {id:`bmstr-${g.buergermeisterei}`,label:`Bürgmstr. ${g.buergermeisterei}`, children:[]};
+                    bmstr = {id:`bmstr-${g.buergermeisterei.id}`,label:`Bürgmstr. ${g.buergermeisterei.name}`, children:[]};
                     kreis.children.push(bmstr);
                 }
                 bmstr.children.push({id:g.id, label:g.name});

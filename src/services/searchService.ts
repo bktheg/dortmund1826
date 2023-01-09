@@ -41,7 +41,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                 const flur = flurStore.getFlurById(bz.g, bz.f);
                 const gemeinde = flurStore.getGemeindeById(bz.g);
                 result.push({
-                    locationDesc: flur != null ? `Kreis ${flur.gemeinde.kreis} > Bürgermeisterei ${flur.gemeinde.buergermeisterei} > Gemeinde ${flur.gemeinde.name} > Flur ${flur.nr} gnt. ${flur.name}` : "",
+                    locationDesc: flur != null ? `Kreis ${flur.gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${flur.gemeinde.buergermeisterei.name} > Gemeinde ${flur.gemeinde.name} > Flur ${flur.nr} gnt. ${flur.name}` : "",
                     location: bz.l,
                     name: bz.n,
                     typeEnum: mapTypeToEnum(bz.t),
@@ -52,7 +52,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
         for( const gemeinde of flurStore.gemeinden ) {
             if( gemeinde.name.toLocaleLowerCase().includes(term) ) {
                 result.push({
-                    locationDesc: `Kreis ${gemeinde.kreis} > Bürgermeisterei ${gemeinde.buergermeisterei}`,
+                    locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name}`,
                     location: gemeinde.bbox,
                     name: `Gemeinde ${gemeinde.name}`,
                     typeEnum: SearchResultType.ADMIN,
@@ -64,7 +64,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             const gemeinde = flur.gemeinde;
             if( flur.name.toLocaleLowerCase().includes(term) ) {
                 result.push({
-                    locationDesc: `Kreis ${gemeinde.kreis} > Bürgermeisterei ${gemeinde.buergermeisterei} > Gemeinde ${gemeinde.name}`,
+                    locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
                     location: flur.bbox,
                     name: `Flur ${flur.nr} gnt. ${flur.name}`,
                     typeEnum: SearchResultType.FLUR,
@@ -79,7 +79,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             if( owner.name && owner.name.toLocaleLowerCase().includes(term) ) {
                 const gemeinde = flurStore.getGemeindeById(owner.gemeindeId);
                 result.push({
-                    locationDesc: `Kreis ${gemeinde.kreis} > Bürgermeisterei ${gemeinde.buergermeisterei} > Gemeinde ${gemeinde.name}`,
+                    locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
                     location: null,
                     name: owner.name,
                     typeEnum: SearchResultType.OWNER,
@@ -91,7 +91,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
     }
 
     if( !adminFilter.includes('__all') ) {
-        result = result.filter(r => adminFilter.includes(r.gemeinde.id) || adminFilter.includes('kreis-'+r.gemeinde.kreis) || adminFilter.includes('bmstr-'+r.gemeinde.buergermeisterei));
+        result = result.filter(r => adminFilter.includes(r.gemeinde.id) || adminFilter.includes('kreis-'+r.gemeinde.buergermeisterei.kreis.id) || adminFilter.includes('bmstr-'+r.gemeinde.buergermeisterei.id));
     }
     result.sort((a,b) => b.typeEnum-a.typeEnum)
 
