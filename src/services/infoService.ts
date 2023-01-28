@@ -36,7 +36,7 @@ export class HaeuserbuchYearInfoLine {
 }
 
 export class HaeuserbuchInfo extends Info {
-    constructor(type:string, public infos:HaeuserbuchInfoLine[], public yearInfos:HaeuserbuchYearInfoLine[]) {
+    constructor(type:string, public infos:HaeuserbuchInfoLine[], public yearInfos:HaeuserbuchYearInfoLine[], public address:string) {
         super(type);
     }
 }
@@ -52,7 +52,11 @@ export function mapInfo(i:InfoExport):Info|null {
         return new CommonInfo(i.t, i.a['t'] as string, i.a['s'] as string, i.a['u'] as string)
     }
     else if( i.t == 'haeuserbuch' && window.localStorage.getItem('experimental') ) {
-        return new HaeuserbuchInfo(i.t, i.a['i']?.map((i:any) => new HaeuserbuchInfoLine(i.e, i.t)), i.a['y']?.map((i:any) => new HaeuserbuchYearInfoLine(i.y, i.t)));
+        return new HaeuserbuchInfo(
+            i.t, 
+            i.a['i']?.map((i:any) => new HaeuserbuchInfoLine(i.e, i.t)), 
+            i.a['y']?.map((i:any) => new HaeuserbuchYearInfoLine(i.y, i.t)),
+            i.a['a']);
     }
     return null;
 }

@@ -6,7 +6,7 @@
     })
     </script>
 <template>
-    <h3>Häuserbuch</h3>
+    <h3>Eintrag im Häuserbuch für {{ info.address }}</h3>
     <ul class="haeuserbuch-lines">
         <li v-for="info of props?.info.infos.filter(i => i.type != HaeuserbuchInfoLineType.Unbekannt)">{{ info.text }}</li>
     </ul>

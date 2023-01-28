@@ -83,7 +83,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             <template v-if="hasSource('KA Ennepe-Ruhr')">
                 <h2 id="quelle-ka-ennepe-ruhr">Liegenschaftskataster u. Geoinformation des Ennepe-Ruhr-Kreises</h2>
                 <p>
-                    Basis sind die vom Liegenschaftskataster u. Geoinformation des Ennepe-Ruhr-Kreises für dortmund1826.de bereitgestellten Urkarten, Stückvermessungshandrisse, Flurbücher und Vermessungsunterlagen.
+                    Basis sind die vom Liegenschaftskataster u. der Geoinformation des Ennepe-Ruhr-Kreises für dortmund1826.de bereitgestellten Urkarten, Stückvermessungshandrisse, Flurbücher und Vermessungsunterlagen.
                 </p>
 
                 <p class="legal" v-html="getLegalText('KA Ennepe-Ruhr')"/>

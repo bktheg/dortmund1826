@@ -46,6 +46,10 @@ main #content {
     main {
         flex-direction: column;
     }
+
+    main #contentview {
+        height:50%
+    }
 }
 
 .mapboxgl-control-container {

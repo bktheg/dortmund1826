@@ -123,7 +123,7 @@
             <template v-if="parzelle?.info">
                 <InfoListComponent :infos="parzelle?.info"/>
             </template>
-            <h2>Quellen</h2>
+            <h2>Urkatasterunterlagen</h2>
             <dl class="properties">
                 <dd>Vermessung</dd>
                 <dt>{{expandSourceToDetailedSource(gemeinde?.quelleVermessung)}}</dt>

@@ -12,7 +12,7 @@
     <template v-for="info of props?.infos">
         <WikipediaInfoComponent v-if="info instanceof WikipediaInfo" :page="(info as WikipediaInfo).page"/>
         <CommonInfoComponent v-if="(info instanceof CommonInfo)" :info="(info as CommonInfo)"/>
-        <HaeuserbuchInfoComponent v-if="(info instanceof HaeuserbuchInfo)" :info="(info as CommHaeuserbuchInfoonInfo)"/>
+        <HaeuserbuchInfoComponent v-if="(info instanceof HaeuserbuchInfo)" :info="(info as HaeuserbuchInfo)"/>
     </template>
 </template>
 

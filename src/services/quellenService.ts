@@ -80,7 +80,7 @@ export function expandSourceToText(source:string|null|undefined) {
     case 'ka recklinghausen':
         return "Katasteramt des Kreises Recklinghausen. Grundlage: Urkarten und Geobasisdaten © Kreis Recklinghausen. Veröffentlicht mit freundlicher Genehmigung des Katasteramtes des Kreises Recklinghausen."
     case 'ka ennepe-ruhr':
-        return "Katasteramt des Kreises Ennepe-Ruhr"
+        return "Liegenschaftskataster u. Geoinformation des Ennepe-Ruhr-Kreises"
     case '?':
         return 'Der Verbleib der Unterlagen ist unbekannt, möglicherweise sind sie nicht mehr erhalten';
     }
