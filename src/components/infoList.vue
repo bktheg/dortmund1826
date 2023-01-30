@@ -9,13 +9,16 @@
     })
 </script>
 <template>
-    <template v-for="info of props?.infos">
+    <div v-for="info of props?.infos" class="infoentry">
         <WikipediaInfoComponent v-if="info instanceof WikipediaInfo" :page="(info as WikipediaInfo).page"/>
         <CommonInfoComponent v-if="(info instanceof CommonInfo)" :info="(info as CommonInfo)"/>
         <HaeuserbuchInfoComponent v-if="(info instanceof HaeuserbuchInfo)" :info="(info as HaeuserbuchInfo)"/>
-    </template>
+    </div>
 </template>
 
 <style scoped>
-    
+    .infoentry {
+        margin-top:5pt;
+        margin-bottom:5pt;
+    }
 </style>
