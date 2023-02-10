@@ -121,6 +121,15 @@ export default {
         unit: 'metric'
     });
     this.map.addControl(scale);
+    this.map.addControl(
+        new window.mapboxgl.GeolocateControl({
+            positionOptions: {
+                enableHighAccuracy: true
+            },
+            trackUserLocation: true,
+            showUserHeading: true
+        }), 'top-left'
+    );
     this.map.addControl(new ParzellenDetailControl(), 'top-left');
 
     this.alwaysOff = ['country-label','state-label','settlement-major-label','settlement-minor-label','settlement-subdivision-label','poi-label','admin-0-boundary-disputed','admin-0-boundary','admin-1-boundary','admin-0-boundary-bg','admin-1-boundary-bg'];
