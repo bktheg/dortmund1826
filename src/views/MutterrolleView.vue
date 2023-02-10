@@ -16,7 +16,7 @@
 
     function toFeet(flaeche:String):number {
         const parts = flaeche.split('.');
-        return parseInt(parts[0])*180*FACTOR_F+parseInt(parts[1])*FACTOR_F+parseInt(parts[2]);
+        return parseInt(parts[0])*180*FACTOR_F+parseInt(parts[1])*FACTOR_F+parseFloat(parts[2]?.replace(',','.'));
     }
 
     function toPfennig(money:String):number {
@@ -67,7 +67,9 @@
         const m = Math.floor(sum/(180*FACTOR_F));
         const r = Math.floor((sum-m*180*FACTOR_F)/FACTOR_F);
         const f = sum-m*180*FACTOR_F-r*FACTOR_F;
-        return `${m}.${r}.${f}`
+
+        const nf = new Intl.NumberFormat('de-DE', {useGrouping:false})
+        return `${nf.format(m)}.${nf.format(r)}.${nf.format(f)}`
     });
 
     const gesamtErtrag = computed(() => {
@@ -79,7 +81,8 @@
         const t = Math.floor(sum/(FACTOR_TALER*FACTOR_GROSCHEN));
         const g = Math.floor((sum-t*FACTOR_TALER*FACTOR_GROSCHEN)/FACTOR_GROSCHEN);
         const p = sum-t*FACTOR_TALER*FACTOR_GROSCHEN-g*FACTOR_GROSCHEN;
-        return `${t}.${g}.${p}`
+        const nf = new Intl.NumberFormat('de-DE', {useGrouping:false})
+        return `${nf.format(t)}.${nf.format(g)}.${nf.format(p)}`
     });
 
     watch(() => mutterrolle.value, (value) => {
