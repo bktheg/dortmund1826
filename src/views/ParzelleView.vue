@@ -89,7 +89,7 @@
                 <h2>Gemeinde {{gemeinde?.name }}</h2>
                 <InfoListComponent :infos="gemeinde?.infos"/>
             </template>
-            <h2>Parzelle</h2>
+            <h2>Parzelle Nr. {{location.parzelleNr}}</h2>
             <dl class="properties">
                 <dd>Eigentümer</dd>
                 <dt>
