@@ -12,6 +12,7 @@
     import { searchByTerm, SearchResultType } from "@/services/searchService";
     // @ts-ignore
     import Treeselect from '@/components/treeselect/components/Treeselect.vue'
+    import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 
     const { fetchFlure } = useFlurStore()
@@ -35,7 +36,8 @@ export default {
         }
     },
     components: {
-        Treeselect
+        Treeselect,
+        LoadingSpinner
     },
     async mounted() {
         this.searchDebounce = _debounce(() => {
@@ -107,6 +109,13 @@ export default {
                 bmstr.children.push({id:g.id, label:g.name});
             }
             return [{id:'__all', label:'Provinz Westfalen', children:result}];
+        },
+        loading():boolean {
+            const flurStore = useFlurStore();
+            const eigentuemerStore = useEigentuemerStore();
+            const bezeichnungStore = useBezeichnungStore();
+
+            return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading;
         }
     },
     methods: {
@@ -276,6 +285,7 @@ export default {
                 <input class="button" type="submit" value="Suchen" @click="search()"/>
             </section>
             <p>
+                <LoadingSpinner v-if="loading" />
                 <ul id="searchresult">
                     <li v-for="match in matches" @click="resultSelected(match)" :class="`type-${getTypeCss(match.typeEnum)}`">
                         <div class="position">{{match.locationDesc}}</div>

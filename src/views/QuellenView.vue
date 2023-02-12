@@ -93,6 +93,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             <p>
                 <ul>
                     <li>Dortmund: Dortmunder Häuserbuch, Robert von den Berken, 1927; Adressbuch 1874</li>
+                    <li>Huckarde: Verzeichnis derjenigen Haus Nummern die sich in der Commune Huckarde befinden pro 1825, in: Stadtarchiv Dortmund, Best. 3-1047</li>
                     <li>Mengede: Karte Schott / Heimatverein Mengede e.V.</li>
                 </ul>
             </p>

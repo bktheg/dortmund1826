@@ -5,16 +5,17 @@
     import type {Emitter} from 'mitt';
     import {expandSourceToDetailedSource} from '@/services/quellenService'
     import InfoListComponent from '@/components/infoList.vue'
+    import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
     import {useFlurStore} from '@/stores/flurStore'
     import {useParzelleStore} from '@/stores/parzelleStore'
     import {CommonInfo, WikipediaInfo} from '@/services/infoService'
 
-    const { fetchFlure, getGemeindeById, getFlurById } = useFlurStore()
+    const flurStore = useFlurStore()
     const parzelleStore = useParzelleStore()
     const {parzellen} = storeToRefs(parzelleStore);
     
-    fetchFlure()
+    flurStore.fetchFlure()
 
     const route = useRoute();
 
@@ -27,8 +28,8 @@
         parzelleStore.fetchParzellen(params.gemeinde as string, parseInt(params.flur as string));
     }, {immediate:true});
 
-    const gemeinde = computed(() => getGemeindeById(location.value.gemeindeId) || null)
-    const flur = computed(() => getFlurById(location.value.gemeindeId, location.value.flurId))
+    const gemeinde = computed(() => flurStore.getGemeindeById(location.value.gemeindeId) || null)
+    const flur = computed(() => flurStore.getFlurById(location.value.gemeindeId, location.value.flurId))
 
     const parzelle = computed(() => parzellen.value.get(location.value.gemeindeId)?.get(location.value.flurId)?.find(e => e.parzelle == location.value.parzelleNr))
 
@@ -60,12 +61,8 @@
         return importantBuildings.join(', ') + (normalBuildingCount > 1 ? ` sowie ${normalBuildingCount} weitere Gebäude` : (normalBuildingCount > 0 ? ` sowie ein weiteres Gebäude` : ''))
     });
 
-    const wikipediaInfos = computed(() => {
-        if( !parzelle.value ) {
-            return null;
-        }
-        console.log(parzelle.value.info);
-        return parzelle.value.info.filter(i => i instanceof WikipediaInfo) as WikipediaInfo[];
+    const loading = computed(() => {
+        return flurStore.loading || parzelleStore.loading.size > 0
     })
 </script>
 
@@ -90,38 +87,41 @@
                 <InfoListComponent :infos="gemeinde?.infos"/>
             </template>
             <h2>Parzelle Nr. {{location.parzelleNr}}</h2>
-            <dl class="properties">
-                <dd>Eigentümer</dd>
-                <dt>
-                    <template v-if="parzelle?.artikelNr">
-                        <RouterLink :to="{name:'mutterrolle', params: {gemeinde: gemeinde?.id, artikelNr:parzelle?.artikelNr}}">{{parzelle?.eigentuemer}} ({{parzelle?.artikelNr}})</RouterLink>
+            <LoadingSpinner v-if="loading"/>
+            <template v-else>
+                <dl class="properties">
+                    <dd>Eigentümer</dd>
+                    <dt>
+                        <template v-if="parzelle?.artikelNr">
+                            <RouterLink :to="{name:'mutterrolle', params: {gemeinde: gemeinde?.id, artikelNr:parzelle?.artikelNr}}">{{parzelle?.eigentuemer}} ({{parzelle?.artikelNr}})</RouterLink>
+                        </template>
+                    </dt>
+
+                    <dd>Kulturart</dd>
+                    <dt>{{parzelle?.typ}}</dt>
+
+                    <dd>Lage¹</dd>
+                    <dt>{{parzelle?.lage}}</dt>
+
+                    <dd>Klasse²</dd>
+                    <dt>{{parzelle?.klasse}}</dt>
+
+                    <dd>Größe³</dd>
+                    <dt>{{parzelle?.flaeche}}</dt>
+
+                    <template v-if="parzelle?.reinertrag">
+                        <dd>Reinertrag⁴</dd>
+                        <dt>{{parzelle?.reinertrag}}</dt>
                     </template>
-                </dt>
 
-                <dd>Kulturart</dd>
-                <dt>{{parzelle?.typ}}</dt>
-
-                <dd>Lage¹</dd>
-                <dt>{{parzelle?.lage}}</dt>
-
-                <dd>Klasse²</dd>
-                <dt>{{parzelle?.klasse}}</dt>
-
-                <dd>Größe³</dd>
-                <dt>{{parzelle?.flaeche}}</dt>
-
-                <template v-if="parzelle?.reinertrag">
-                    <dd>Reinertrag⁴</dd>
-                    <dt>{{parzelle?.reinertrag}}</dt>
+                    <template v-if="gebaeudeText">
+                        <dd>Gebäude</dd>
+                        <dt>{{gebaeudeText}}</dt>
+                    </template>
+                </dl>
+                <template v-if="parzelle?.info">
+                    <InfoListComponent :infos="parzelle?.info"/>
                 </template>
-
-                <template v-if="gebaeudeText">
-                    <dd>Gebäude</dd>
-                    <dt>{{gebaeudeText}}</dt>
-                </template>
-            </dl>
-            <template v-if="parzelle?.info">
-                <InfoListComponent :infos="parzelle?.info"/>
             </template>
             <h2>Urkatasterunterlagen</h2>
             <dl class="properties">

@@ -8,6 +8,7 @@
     import {storeToRefs} from 'pinia'
     import type {MutterrolleRow} from '../stores/mutterrolleStore'
     import type {HighlightEvent} from '../components/Map.vue'
+    import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
     const FACTOR_F = 100;
 
@@ -25,7 +26,7 @@
     }
 
     const { fetchFlure, getGemeindeById, getFlurById } = useFlurStore()
-    const { fetchMutterrollen } = useMutterrolleStore()
+    const mutterrolleStore = useMutterrolleStore()
     const { mutterrollen } = storeToRefs(useMutterrolleStore())
 
     fetchFlure()
@@ -35,7 +36,7 @@
     const gemeindeId = ref(route.params.gemeinde as string);
     const artikelNr = ref(route.params.artikelNr as string);
 
-    fetchMutterrollen(gemeindeId.value);
+    mutterrolleStore.fetchMutterrollen(gemeindeId.value);
 
     const mutterrolle = computed(() => mutterrollen.value.get(gemeindeId.value)?.get(artikelNr.value));
     const gemeinde = computed(() => getGemeindeById(gemeindeId.value))
@@ -109,6 +110,10 @@
     onBeforeUnmount(() => {
         emitter.emit('map-highlight-areas', null);
     })
+
+    const loading = computed(() => {
+        return mutterrolleStore.loading
+    })
 </script>
 
 <style>
@@ -119,57 +124,60 @@
     <div id="contentview">
         <div id="content">
             <a v-if="lastPage" class="backToSearch" href="#" @click="back">Zurück</a>
-            <section class="mutterrolleHeader">
-                <div class="name">Gemeinde</div><div class="value">{{gemeinde?.name}}</div>
-                <div class="name">Artikel Nr</div><div class="value">{{mutterrolle?.id}}</div>
-                <div class="name">Name</div><div class="value">{{mutterrolle?.name}}</div>
-            </section>
-
-            <table class="mutterrolle">
-                <thead>
-                    <th>Flur</th>
-                    <th>Parzelle</th>
-                    <th>Lage¹</th>
-                    <th>Kulturart</th>
-                    <th>Klasse²</th>
-                    <th>Fläche³</th>
-                    <th v-if="showReinertrag">Reinertrag⁴</th>
-                </thead>
-                <tbody>
-                    <tr v-for="row in mutterrolle?.rows">
-                        <td>{{row.flur}} gnt. {{getFlurById(gemeindeId, row.flur)?.name}}</td>
-                        <td><a href="#" @click="moveToFlur(row)">{{row.flurstueck}}</a></td>
-                        <td>{{row.lage}}</td>
-                        <td>{{row.kulturart}}</td>
-                        <td>{{row.klasse}}</td>
-                        <td>{{row.flaeche}}</td>
-                        <td v-if="showReinertrag">{{row.reinertrag}}</td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>{{gesamtflaeche}}</td>
-                    <td v-if="showReinertrag">{{gesamtErtrag}}</td>
-                </tfoot>
-            </table>
-            <section class="footnotes">
-                <p>
-                    ¹ Lage laut Flurbuch. Die Angabe ist mit einiger Vorsicht zu betrachten. Die Lageangaben sind häufig schwer zu lesen und durchaus bereits im Flurbuch falsch geschrieben
-                </p>
-                <p>
-                    ² Steuerklasse 1-5. Einzelne Parzellen waren weiter unterteilt, so dass eine Anzahl von x Morgen/Ruten/Fuß einer Steuerklasse zugeordnet wurden, der Rest aber zu einer anderen gehörte
-                </p>
-                <p>
-                    ³ Angabe der Fläche in Morgen.Ruten.Fuß
-                </p>
-                <p v-if="showReinertrag">
-                    ⁴ Angabe des Reinertrags in Taler.Groschen.Pfennig. 30 Groschen = 1 Taler, 12 Pfennig = 1 Groschen.
-                </p>
-            </section>
+            <LoadingSpinner v-if="loading"/>
+            <template v-else>
+                <section class="mutterrolleHeader">
+                    <div class="name">Gemeinde</div><div class="value">{{gemeinde?.name}}</div>
+                    <div class="name">Artikel Nr</div><div class="value">{{mutterrolle?.id}}</div>
+                    <div class="name">Name</div><div class="value">{{mutterrolle?.name}}</div>
+                </section>
+                
+                <table class="mutterrolle">
+                    <thead>
+                        <th>Flur</th>
+                        <th>Parzelle</th>
+                        <th>Lage¹</th>
+                        <th>Kulturart</th>
+                        <th>Klasse²</th>
+                        <th>Fläche³</th>
+                        <th v-if="showReinertrag">Reinertrag⁴</th>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in mutterrolle?.rows">
+                            <td>{{row.flur}} gnt. {{getFlurById(gemeindeId, row.flur)?.name}}</td>
+                            <td><a href="#" @click="moveToFlur(row)">{{row.flurstueck}}</a></td>
+                            <td>{{row.lage}}</td>
+                            <td>{{row.kulturart}}</td>
+                            <td>{{row.klasse}}</td>
+                            <td>{{row.flaeche}}</td>
+                            <td v-if="showReinertrag">{{row.reinertrag}}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>{{gesamtflaeche}}</td>
+                        <td v-if="showReinertrag">{{gesamtErtrag}}</td>
+                    </tfoot>
+                </table>
+                <section class="footnotes">
+                    <p>
+                        ¹ Lage laut Flurbuch. Die Angabe ist mit einiger Vorsicht zu betrachten. Die Lageangaben sind häufig schwer zu lesen und durchaus bereits im Flurbuch falsch geschrieben
+                    </p>
+                    <p>
+                        ² Steuerklasse 1-5. Einzelne Parzellen waren weiter unterteilt, so dass eine Anzahl von x Morgen/Ruten/Fuß einer Steuerklasse zugeordnet wurden, der Rest aber zu einer anderen gehörte
+                    </p>
+                    <p>
+                        ³ Angabe der Fläche in Morgen.Ruten.Fuß
+                    </p>
+                    <p v-if="showReinertrag">
+                        ⁴ Angabe des Reinertrags in Taler.Groschen.Pfennig. 30 Groschen = 1 Taler, 12 Pfennig = 1 Groschen.
+                    </p>
+                </section>
+            </template>
         </div>
     </div>
 </template>
