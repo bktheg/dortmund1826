@@ -13,6 +13,7 @@
     // @ts-ignore
     import Treeselect from '@/components/treeselect/components/Treeselect.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
+    import { useAllParzellenStore } from "@/stores/allParzellenStore";
 
 
     const { fetchFlure } = useFlurStore()
@@ -89,6 +90,9 @@ export default {
             },{
                 label:"Eigentümer",
                 id:"owner"
+            },{
+                label:"Parzelle",
+                id:"parzelle"
             }]
         },
         calcFilterOptions():any[] {
@@ -114,8 +118,9 @@ export default {
             const flurStore = useFlurStore();
             const eigentuemerStore = useEigentuemerStore();
             const bezeichnungStore = useBezeichnungStore();
+            const allParzellenStore = useAllParzellenStore();
 
-            return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading;
+            return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading || allParzellenStore.loading;
         }
     },
     methods: {
@@ -140,6 +145,11 @@ export default {
             return filterString.split(',');
         },
         doSearch: function(term:string):SearchResult[] {
+            if( this.searchType == "parzelle" ) {
+                const allParzellenStore = useAllParzellenStore();
+                allParzellenStore.fetchAllParzellen();
+            }
+
             this.$router.replace({name:'search', params:{type:this.searchType, term:this.searchtext, filter:this.serializeFilter(this.filterValue)}, hash:window.location.hash})
             
             return searchByTerm(term, this.searchType, this.filterValue, this.maxResults);

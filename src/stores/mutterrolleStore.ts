@@ -41,7 +41,7 @@ export const useMutterrolleStore = defineStore({
     id: 'mutterrolle',
     state: () => ({
       mutterrollen: new Map<string,Map<string,Mutterrolle>>(),
-      loading: false,
+      loading: new Set<string>(),
       error: null as unknown
     }),
     getters: {
@@ -49,10 +49,10 @@ export const useMutterrolleStore = defineStore({
     },
     actions: {
       async fetchMutterrollen(gemeinde:string) {
-        if( this.loading || this.mutterrollen.has(gemeinde) ) {
+        if( this.loading.has(gemeinde) || this.mutterrollen.has(gemeinde) ) {
             return;
         }
-        this.loading = true
+        this.loading.add(gemeinde)
         try {
             const mutterrollenExport = await axios.get(`/mutterrollen_${gemeinde}.json?v=${__APP_VERSION__}`)
                 .then((response) => response.data)
@@ -69,7 +69,7 @@ export const useMutterrolleStore = defineStore({
         } catch (error) {
           this.error = error
         } finally {
-          this.loading = false
+          this.loading.delete(gemeinde)
         }
       }
     }

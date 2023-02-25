@@ -1,8 +1,9 @@
-import type {RouteLocationRaw} from 'vue-router'
-import type {Gemeinde} from '../stores/flurStore'
-import {useFlurStore} from '../stores/flurStore'
-import {useBezeichnungStore} from '../stores/bezeichnungStore'
-import {useEigentuemerStore} from '../stores/eigentuemerStore'
+import type { RouteLocationRaw } from 'vue-router'
+import type { Gemeinde } from '@/stores/flurStore'
+import { useFlurStore } from '@/stores/flurStore'
+import { useBezeichnungStore } from '@/stores/bezeichnungStore'
+import { useEigentuemerStore } from '@/stores/eigentuemerStore'
+import { useAllParzellenStore } from '@/stores/allParzellenStore'
 
 export type SearchResult = {
     locationDesc:string,
@@ -21,7 +22,8 @@ export enum SearchResultType {
     ADMIN=5,
     FLUR=6,
     ORT=7,
-    OWNER=8
+    OWNER=8,
+    PARZELLE=9
 }
 
 
@@ -73,7 +75,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             }
         }
     }
-    else {
+    else if( searchType == "owner" ) {
         const eigentuemerStore = useEigentuemerStore();
         for( const owner of eigentuemerStore.eigentuemer ) {
             if( owner.name && owner.name.toLocaleLowerCase().includes(term) ) {
@@ -86,6 +88,29 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     route: {name: "mutterrolle", params:{gemeinde:owner.gemeindeId, artikelNr: owner.id}},
                     gemeinde: gemeinde
                 } as SearchResult);
+            }
+        }
+    }
+    else if( searchType == "parzelle" ) {
+        if( term.match(/[0-9]+\-[0-9]+[a-zA-Z]?/) ) {
+            const allParzellenStore = useAllParzellenStore()
+            const eigentuemerStore = useEigentuemerStore()
+            for( const p of allParzellenStore.parzellen ) {
+                if( `${p.flur}-${p.parzelle}`.includes(term) ) {
+                    const gemeinde = flurStore.getGemeindeById(p.gemeindeId);
+                    const eigentuemer = eigentuemerStore.eigentuemer.find(e => e.gemeindeId == p.gemeindeId && e.id == p.artikel);
+                    result.push({
+                        locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                        location: p.location,
+                        name: `${p.flur}-${p.parzelle} (${eigentuemer?.name})`,
+                        typeEnum: SearchResultType.PARZELLE,
+                        gemeinde: gemeinde
+                    } as SearchResult);
+                    
+                    if( result.length > maxResults ) {
+                        break;
+                    }
+                }
             }
         }
     }

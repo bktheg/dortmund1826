@@ -112,7 +112,7 @@
     })
 
     const loading = computed(() => {
-        return mutterrolleStore.loading
+        return mutterrolleStore.loading.size > 0
     })
 </script>
 
