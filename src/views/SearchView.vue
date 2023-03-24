@@ -107,7 +107,7 @@ export default {
                 
                 let bmstr = kreis.children.find((e:any) => e.id == `bmstr-${g.buergermeisterei.id}`);
                 if( !bmstr ) {
-                    bmstr = {id:`bmstr-${g.buergermeisterei.id}`,label:`Bürgmstr. ${g.buergermeisterei.name}`, children:[]};
+                    bmstr = {id:`bmstr-${g.buergermeisterei.id}`,label:`Bürgermstr. ${g.buergermeisterei.name}`, children:[]};
                     kreis.children.push(bmstr);
                 }
                 bmstr.children.push({id:g.id, label:g.name});

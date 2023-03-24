@@ -158,9 +158,6 @@ import { storeToRefs } from 'pinia'
 import {useFlurStore} from '../stores/flurStore'
 
 const { flure } = storeToRefs(useFlurStore())
-const { fetchFlure } = useFlurStore()
-
-fetchFlure()
 
 export default {
     data() {
@@ -170,6 +167,7 @@ export default {
     },
     async mounted() {
         const flurStore = useFlurStore();
+        flurStore.fetchFlure();
         flurStore.$subscribe((mutation,state) => {
             state.flure.forEach((f) => {
                 this.addSource(f.gemeinde?.quelleFlurbuch, null);
@@ -180,7 +178,14 @@ export default {
     },
     methods: {
         hasSource: function(sourceId:string|null) {
-            return this.quellenIds.has(sourceId);
+            for( const flur of flure.value ) {
+                if( flur.gemeinde?.quelleFlurbuch == sourceId ||
+                    flur.gemeinde?.quelleVermessung == sourceId ||
+                    flur.quelleUrkarten == sourceId ) {
+                    return true;
+                }
+            }
+            return false;
         },
         getLegalText: function(sourceId:string|null) {
             const value = this.quellenIds.get(sourceId)
