@@ -20,7 +20,9 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
 
 
             <h1 id="dargestellte-informationen">Dargestellte Informationen</h1>
-            <p>Zur Karte existiert ein kurzes <a href="https://youtu.be/4VQwyPPRPCY">Info-Video</a> (nicht mehr ganz aktuell).</p>
+            <p>
+                Zur Karte existiert ein kurzes <a href="https://youtu.be/Wl6zQ7XfHtQ">Info-Video</a>, das alle wesentlichen Funktionen einmal vorstellt (Stand: Ende März 2023).
+            </p>
             <p>
                 Zu jeder Parzelle werden, abhängig von der Zoomstufe, weiterführende Informationen angezeigt, soweit diese bereits erfasst sind. Dies können sein: Flur, Flurstück, Eigentümer, Größe in preußischen Morgen, Ruten und Fuß sowie die Kulturart und als was die Parzelle taxiert wurde.
             </p>
@@ -28,7 +30,18 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 <img width="400" :src="infotextJpg" alt="Dargestellte Informationen"/>
             </p>
             <p>
-                Für die Stadt Dortmund sind außerdem die alten napoleonischen Hausnummern an den Gebäuden hinterlegt. Diese werden bei der entsprechenden Zoomstufe in weißer Schrift auf blauem Grund angezeigt. Die Zuordnung basiert auf der Hausnummernliste aus dem Adressbuch 1874 und dem Dortmunder Häuserbuch von Robert von den Berken von 1927. Die alten Hausnummern galten in Dortmund bis Anfang der 1870er. Die Wohnhäuser waren anders als heute nicht pro Straße durchnummeriert. Stattdessen hat man an der Südwestecke des Ostentors mit der 1 angefangen und an der gegenüberliegenden Ecke mit der 887 aufgehört. Die Hausnummern waren für die gesamte Stadt fortlaufend. Außerhalb der Stadt gab es keine Hausnummern. Neue Hausnummern wurden zwischen zwei bestehenden eingefügt, entsprechend des Standorts des Gebäudes. Dies führte am Ende zu Hausnummern wie "655 1/4e" für die Katharinenstraße 1 oder "45n II" für das Haus Ostwall 39.
+                Für Dortmund, Huckarde und teilweise auch Hörde sind die alten napoleonischen Hausnummern an den Gebäuden hinterlegt. 
+                Diese werden bei der entsprechenden Zoomstufe in weißer Schrift auf blauem Grund angezeigt.
+                Weitere Orte werden ergänzt, sofern passende Quellen zu finden sind (Hausnummerlisten, Eigentümerlisten, Karten). Hinweise werden dankend angenommen.
+            </p>
+            <p>
+                Die Zuordnung basiert für Dortmund auf der Hausnummernliste aus dem Adressbuch 1874 und dem Dortmunder Häuserbuch von Robert von den Berken von 1927.
+                Die alten Hausnummern galten in Dortmund bis Anfang der 1870er.
+                Die Wohnhäuser waren anders als heute nicht pro Straße durchnummeriert,
+                stattdessen hat man an der Südwestecke des Ostentors mit der 1 angefangen und an der gegenüberliegenden Ecke mit der 887 aufgehört. 
+                Die Hausnummern waren für die gesamte Stadt fortlaufend. Außerhalb der Stadt gab es keine Hausnummern. 
+                Neue Hausnummern wurden zwischen zwei bestehenden eingefügt, entsprechend des Standorts des Gebäudes. 
+                Dies führte am Ende zu Hausnummern wie "655 1/4e" für die Katharinenstraße 1 oder "45n II" für das Haus Ostwall 39.
             </p>
             <p>
                 <img width="300" :src="hausnummernJpg" alt="Hausnummern"/>
@@ -41,8 +54,19 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             </p>
 
             <h1 id="administrative-grenzen">Administrative Grenzen</h1>
-            <p>Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum. 1826 waren die Kreise weiter in Bürgermeistereien untergliedert. Dortmund umfasste die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund. Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.</p>
-            <p>Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters. Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum, auch wird teils zwischen Steuergemeinden und Etatgemeinden unterschieden. Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.</p>           
+            <p>
+                Zum Zeitpunkt der Aufstellung des Urkatasters waren die Kreise in Bürgermeistereien untergliedert.
+                Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.
+            </p>
+            <p>
+                Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters.
+                Andere Quellen nennen zum Teil abweichende Gemeinden für den fraglichen Zeitraum, auch wird teils zwischen Steuergemeinden und Etatgemeinden unterschieden.
+                Klarer wird die Überlieferung leider erst mit Einführung der Ämter in der Provinz Westfalen 1843.
+            </p>
+            <p>
+                Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum.
+                Der Kreis Dortmund umfasste damals die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund.
+            </p>
 
             <h1 id="funktionen">Funktionen</h1>
             <h2>Suchfunktion</h2>
