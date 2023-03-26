@@ -172,9 +172,9 @@ export default {
             state.flure.forEach((f) => {
                 this.addSource(f.gemeinde?.quelleFlurbuch, null);
                 this.addSource(f.gemeinde?.quelleVermessung, null);
-                this.addSource(f.quelleUrkarten, f.legalText);
+                this.addSource(f.quelleUrkarten, f.legalText||null);
             });
-        })
+        },{immediate:true})
     },
     methods: {
         hasSource: function(sourceId:string|null) {
@@ -195,6 +195,9 @@ export default {
             return [...value.values()].filter(t => t != null && t != '').join("<br/><br/>");
         },
         addSource: function(sourceId:string, legalText:string|null) {
+            if( sourceId.includes(':') ) {
+                sourceId = sourceId.split(':')[0]
+            }
             if( this.quellenIds.has(sourceId) ) {
                 this.quellenIds.get(sourceId)?.add(legalText);
             }
