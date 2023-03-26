@@ -6,7 +6,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
 
 <template>
     <div id="contentview">
-        <div id="content">
+        <div class="content quellen">
             <ol class="table-of-contents" role="list">
                 <li><a href="#dargestellte-informationen">Dargestellte Informationen</a></li>
                 <li><a href="#administrative-grenzen">Administrative Grenzen</a></li>
@@ -234,6 +234,14 @@ export default {
 </script>
 
 <style>
+    .quellen {
+        text-align: justify
+    }
+
+    .quellen p {
+        margin: 5pt 0pt
+    }
+
     h1:first-child, h2:first-child {
         margin-top:0pt;
     }
@@ -251,8 +259,9 @@ export default {
     .fluren {
         margin-bottom:10pt;
     }
-    .fluren abbr a {
-        color: rgb(44,62,80);
+    .fluren abbr a,
+    .fluren abbr a:visited {
+        color: var(--color-heading);
         text-decoration:none;
     }
 
@@ -262,9 +271,9 @@ export default {
 
     .table-of-contents {
         padding: 7pt 10pt;
-        border: 1px solid darkgray;
+        border: 1px solid var(--color-border);
         display: inline-block;
-        background-color: #EEE;
+        background-color: var(--color-background-mute)
     }
 
     .table-of-contents ol {
@@ -283,5 +292,4 @@ export default {
         grid-template-columns: auto max-content;
         align-items: end;
     }
-
 </style>

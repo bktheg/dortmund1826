@@ -35,11 +35,11 @@ main #contentview {
     padding:20pt 0pt 0pt 20pt;
 }
 
-main #content {
-    height:100%;
-    padding-right:20pt;
-    padding-bottom:10pt;
-    overflow-y:scroll;
+@media (prefers-color-scheme: dark) {
+    main #contentview {
+        background: var(--color-background);
+        color: var(--color-text);
+    }
 }
 
 @media screen and (max-width:1024px) {
@@ -61,4 +61,59 @@ h1 {
 }
 h2 {
     margin-top:6pt;
+}
+
+
+.content {
+    height:100%;
+    padding-right:20pt;
+    padding-bottom:10pt;
+    overflow-y:scroll;
+}
+
+.content a,
+.content a:visited {
+    color: var(--color-text)
+}
+
+.content .vue-treeselect__control,
+.content .vue-treeselect--open .vue-treeselect__control,
+.content .vue-treeselect__menu {
+    background-color: var(--color-background);
+    border-color: var(--color-border);
+}
+
+.content .vue-treeselect--single .vue-treeselect__option--selected {
+    background-color: var(--color-background-soft)
+}
+
+.content .vue-treeselect__option--highlight,
+.content .vue-treeselect--single .vue-treeselect__option--selected:hover {
+    background-color: var(--color-background-mute)
+}
+
+.content .vue-treeselect:not(.vue-treeselect--disabled) .vue-treeselect__multi-value-item:not(.vue-treeselect__multi-value-item-disabled):hover .vue-treeselect__multi-value-item:not(.vue-treeselect__multi-value-item-new) .vue-treeselect__multi-value-item:not(.vue-treeselect__multi-value-item-new):hover,
+.content .vue-treeselect__multi-value-item {
+    background-color: var(--color-background-soft)
+}
+
+.content .vue-treeselect__input {
+    color: var(--color-text)
+}
+
+.content input:not(.vue-treeselect__input) {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius:5px;
+    padding: 2pt
+}
+
+.content input[type=submit],
+.content input[type=submit] {
+    background-color: var(--color-background-soft)
+}
+
+.content input[type=submit]:active {
+    background-color: var(--color-background-mute)
 }

@@ -122,7 +122,7 @@
 
 <template>
     <div id="contentview">
-        <div id="content">
+        <div class="content">
             <a v-if="lastPage" class="backToSearch" href="#" @click="back">Zurück</a>
             <LoadingSpinner v-if="loading"/>
             <template v-else>

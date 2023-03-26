@@ -205,43 +205,66 @@ export default {
 </script>
 
 <style>
-    
+    :root {
+        --search-color-result: #eee;
+        --search-color-result-highlight: #ddd;
+        --search-color-flurname: #fdd;
+        --search-color-flurname-highlight:#ecc;
+        --search-color-gewaesser:#ddf;
+        --search-color-gewaesser-highlight:#cce;
+        --search-color-gebaeude: #fbb;
+        --search-color-gebaeude-highlight: #e99;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --search-color-result: #555;
+            --search-color-result-highlight: #333;
+            --search-color-flurname: #665;
+            --search-color-flurname-highlight:#443;
+            --search-color-gewaesser:#557;
+            --search-color-gewaesser-highlight:#447;
+            --search-color-gebaeude: #733;
+            --search-color-gebaeude-highlight: #611;
+        }
+    }
+
     #searchresult {
         margin:0;
         padding:0
     }
     #searchresult li {
         list-style: none;
-        background-color:#eee;
+        background-color:var(--search-color-result);
         margin:5pt 0pt;
         padding:3pt 5pt;
         border-radius: 5pt;
         cursor:pointer;
     }
     #searchresult li:hover {
-        background-color: #ddd
+        background-color: var(--search-color-result-highlight)
     }
     #searchresult li.type-town,
     #searchresult li.type-admin,
     #searchresult li.type-flur {
-        background-color:#fdd
+        background-color:var(--search-color-flurname)
     }
     #searchresult li.type-town:hover,
     #searchresult li.type-admin:hover,
     #searchresult li.type-flur:hover {
-        background-color:#ecc
+        background-color:var(--search-color-flurname-highlight)
     }
     #searchresult li.type-gewaesser {
-        background-color:#ddf
+        background-color:var(--search-color-gewaesser)
     }
     #searchresult li.type-gewaesser:hover {
-        background-color:#cce
+        background-color:var(--search-color-gewaesser-highlight)
     } 
     #searchresult li.type-gebaeude {
-        background-color:#fbb
+        background-color:var(--search-color-gebaeude)
     }
     #searchresult li.type-gebaeude:hover {
-        background-color:#e99
+        background-color:var(--search-color-gebaeude-highlight)
     } 
     #searchresult .position {
         font-size:80%;
@@ -285,9 +308,9 @@ export default {
 
 <template>
     <div id="contentview">
-        <div id="content">
+        <div class="content">
             <section class="searchfilter">
-                Suche nach <Treeselect ref="searchTypeRef" class="searchtype" :options="calcSearchTypeOptions" :multiple="false" v-model="searchType" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'" :clearable="false" v-on:search-change="search()"/>
+                Suche nach <Treeselect ref="searchTypeRef" :always-open="false" class="searchtype" :options="calcSearchTypeOptions" :multiple="false" v-model="searchType" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'" :clearable="false" v-on:search-change="search()"/>
                 in <Treeselect class="filter" :options="calcFilterOptions" :multiple="true" v-model="filterValue" :limit="2" :limitText="limitText" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'"/>
             </section>
             <section class="searchinput">

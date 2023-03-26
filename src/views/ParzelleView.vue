@@ -72,7 +72,7 @@
 
 <template>
     <div id="contentview">
-        <div id="content">
+        <div class="content">
             <section class="location">Kreis {{gemeinde?.buergermeisterei.kreis.name}} > Bürgermeisterei {{gemeinde?.buergermeisterei.name}} > Gemeinde {{gemeinde?.name}} > Flur {{flur?.nr}} gnt. {{flur?.name}} > Parzelle {{location.parzelleNr}}</section>
             <template v-if="gemeinde?.buergermeisterei.kreis.infos.length>0">
                 <h2>Kreis {{gemeinde?.buergermeisterei.kreis.name }}</h2>
