@@ -57,7 +57,8 @@ export default {
         clickEnabled: false,
         hoveredArea: null as mapboxgl.MapboxGeoJSONFeature | null,
         hoverLayer: 'kataster_areas_1826v2',
-        wmsLayers: new Map<string,WmsLayer>()
+        wmsLayers: new Map<string,WmsLayer>(),
+        dynamicLayerPrefix: 'kataster-areas-'
     }
   },
   mounted() {
@@ -178,7 +179,7 @@ export default {
   methods: {
     setupHover() {
         this.map.addLayer({
-            'id': 'areas-hovered',
+            'id': this.dynamicLayerPrefix+'hovered',
             'type': 'line',
             'source': 'composite',
             'source-layer': this.hoverLayer,
@@ -196,7 +197,7 @@ export default {
         });
 
         this.map.addLayer({
-            'id': 'areas-hover',
+            'id': this.dynamicLayerPrefix+'hover',
             'type': 'fill',
             'source': 'composite',
             'source-layer': this.hoverLayer,
@@ -206,7 +207,7 @@ export default {
             }
         });
 
-        this.map.on('mousemove', 'areas-hover', (e:mapboxgl.MapLayerMouseEvent) => {
+        this.map.on('mousemove', this.dynamicLayerPrefix+'hover', (e:mapboxgl.MapLayerMouseEvent) => {
             if (this.clickEnabled && e.features && e.features.length > 0) {
                 if (this.hoveredArea !== null) {
                     this.map.setFeatureState(
@@ -222,7 +223,7 @@ export default {
             }
         });
 
-        this.map.on('mouseleave', 'areas-hover', () => {
+        this.map.on('mouseleave', this.dynamicLayerPrefix+'hover', () => {
             if (this.hoveredArea !== null) {
                 this.map.setFeatureState(
                     { source: 'composite', sourceLayer:this.hoverLayer, id: this.hoveredArea.id },
@@ -232,7 +233,7 @@ export default {
             this.hoveredArea = null;
         });
 
-        this.map.on('click', 'areas-hover', () => {
+        this.map.on('click', this.dynamicLayerPrefix+'hover', () => {
             this.hoverSelected();
         });
     },
@@ -250,13 +251,13 @@ export default {
     },
     toggle1826() {
         this.toggleLayer((l) => l.startsWith('kataster-'), this.show1826);
-	    this.toggleLayer((l) => l.startsWith('kataster-gemeindegrenzen'), this.show1826Grenzen);
-	    this.toggleLayer((l) => l.startsWith('kataster-buergermeistereien'), this.show1826Grenzen);
+        this.toggle1826Grenzen()
     },
 
     toggle1826Grenzen() {
         this.toggleLayer((l) => l.startsWith('kataster-gemeindegrenzen'), this.show1826Grenzen);
         this.toggleLayer((l) => l.startsWith('kataster-buergermeistereien'), this.show1826Grenzen);
+        this.toggleLayer((l) => l.startsWith('kataster-kreise'), this.show1826Grenzen);
     },
 
     toggleHeute() {
@@ -301,9 +302,9 @@ export default {
     },
 
     onHighlightAreas(target:HighlightEvent) {
-        if( this.map?.getLayer('areas-highlight') == null ) {
+        if( this.map?.getLayer(this.dynamicLayerPrefix+'highlight') == null ) {
             this.map?.addLayer({
-                'id': 'areas-highlight-fill',
+                'id': this.dynamicLayerPrefix+'highlight-fill',
                 'type': 'fill',
                 'source': 'composite',
                 'source-layer': this.hoverLayer,
@@ -314,10 +315,10 @@ export default {
                 },
                 'filter': false
             });
-            this.map?.moveLayer('areas-highlight-fill', 'Kataster-Gebaeude')
+            this.map?.moveLayer(this.dynamicLayerPrefix+'highlight-fill', 'Kataster-Gebaeude')
 
             this.map?.addLayer({
-                'id': 'areas-highlight',
+                'id': this.dynamicLayerPrefix+'highlight',
                 'type': 'line',
                 'source': 'composite',
                 'source-layer': this.hoverLayer,
@@ -329,21 +330,21 @@ export default {
                 },
                 'filter': false
             });
-            this.map?.moveLayer('areas-highlight', 'Kataster-Gebaeude')
+            this.map?.moveLayer(this.dynamicLayerPrefix+'highlight', 'Kataster-Gebaeude')
         }
 
         if( target != null ) {
-            this.map?.setFilter('areas-highlight',[
+            this.map?.setFilter(this.dynamicLayerPrefix+'highlight',[
                         'all',['match',['get','artikel'],[target.artikel],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
             );
 
-            this.map?.setFilter('areas-highlight-fill',[
+            this.map?.setFilter(this.dynamicLayerPrefix+'highlight-fill',[
                         'all',['match',['get','artikel'],[target.artikel],true,false],['match',['get','gemeinde'],[target.gemeindeId],true,false]]
             );
         }
         else {
-            this.map?.setFilter('areas-highlight', false);
-            this.map?.setFilter('areas-highlight-fill', false);
+            this.map?.setFilter(this.dynamicLayerPrefix+'highlight', false);
+            this.map?.setFilter(this.dynamicLayerPrefix+'highlight-fill', false);
         }
     }
   }
