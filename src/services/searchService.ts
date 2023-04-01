@@ -98,6 +98,9 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             for( const p of allParzellenStore.parzellen ) {
                 if( `${p.flur}-${p.parzelle}`.includes(term) ) {
                     const gemeinde = flurStore.getGemeindeById(p.gemeindeId);
+                    if( !isIncludedInFilter(adminFilter, gemeinde) ) {
+                        continue
+                    }
                     const eigentuemer = eigentuemerStore.eigentuemer.find(e => e.gemeindeId == p.gemeindeId && e.id == p.artikel);
                     result.push({
                         locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
@@ -116,11 +119,18 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
     }
 
     if( !adminFilter.includes('__all') ) {
-        result = result.filter(r => adminFilter.includes(r.gemeinde.id) || adminFilter.includes('kreis-'+r.gemeinde.buergermeisterei.kreis.id) || adminFilter.includes('bmstr-'+r.gemeinde.buergermeisterei.id));
+        result = result.filter(r => isIncludedInFilter(adminFilter, r.gemeinde));
     }
     result.sort((a,b) => b.typeEnum-a.typeEnum)
 
     return result.slice(0,maxResults);
+}
+
+function isIncludedInFilter(adminFilter:string[], gemeinde:Gemeinde):boolean {
+    if( adminFilter.includes('__all') ) {
+        return true
+    }
+    return adminFilter.includes(gemeinde.id) || adminFilter.includes('kreis-'+gemeinde.buergermeisterei.kreis.id) || adminFilter.includes('bmstr-'+gemeinde.buergermeisterei.id);
 }
 
 function mapTypeToEnum(type:number):SearchResultType {
