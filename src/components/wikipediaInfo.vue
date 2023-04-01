@@ -44,8 +44,8 @@
         <div class="cell-1">
             <p><span>{{wikipediaData?.extract}}</span> <a target="_blank" :href="wikipediaData?.content_urls.desktop.page">Wikipedia</a></p>
         </div>
-        <div class="cell-2">
-            <a target="_blank" :href="wikipediaData?.content_urls.desktop.page" title="Auf Wikipedia lesen"><img :src="wikipediaData?.thumbnail.source" /></a>
+        <div v-if="wikipediaData?.thumbnail?.source" class="cell-2">
+            <a target="_blank" :href="wikipediaData?.content_urls.desktop.page" title="Auf Wikipedia lesen"><img :src="wikipediaData?.thumbnail?.source" /></a>
         </div>
     </div>
 </template>

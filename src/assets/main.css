@@ -97,7 +97,8 @@ h2 {
     background-color: var(--color-background-soft)
 }
 
-.content .vue-treeselect__input {
+.content .vue-treeselect__input,
+.content .vue-treeselect__single-value {
     color: var(--color-text)
 }
 
