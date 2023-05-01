@@ -30,7 +30,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 <img width="400" :src="infotextJpg" alt="Dargestellte Informationen"/>
             </p>
             <p>
-                Für Dortmund, Huckarde und teilweise auch Hörde sind die alten napoleonischen Hausnummern an den Gebäuden hinterlegt. 
+                Für Dortmund, Huckarde, Mengede und teilweise auch Hörde sind die alten napoleonischen Hausnummern an den Gebäuden hinterlegt. 
                 Diese werden bei der entsprechenden Zoomstufe in weißer Schrift auf blauem Grund angezeigt.
                 Weitere Orte werden ergänzt, sofern passende Quellen zu finden sind (Hausnummerlisten, Eigentümerlisten, Karten). Hinweise werden dankend angenommen.
             </p>
@@ -118,7 +118,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 <ul>
                     <li>Dortmund: Dortmunder Häuserbuch, Robert von den Berken, 1927; Adressbuch 1874</li>
                     <li>Huckarde: Verzeichnis derjenigen Haus Nummern die sich in der Commune Huckarde befinden pro 1825, in: Stadtarchiv Dortmund, Best. 3-1047</li>
-                    <li>Mengede: Karte Schott / Heimatverein Mengede e.V.</li>
+                    <li>Mengede: Karte Schott, Einwohnerverzeichnis Bürgermeisterei Castrop 1849 (herzlichen Dank an den Heimatverein Mengede e.V.)</li>
                 </ul>
             </p>
 
