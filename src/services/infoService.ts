@@ -36,7 +36,7 @@ export class HaeuserbuchYearInfoLine {
 }
 
 export class HaeuserbuchInfo extends Info {
-    constructor(type:string, public infos:HaeuserbuchInfoLine[], public yearInfos:HaeuserbuchYearInfoLine[], public address:string) {
+    constructor(type:string, public infos:HaeuserbuchInfoLine[], public ownerList:HaeuserbuchYearInfoLine[], public additionalInfos:HaeuserbuchYearInfoLine[], public address:string) {
         super(type);
     }
 }
@@ -55,6 +55,7 @@ export function mapInfo(i:InfoExport):Info|null {
         return new HaeuserbuchInfo(
             i.t, 
             i.a['i']?.map((i:any) => new HaeuserbuchInfoLine(i.e, i.t)), 
+            i.a['o']?.map((i:any) => new HaeuserbuchYearInfoLine(i.y, i.t)),
             i.a['y']?.map((i:any) => new HaeuserbuchYearInfoLine(i.y, i.t)),
             i.a['a']);
     }

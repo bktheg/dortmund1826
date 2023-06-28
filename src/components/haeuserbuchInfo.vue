@@ -4,37 +4,44 @@
     const props = defineProps({
         info: { type: HaeuserbuchInfo, required: true }
     })
-    </script>
+</script>
 <template>
     <h3>Eintrag im Häuserbuch für {{ info.address }}</h3>
     <ul class="haeuserbuch-lines">
         <li v-for="info of props?.info.infos.filter(i => i.type != HaeuserbuchInfoLineType.Unbekannt)">{{ info.text }}</li>
     </ul>
-    <dl class="haeuserbuch-year-lines">
-        <template v-for="info of props?.info.yearInfos">
-            <dd>{{ info.year }}</dd>
-            <dt>{{ info.text }}</dt>
-        </template>
-    </dl>
+    <h4>Eigentümer</h4>
+    <table class="haeuserbuch-year-lines">
+        <tbody>
+            <tr v-for="info of props?.info.ownerList">
+                <td class="year">{{ info.year }}</td>
+                <td class="text">{{ info.text }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <template v-if="props?.info.additionalInfos?.length">
+        <h4>Anmerkungen</h4>
+        <ul class="haeuserbuch-year-lines">
+            <template v-for="info of props?.info.additionalInfos">
+                <li>{{ info.text }}</li>
+            </template>
+        </ul>
+    </template>
 </template>
 
 <style scoped>
-    .haeuserbuch-year-lines dd:before {
-        display:block;
-        content: ' '
+    .haeuserbuch-year-lines td {
+        padding:0
     }
-    .haeuserbuch-year-lines dd {
-        display:inline;
-        font-weight:bold;
+    .haeuserbuch-year-lines .year {
+        padding-right:5pt;
+        text-align:right;
+        width:38pt;
+        white-space: nowrap;
+        vertical-align: top;
     }
-
-    .haeuserbuch-year-lines dd:after {
-        content: ':'
-    }
-
-    .haeuserbuch-year-lines dt {
-        display:inline;
-        padding-left:3pt;
+    ul.haeuserbuch-year-lines {
+        padding-left:16pt;
     }
 
     .haeuserbuch-lines {
