@@ -81,6 +81,8 @@ export function expandSourceToText(source:string|null|undefined) {
         return "Katasteramt des Kreises Recklinghausen. Grundlage: Urkarten und Geobasisdaten © Kreis Recklinghausen. Veröffentlicht mit freundlicher Genehmigung des Katasteramtes des Kreises Recklinghausen."
     case 'ka ennepe-ruhr':
         return "Liegenschaftskataster u. Geoinformation des Ennepe-Ruhr-Kreises"
+    case 'ka hagen':
+        return "Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen"
     case '?':
         return 'Der Verbleib der Unterlagen ist unbekannt, möglicherweise sind sie nicht mehr erhalten';
     }

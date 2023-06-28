@@ -15,13 +15,16 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 <li><a href="#umfang-der-karte">Umfang der Karte</a></li>
                 <li><a href="#hintergrundkarten">Hintergrundkarten</a></li>
                 <li><a href="#literatur">Literatur</a></li>
+                <li><a href="#software">Software</a></li>
                 <li><a href="#autor">Autor/Kontakt</a></li>
             </ol>
 
 
             <h1 id="dargestellte-informationen">Dargestellte Informationen</h1>
             <p>
-                Zur Karte existiert ein kurzes <a href="https://youtu.be/Wl6zQ7XfHtQ">Info-Video</a>, das alle wesentlichen Funktionen einmal vorstellt (Stand: Ende März 2023).
+                Zur Karte existieren ein kurzes <a href="https://youtu.be/Wl6zQ7XfHtQ">Info-Video</a>, das alle wesentlichen Funktionen einmal vorstellt (Stand: Ende März 2023).
+                Informationen zum Urkataster, der Hauptquelle der Karte, sind in <a href="https://youtu.be/wh2ON3tV8K8">diesem Video</a> zu finden.
+                Die Vorgehensweise bei der Erstellung der Karte ist wiederum in <a href="https://youtu.be/HzDaPHdLtjc">diesem Video</a> erläutert.
             </p>
             <p>
                 Zu jeder Parzelle werden, abhängig von der Zoomstufe, weiterführende Informationen angezeigt, soweit diese bereits erfasst sind. Dies können sein: Flur, Flurstück, Eigentümer, Größe in preußischen Morgen, Ruten und Fuß sowie die Kulturart und als was die Parzelle taxiert wurde.
@@ -65,7 +68,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             </p>
             <p>
                 Das heutige Dortmunder Stadtgebiet umfasst Teile des damaligen Kreises Dortmund sowie eines sehr kleinen Teils des Kreises Bochum.
-                Der Kreis Dortmund umfasste damals die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen und Lütgendortmund.
+                Der Kreis Dortmund umfasste damals die Bürgermeistereien Aplerbeck, Castrop, Dortmund, Hörde, Lünen, Lütgendortmund und Schwerte.
             </p>
 
             <h1 id="funktionen">Funktionen</h1>
@@ -112,6 +115,15 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
 
                 <p class="legal" v-html="getLegalText('KA Ennepe-Ruhr')"/>
             </template>
+
+            <template v-if="hasSource('KA Hagen')">
+                <h2 id="quelle-ka-hagen">Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen</h2>
+                <p>
+                    Basis sind die vom Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen für dortmund1826.de bereitgestellten Urkarten und Flurbücher.
+                </p>
+
+                <p class="legal" v-html="getLegalText('KA Hagen')"/>
+            </template>
             
             <h2>Weitere Quellen</h2>
             <p>
@@ -124,33 +136,39 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
 
 
             <h1 id="umfang-der-karte">Umfang der Karte</h1>           
-            <p>Die im folgenden aufgelisteten damaligen Fluren sind bereits digitalisiert und damit Teil der Karte. Weitere Gemeinden/Fluren des Kreises Dortmund sind in Vorbereitung. Die gesuchte Gemeinde (in der Umgebung Dortmunds) ist noch nicht dabei? Meldet euch gerne per Mail bei mir (siehe unten). Auch Hilfe bei der Digitalisierung ist jederzeit willkommen und wenn es nur die Suche nach Unterlagen oder das Abschreiben von Flurbüchern ist.</p>
+            <p>
+                Die im folgenden aufgelisteten damaligen Fluren sind bereits digitalisiert und damit Teil der Karte.
+                Weitere Gemeinden/Fluren des Kreises Dortmund sind in Vorbereitung. Die gesuchte Gemeinde (in der Umgebung Dortmunds) ist noch nicht dabei? 
+                Meldet euch gerne per Mail bei mir (siehe unten). Auch Hilfe bei der Digitalisierung ist jederzeit willkommen und wenn es nur die Suche nach 
+                Unterlagen oder das Abschreiben von Flurbüchern ist.
+            </p>
             <p>Zu jeder Flur ist aufgeführt, in welchem Archiv sich die Originalquellen (Vermessungsunterlagen, Flurbuch, Urkarten) befinden.</p>
-            <table class="fluren">
-                <thead>
-                    <th>Kreis</th>
-                    <th>Bürgermeisterei</th>
-                    <th>Gemeinde</th>
-                    <th>Flur</th>
-                    <th>Name</th>
-                    <th>Quellen Vermessung</th>
-                    <th>Quellen Flurbuch</th>
-                    <th>Quellen Urkarten</th>
-                </thead>
-                <tbody>
-                    <tr v-for="flur in flure">
-                        <td>{{flur.gemeinde?.buergermeisterei.kreis.name}}</td>
-                        <td>{{flur.gemeinde?.buergermeisterei.name}}</td>
-                        <td>{{flur.gemeinde?.name}}</td>
-                        <td>{{flur.nr}}</td>
-                        <td>{{flur.name}}</td>
-                        <td><abbr :title="expandSourceToText(flur.gemeinde?.quelleVermessung)" v-html="expandSourceToAbbr(flur.gemeinde?.quelleVermessung)"></abbr></td>
-                        <td><abbr :title="expandSourceToText(flur.gemeinde?.quelleFlurbuch)" v-html="expandSourceToAbbr(flur.gemeinde?.quelleFlurbuch)"></abbr></td>
-                        <td><abbr :title="expandSourceToText(flur.quelleUrkarten)" v-html="expandSourceToAbbr(flur.quelleUrkarten)"></abbr></td>
-                    </tr>
-                </tbody>
-            </table>
-
+            <div class="fluren">
+                <table>
+                    <thead>
+                        <th>Kreis</th>
+                        <th>Bürgermeisterei</th>
+                        <th>Gemeinde</th>
+                        <th>Flur</th>
+                        <th>Name</th>
+                        <th>Quellen Vermessung</th>
+                        <th>Quellen Flurbuch</th>
+                        <th>Quellen Urkarten</th>
+                    </thead>
+                    <tbody>
+                        <tr v-for="flur in flure">
+                            <td>{{flur.gemeinde?.buergermeisterei.kreis.name}}</td>
+                            <td>{{flur.gemeinde?.buergermeisterei.name}}</td>
+                            <td>{{flur.gemeinde?.name}}</td>
+                            <td>{{flur.nr}}</td>
+                            <td>{{flur.name}}</td>
+                            <td><abbr :title="expandSourceToText(flur.gemeinde?.quelleVermessung)" v-html="expandSourceToAbbr(flur.gemeinde?.quelleVermessung)"></abbr></td>
+                            <td><abbr :title="expandSourceToText(flur.gemeinde?.quelleFlurbuch)" v-html="expandSourceToAbbr(flur.gemeinde?.quelleFlurbuch)"></abbr></td>
+                            <td><abbr :title="expandSourceToText(flur.quelleUrkarten)" v-html="expandSourceToAbbr(flur.quelleUrkarten)"></abbr></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <h1 id="hintergrundkarten">Hintergrundkarten</h1>
             <h2>Uraufnahme (1836-1850)</h2>
@@ -170,6 +188,10 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 </ul>
             </p>
 
+            <h1 id="Software">Software</h1>
+            <p>
+                Die für die Datenaufbereitung im Rahmen von dortmund1826 geschriebene Software steht auf github unter MIT-Lizenz zur Verfügung: <a href="https://github.com/bktheg/genmap">genmap-Tool</a>.
+            </p>
 
             <h1 id="autor">Autor/Kontakt</h1>
             <p>Christopher Jung • dortmund1909@email.de • <a href="https://www.youtube.com/c/ChristopherJung/">YouTube</a> • <a href="https://www.facebook.com/christopher.jung.370">Facebook</a></p>
@@ -247,6 +269,10 @@ export default {
     }
     .legal {
         margin-top:10pt;
+    }
+    .fluren {
+        height: 200pt;
+        overflow-y: scroll;
     }
     .fluren th {
         text-align: left;
