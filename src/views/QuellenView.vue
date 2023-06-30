@@ -191,6 +191,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             <h1 id="Software">Software</h1>
             <p>
                 Die für die Datenaufbereitung im Rahmen von dortmund1826 geschriebene Software steht auf github unter MIT-Lizenz zur Verfügung: <a href="https://github.com/bktheg/genmap">genmap-Tool</a>.
+                Der Sourcecode zu dieser Website steht ebenfalls auf github unter MIT-Lizenz bereit: <a href="https://github.com/bktheg/dortmund1826">dortmund1826</a>
             </p>
 
             <h1 id="autor">Autor/Kontakt</h1>
