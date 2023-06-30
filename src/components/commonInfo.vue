@@ -7,7 +7,7 @@
     </script>
 <template>
     <div class="infoblock">
-        <p>{{props?.info.info}}</p>
+        <p class="info-indent">{{props?.info.info}}</p>
         <div class="source" v-if="props?.info.source">
             Quelle: 
             <a v-if="props?.info.url" target="_blank" :href="props?.info.url">{{ props?.info.source }}</a>
@@ -17,13 +17,6 @@
 </template>
 
 <style scoped>
-    .source {
-        text-align:right;
-        color:darkgray
-    }
-    .source a {
-        color:inherit
-    }
 
     .infoblock p:before {
         content:'„';
@@ -37,9 +30,6 @@
     }
 
     .infoblock p {
-        border-left: 1pt solid lightgrey;
-        padding-left: 3pt;
-        margin-left: 1pt;
         font-style: italic;
     }
 </style>

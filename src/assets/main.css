@@ -119,3 +119,16 @@ h2 {
 .content input[type=submit]:active {
     background-color: var(--color-background-mute)
 }
+
+.content .info-indent {
+    border-left: 1pt solid lightgrey;
+    padding-left: 5pt;
+    margin-left: 1pt;
+}
+.content .source {
+    text-align:right;
+    color:darkgray
+}
+.content .source a {
+    color:inherit
+}
