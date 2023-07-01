@@ -26,6 +26,9 @@ export function expandSourceToAbbr(source:string|null|undefined) {
     case 'ka ennepe-ruhr':
         return '<a href="#quelle-ka-ennepe-ruhr">Ennepe-Ruhr</a>'
 
+    case 'ka hagen':
+        return '<a href="#quelle-ka-hagen">Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen</a>'
+
     case '?':
         return 'unbekannt';
     }
@@ -52,6 +55,10 @@ export function expandSourceToDetailedSource(source:string|null|undefined) {
 
     case 'ka ennepe-ruhr':
         archiv = 'Katasteramt Ennepe-Ruhr'
+        break;
+
+    case 'ka hagen':
+        archiv = 'Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen'
         break;
 
     case '?':
