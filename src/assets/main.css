@@ -33,11 +33,11 @@ main #contentview {
     flex:50%;
     height:100%;
     padding-top:20pt;
+    background: var(--color-background);
 }
 
 @media (prefers-color-scheme: dark) {
     main #contentview {
-        background: var(--color-background);
         color: var(--color-text);
     }
 }
