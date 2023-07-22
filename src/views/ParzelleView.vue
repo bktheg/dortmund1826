@@ -175,7 +175,7 @@
         margin-top:10pt;
         margin-bottom:10pt;
         border-width: 1pt 0 0 0;
-        border-color: lightgray;
+        border-color: var(--color-light-text);
     }
 
     .properties dd:before {

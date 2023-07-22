@@ -6,7 +6,9 @@ import VueAxios from 'vue-axios'
 import mitt from 'mitt';
 import { createPinia } from 'pinia'
 import easySpinner from 'vue-easy-spinner';
+import { createVfm } from 'vue-final-modal'
 
+import 'vue-final-modal/style.css'
 import './assets/main.css'
 
 const app = createApp(App)
@@ -18,6 +20,7 @@ router.afterEach((from, to, failure) => emitter.emit("map-resize"))
 app.use(router)
 app.use(createPinia())
 app.use(VueAxios, axios)
+app.use(createVfm())
 app.use(easySpinner, {
     /*options*/
     prefix: 'easy',

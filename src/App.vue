@@ -2,6 +2,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import Map from '@/components/Map.vue'
 import router from './router';
+import { ModalsContainer } from 'vue-final-modal'
 </script>
 
 <template>
@@ -21,6 +22,7 @@ import router from './router';
         <Map />
     </div>
     <RouterView />
+    <ModalsContainer />
   </main>
 </template>
 

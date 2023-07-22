@@ -14,6 +14,7 @@
     import Treeselect from '@/components/treeselect/components/Treeselect.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
     import { useAllParzellenStore } from "@/stores/allParzellenStore";
+import { useHaeuserbuchStore } from "@/stores/haeuserbuchStore";
 
 
     const { fetchFlure } = useFlurStore()
@@ -93,6 +94,9 @@ export default {
             },{
                 label:"Parzelle",
                 id:"parzelle"
+            },{
+                label:"Eintrag Häuserbuch",
+                id:"haeuserbuch"
             }]
         },
         calcFilterOptions():any[] {
@@ -119,8 +123,9 @@ export default {
             const eigentuemerStore = useEigentuemerStore();
             const bezeichnungStore = useBezeichnungStore();
             const allParzellenStore = useAllParzellenStore();
+            const haeuserbuchStore = useHaeuserbuchStore();
 
-            return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading || allParzellenStore.loading;
+            return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading || allParzellenStore.loading || haeuserbuchStore.loading.size > 0
         }
     },
     methods: {
@@ -148,6 +153,11 @@ export default {
             if( this.searchType == "parzelle" ) {
                 const allParzellenStore = useAllParzellenStore();
                 allParzellenStore.fetchAllParzellen();
+            }
+            else if( this.searchType == "haeuserbuch" ) {
+               const haeuserbuchStore = useHaeuserbuchStore()
+               const flurStore = useFlurStore()
+               flurStore.gemeinden.filter(g => g.haeuserbuch).forEach(g => haeuserbuchStore.fetchHaeuserbuch(g.id))
             }
 
             this.$router.replace({name:'search', params:{type:this.searchType, term:this.searchtext, filter:this.serializeFilter(this.filterValue)}, hash:window.location.hash})
@@ -233,7 +243,7 @@ export default {
         margin:0;
         padding:0
     }
-    #searchresult li {
+    #searchresult > li {
         list-style: none;
         background-color:var(--search-color-result);
         margin:5pt 0pt;
@@ -241,29 +251,29 @@ export default {
         border-radius: 5pt;
         cursor:pointer;
     }
-    #searchresult li:hover {
+    #searchresult > li:hover {
         background-color: var(--search-color-result-highlight)
     }
-    #searchresult li.type-town,
-    #searchresult li.type-admin,
-    #searchresult li.type-flur {
+    #searchresult > li.type-town,
+    #searchresult > li.type-admin,
+    #searchresult > li.type-flur {
         background-color:var(--search-color-flurname)
     }
-    #searchresult li.type-town:hover,
-    #searchresult li.type-admin:hover,
-    #searchresult li.type-flur:hover {
+    #searchresult > li.type-town:hover,
+    #searchresult > li.type-admin:hover,
+    #searchresult > li.type-flur:hover {
         background-color:var(--search-color-flurname-highlight)
     }
-    #searchresult li.type-gewaesser {
+    #searchresult > li.type-gewaesser {
         background-color:var(--search-color-gewaesser)
     }
-    #searchresult li.type-gewaesser:hover {
+    #searchresult > li.type-gewaesser:hover {
         background-color:var(--search-color-gewaesser-highlight)
     } 
-    #searchresult li.type-gebaeude {
+    #searchresult > li.type-gebaeude {
         background-color:var(--search-color-gebaeude)
     }
-    #searchresult li.type-gebaeude:hover {
+    #searchresult > li.type-gebaeude:hover {
         background-color:var(--search-color-gebaeude-highlight)
     } 
     #searchresult .position {
@@ -275,6 +285,24 @@ export default {
         right:10pt;
         font-style:italic;
         font-size:80%;
+    }
+    #searchresult .description {
+        font-size: 80%;
+        font-style: italic;
+        display: grid;
+        gap: 1pt;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    #searchresult .description > li {
+        display: grid;
+        grid-template-columns: 0 1fr;
+        gap: 10pt;
+    }
+    #searchresult .description > li::before {
+        content: '➔';
+        font-weight: bold;
     }
     .searchinput,
     .searchfilter {
@@ -324,6 +352,9 @@ export default {
                         <div class="position">{{match.locationDesc}}</div>
                         <div class="type">{{getTypeLabel(match.typeEnum)}}</div>
                         {{match.name}}
+                        <ul v-if="match.descriptions.length > 0" class="description">
+                            <li v-for="desc of match.descriptions"><span v-html="desc" /></li>
+                        </ul>
                     </li>
                 </ul>
             </p>

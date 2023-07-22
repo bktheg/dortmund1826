@@ -399,7 +399,7 @@ export default {
 </style>
 <style>
     .map-cursor-parzellen-info .ctrl-parzellen-detail {
-        background-color:lightgray;
+        background-color:var(--color-light-text);
     }
     .ctrl-parzellen-detail .mapboxgl-ctrl-icon {
         background-image:url('/infobutton.svg');

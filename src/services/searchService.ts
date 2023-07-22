@@ -4,14 +4,18 @@ import { useFlurStore } from '@/stores/flurStore'
 import { useBezeichnungStore } from '@/stores/bezeichnungStore'
 import { useEigentuemerStore } from '@/stores/eigentuemerStore'
 import { useAllParzellenStore } from '@/stores/allParzellenStore'
+import { useHaeuserbuchStore } from '@/stores/haeuserbuchStore'
 
-export type SearchResult = {
-    locationDesc:string,
-    name:string,
-    location:number[]|null,
-    typeEnum:SearchResultType,
-    route:RouteLocationRaw|null,
-    gemeinde:Gemeinde
+export class SearchResult {
+    public descriptions:string[] = []
+    public route?:RouteLocationRaw
+    public location?:number[]
+
+    constructor(
+        public locationDesc:string,
+        public name:string,
+        public typeEnum:SearchResultType,
+        public gemeinde:Gemeinde) {}
 }
 
 export enum SearchResultType {
@@ -42,36 +46,39 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             if( bz.n.toLocaleLowerCase().includes(term) ) {
                 const flur = flurStore.getFlurById(bz.g, bz.f);
                 const gemeinde = flurStore.getGemeindeById(bz.g);
-                result.push({
-                    locationDesc: flur != null ? `Kreis ${flur.gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${flur.gemeinde.buergermeisterei.name} > Gemeinde ${flur.gemeinde.name} > Flur ${flur.nr} gnt. ${flur.name}` : "",
-                    location: bz.l,
-                    name: bz.n,
-                    typeEnum: mapTypeToEnum(bz.t),
-                    gemeinde: gemeinde
-                } as SearchResult);
+                const searchResult = new SearchResult(
+                    flur != null ? `Kreis ${flur.gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${flur.gemeinde.buergermeisterei.name} > Gemeinde ${flur.gemeinde.name} > Flur ${flur.nr} gnt. ${flur.name}` : "",
+                    bz.n,
+                    mapTypeToEnum(bz.t),
+                    gemeinde
+                )
+                searchResult.location = bz.l
+                result.push(searchResult)
             }
         }
         for( const gemeinde of flurStore.gemeinden ) {
             if( gemeinde.name.toLocaleLowerCase().includes(term) ) {
-                result.push({
-                    locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name}`,
-                    location: gemeinde.bbox,
-                    name: `Gemeinde ${gemeinde.name}`,
-                    typeEnum: SearchResultType.ADMIN,
-                    gemeinde: gemeinde
-                } as SearchResult);
+                const searchResult = new SearchResult(
+                    `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name}`,
+                    `Gemeinde ${gemeinde.name}`,
+                    SearchResultType.ADMIN,
+                    gemeinde
+                )
+                searchResult.location = gemeinde.bbox
+                result.push(searchResult)
             }
         }
         for( const flur of flurStore.flure ) {
             const gemeinde = flur.gemeinde;
             if( flur.name.toLocaleLowerCase().includes(term) ) {
-                result.push({
-                    locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
-                    location: flur.bbox,
-                    name: `Flur ${flur.nr} gnt. ${flur.name}`,
-                    typeEnum: SearchResultType.FLUR,
-                    gemeinde: gemeinde
-                } as SearchResult);
+                const searchResult = new SearchResult(
+                    `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                    `Flur ${flur.nr} gnt. ${flur.name}`,
+                    SearchResultType.FLUR,
+                    gemeinde
+                )
+                searchResult.location = flur.bbox
+                result.push(searchResult)
             }
         }
     }
@@ -80,14 +87,14 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
         for( const owner of eigentuemerStore.eigentuemer ) {
             if( owner.name && owner.name.toLocaleLowerCase().includes(term) ) {
                 const gemeinde = flurStore.getGemeindeById(owner.gemeindeId);
-                result.push({
-                    locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
-                    location: null,
-                    name: owner.name,
-                    typeEnum: SearchResultType.OWNER,
-                    route: {name: "mutterrolle", params:{gemeinde:owner.gemeindeId, artikelNr: owner.id}},
-                    gemeinde: gemeinde
-                } as SearchResult);
+                const searchResult = new SearchResult(
+                    `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                    owner.name,
+                    SearchResultType.OWNER,
+                    gemeinde
+                )
+                searchResult.route = {name: "mutterrolle", params:{gemeinde:owner.gemeindeId, artikelNr: owner.id}}
+                result.push(searchResult);
             }
         }
     }
@@ -102,14 +109,59 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                         continue
                     }
                     const eigentuemer = eigentuemerStore.eigentuemer.find(e => e.gemeindeId == p.gemeindeId && e.id == p.artikel);
-                    result.push({
-                        locationDesc: `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
-                        location: p.location,
-                        name: `${p.flur}-${p.parzelle} (${eigentuemer?.name})`,
-                        typeEnum: SearchResultType.PARZELLE,
-                        gemeinde: gemeinde
-                    } as SearchResult);
+                    const searchResult = new SearchResult(
+                        `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                        `${p.flur}-${p.parzelle} (${eigentuemer?.name})`,
+                        SearchResultType.PARZELLE,
+                        gemeinde
+                    )
+                    searchResult.location = p.location
+                    result.push(searchResult);
                     
+                    if( result.length > maxResults ) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else if( searchType == "haeuserbuch" ) {
+        const hbStore = useHaeuserbuchStore();
+        for( const hb of hbStore.haeuserbuecher.values() ) {
+            for( const building of hb.buildings ) {
+                const hits:string[] = []
+                for( const info of building.infos ) {
+                    if( info.text.toLocaleLowerCase().includes(term) ) {
+                        hits.push(info.text)
+                    }
+                }
+                for( const info of building.ownerList ) {
+                    if( info.text.toLocaleLowerCase().includes(term) ) {
+                        hits.push((info.year ? info.year+' ' : '') + info.text)
+                    }
+                }
+                for( const info of building.additionalInfos ) {
+                    if( info.text.toLocaleLowerCase().includes(term) ) {
+                        hits.push(info.text)
+                    }
+                }
+
+                if( hits.length > 0 ) {
+                    const gemeinde = flurStore.getGemeindeById(hb.gemeindeId);
+                    const searchResult = new SearchResult(
+                        `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                        building.getAddress() || '',
+                        SearchResultType.GEBAEUDE,
+                        gemeinde
+                    )
+                    searchResult.location = building.location
+                    searchResult.descriptions = hits.map(h => {
+                        const idx = h.toLocaleLowerCase().indexOf(term)
+                        const idx2 = idx + term.length
+                        return h.substring(0,idx) + '<b><u>' + h.substring(idx,idx2) + '</u></b>' + h.substring(idx2)
+                    })
+                    result.push(searchResult);
+
                     if( result.length > maxResults ) {
                         break;
                     }

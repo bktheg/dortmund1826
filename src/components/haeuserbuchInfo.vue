@@ -3,6 +3,7 @@
     import {useHaeuserbuchStore} from '@/stores/haeuserbuchStore'
     import {computed,ref} from 'vue'
     import { storeToRefs } from 'pinia';
+    import HaeuserbuchSourceTooltip from '@/components/HaeuserbuchSourceTooltip.vue';
   
     const props = defineProps({
         info: { type: HaeuserbuchInfo, required: true }
@@ -25,30 +26,21 @@
         return getHaeuserbuch.value(props.info.gemeinde)?.url
     })
 
-    const address = computed(() => {
-        if( entry.value?.oldNumber != 'ohne' && entry.value?.number != 'ohne' ) {
-            return `Hausnummer ${entry.value?.oldNumber} (${entry.value?.street} ${entry.value?.number})`
-        }
-        if( entry.value?.oldNumber != 'ohne' ) {
-            return `Hausnummer ${entry.value?.oldNumber}`
-        }
-        if( entry.value?.number != 'ohne' ) {
-            return `${entry.value?.street} ${entry.value?.number}`
-        }
-        return null
-    })
-
     const expanded = ref(false)
 </script>
 <template>
     <h3 @click="expanded=!expanded">
         <span class="expand" v-if="expanded">&#9660;</span>
         <span class="expand" v-else>&#9658;</span>
-        Eintrag im Häuserbuch <template v-if="address">für {{ address }}</template>
+        Eintrag im Häuserbuch <template v-if="entry?.getAddress()">für {{ entry?.getAddress() }}</template>
     </h3>
     <p class="info-indent" v-if="expanded">
         <ul class="haeuserbuch-lines">
-            <li v-for="info of entry?.infos">{{ info.text }}</li>
+            <li v-if="entry?.flur">{{ entry?.flur.text }}</li>
+            <li v-for="info of entry?.infos">
+                {{ info.text }}
+                <HaeuserbuchSourceTooltip v-if="info.sources.length > 0" :sources="info.sources" :gemeinde="props.info.gemeinde"/>
+            </li>
         </ul>
         <template v-if="entry?.ownerList?.length">
             <h4>Eigentümer</h4>
@@ -56,7 +48,10 @@
                 <tbody>
                     <tr v-for="info of entry?.ownerList">
                         <td class="year">{{ info.year }}</td>
-                        <td class="text">{{ info.text }}</td>
+                        <td class="text">
+                            {{ info.text }}
+                            <HaeuserbuchSourceTooltip v-if="info.sources.length > 0" :sources="info.sources" :gemeinde="props.info.gemeinde"/>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -65,7 +60,10 @@
             <h4>Anmerkungen</h4>
             <ul class="haeuserbuch-year-lines">
                 <template v-for="info of entry?.additionalInfos">
-                    <li>{{ info.text }}</li>
+                    <li>
+                        {{ info.text }}
+                        <HaeuserbuchSourceTooltip v-if="info.sources.length > 0" :sources="info.sources" :gemeinde="props.info.gemeinde"/>
+                    </li>
                 </template>
             </ul>
         </template>
@@ -103,5 +101,10 @@
     .haeuserbuch-lines {
         list-style:none;
         padding-left:0;
+    }
+
+    .haeuserbuch-lines li {
+        line-height:normal;
+        padding: 2pt 0pt;
     }
 </style>

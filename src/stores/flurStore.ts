@@ -33,6 +33,7 @@ type GemeindeExport = {
     qg:string, // quelle gueterverzeichnis
     bb:number[], // bbox
     a:InfoExport[] // infos
+    hb:boolean // haeuserbuch
 }
 
 type FlurExport = {
@@ -65,7 +66,8 @@ export class Gemeinde {
         public quelleMutterrollen:string,
         public quelleGueterverzeichnis:string,
         public bbox:number[],
-        public infos:Info[]) {}
+        public infos:Info[],
+        public haeuserbuch:boolean) {}
 }
 
 export class Buergermeisterei {
@@ -103,7 +105,7 @@ export const useFlurStore = defineStore({
         getFlurById: (state) => (gemeindeId:string, flurId:number) => (state.flure.filter((f) => f.gemeindeId == gemeindeId && f.nr == flurId)[0]),
         getGemeindeById: (state) => (gemeindeId:string):Gemeinde => {
                 if( state.loading ) {
-                    return new Gemeinde('','',NULL_BMSTR,'','','','',[],[])
+                    return new Gemeinde('','',NULL_BMSTR,'','','','',[],[], false)
                 }
                 const gemeinde = state.gemeinden.find(g => g.id == gemeindeId)
                 if( !gemeinde ) {
@@ -160,7 +162,7 @@ export const useFlurStore = defineStore({
                                 console.log("Unbekannte Buergermeisterei", g.b);
                                 continue;
                             }
-                            this.gemeinden.push(new Gemeinde(g.i,g.n,buergermeisterei,g.qv,g.qb,g.qm,g.qg,g.bb, mapInfos(g.a)))
+                            this.gemeinden.push(new Gemeinde(g.i,g.n,buergermeisterei,g.qv,g.qb,g.qm,g.qg,g.bb, mapInfos(g.a),g.hb))
                         }
 
                         for( const f of data.f ) {

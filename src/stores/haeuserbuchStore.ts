@@ -4,17 +4,28 @@ import axios from 'axios'
 type HaeuserbuchExport = {
     b:HaeuserbuchBuildingExport[], // buildings
     q:string, // quelle
-    u:string // url
+    u:string, // url
+    s:HaeuserbuchSourceExport[] // sources
+}
+
+type HaeuserbuchSourceExport = {
+    i:string, // id
+    o:string, // signatureOld
+    s:string, // signatureNew
+    a:string, // archive
+    n:string, // name
 }
 
 type HaeuserbuchInfoExport = {
-    t:number,
-    x:string
+    t:number,  // type
+    x:string,  // text
+    s:string[] // sources
 }
 
 type HaeuserbuchYearInfoExport = {
-    y:string,
-    x:string
+    y:string, // year
+    x:string, // text
+    s:string[] // sources
 }
 
 type HaeuserbuchBuildingExport = {
@@ -26,33 +37,69 @@ type HaeuserbuchBuildingExport = {
     b:HaeuserbuchInfoExport[], // infos
     e:HaeuserbuchYearInfoExport[], // ownerList
     a:HaeuserbuchYearInfoExport[], // additionalInfos
+    l:number[], // location
 }
 
 export class Haeuserbuch {
-    constructor(public gemeindeId:string, public source:string, public url:string, public buildings:HaeuserbuchBuilding[]) {}
+    constructor(public gemeindeId:string, public source:string, public url:string, public buildings:HaeuserbuchBuilding[], public sources:Map<string,HaeuserbuchSource>) {}
 }
 
 export class HaeuserbuchBuilding {
-    constructor(public id:string, public number:string, public oldNumber:string, public street:string, public flur:HaeuserbuchInfo, public infos:HaeuserbuchInfo[], public ownerList:HaeuserbuchYearInfo[], public additionalInfos:HaeuserbuchYearInfo[]) {}
+    constructor(
+        public id:string, 
+        public number:string, 
+        public oldNumber:string, 
+        public street:string, 
+        public flur:HaeuserbuchInfo, 
+        public infos:HaeuserbuchInfo[], 
+        public ownerList:HaeuserbuchYearInfo[], 
+        public additionalInfos:HaeuserbuchYearInfo[],
+        public location:number[]
+    ) {}
+
+    getAddress():string|null {
+        if( this.oldNumber != 'ohne' && this.number != 'ohne' ) {
+            return `Hausnummer ${this.oldNumber} (${this.street} ${this.number})`
+        }
+        if( this.oldNumber != 'ohne' ) {
+            return `Hausnummer ${this.oldNumber}`
+        }
+        if( this.number != 'ohne' ) {
+            return `${this.street} ${this.number}`
+        }
+        return null
+    }
 }
 
 export class HaeuserbuchInfo {
-    constructor(public type:number, public text:string) {}
+    constructor(public text:string, public sources:string[]) {}
 }
 
-export class HaeuserbuchYearInfo {
-    constructor(public year:string, public text:string) {}
+export class HaeuserbuchBuildingInfo extends HaeuserbuchInfo {
+    constructor(public type:number, text:string, sources:string[]) {
+        super(text, sources)
+    }
 }
 
-function mapInfo(info:HaeuserbuchInfoExport):HaeuserbuchInfo {
+export class HaeuserbuchYearInfo extends HaeuserbuchInfo {
+    constructor(public year:string, text:string, sources:string[]) {
+        super(text, sources)
+    }
+}
+
+export class HaeuserbuchSource {
+    constructor(public id:string, public signatureOld:string, public signatureNew:string, public archive:string, public name:string) {}
+}
+
+function mapBuildingInfo(info:HaeuserbuchInfoExport):HaeuserbuchBuildingInfo {
     if( !info ) {
-        return new HaeuserbuchInfo(0, '');
+        return new HaeuserbuchBuildingInfo(0, '', []);
     }  
-    return new HaeuserbuchInfo(info.t, info.x)
+    return new HaeuserbuchBuildingInfo(info.t, info.x, info.s)
 }
 
 function mapYearInfo(info:HaeuserbuchYearInfoExport):HaeuserbuchYearInfo {
-    return new HaeuserbuchYearInfo(info.y, info.x)
+    return new HaeuserbuchYearInfo(info.y, info.x, info.s)
 }
 
 
@@ -76,8 +123,14 @@ export const useHaeuserbuchStore = defineStore({
             const hbExport = await axios.get(`/haeuserbuch_${gemeinde}.json?v=${__APP_VERSION__}`)
                 .then((response) => response.data) as HaeuserbuchExport
 
-            const buildings = hbExport.b?.map(r => new HaeuserbuchBuilding(r.i, r.n, r.o, r.s, mapInfo(r.f), r.b.map(e => mapInfo(e)), r.e.map(e => mapYearInfo(e)), r.a.map(e => mapYearInfo(e))));
-            const hb = new Haeuserbuch(gemeinde, hbExport.q, hbExport.u, buildings);
+            const buildings = hbExport.b?.map(r => 
+                new HaeuserbuchBuilding(r.i, r.n, r.o, r.s, mapBuildingInfo(r.f), r.b.map(e => mapBuildingInfo(e)), r.e.map(e => mapYearInfo(e)), r.a.map(e => mapYearInfo(e)), r.l)
+            )
+            
+            const sources = new Map<string,HaeuserbuchSource>()
+            hbExport.s?.map(s => new HaeuserbuchSource(s.i, s.o, s.s, s.a, s.n)).forEach(s => sources.set(s.id, s))
+
+            const hb = new Haeuserbuch(gemeinde, hbExport.q, hbExport.u, buildings, sources);
             this.haeuserbuecher.set(gemeinde, hb);
         } catch (error) {
           this.error = error
