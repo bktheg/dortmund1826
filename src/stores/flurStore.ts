@@ -102,7 +102,7 @@ export const useFlurStore = defineStore({
         getFlure: (state) => {
             return () => state.flure
         },
-        getFlurById: (state) => (gemeindeId:string, flurId:number) => (state.flure.filter((f) => f.gemeindeId == gemeindeId && f.nr == flurId)[0]),
+        getFlurById: (state) => (gemeindeId:string, flurId:number):Flur => (state.flure.filter((f) => f.gemeindeId == gemeindeId && f.nr == flurId)[0]),
         getGemeindeById: (state) => (gemeindeId:string):Gemeinde => {
                 if( state.loading ) {
                     return new Gemeinde('','',NULL_BMSTR,'','','','',[],[], false)

@@ -115,11 +115,6 @@
         return mutterrolleStore.loading.size > 0
     })
 </script>
-
-<style>
-    
-</style>
-
 <template>
     <div id="contentview">
         <div class="content">
@@ -183,10 +178,6 @@
 </template>
 
 <style scoped>
-    .backToSearch {
-        display:block;
-        margin-bottom:10pt;
-    }
     .mutterrolle {
         width:100%;
         margin-bottom:10pt;

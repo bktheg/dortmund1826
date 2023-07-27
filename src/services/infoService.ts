@@ -8,36 +8,20 @@ export abstract class Info {
 }
 
 export class WikipediaInfo extends Info {
-    constructor(type:string, public page:string) {
-        super(type);
+    constructor(public page:string) {
+        super('wikipedia');
     }
 }
 
 export class CommonInfo extends Info {
-    constructor(type:string, public info:string, public source:string, public url:string) {
-        super(type);
+    constructor(public info:string, public source:string, public url:string) {
+        super('common');
     }
 }
 
-export enum HaeuserbuchInfoLineType {
-    Flur,
-    Kataster,
-    Groesse,
-    Name,
-    Unbekannt
-}
-
-export class HaeuserbuchInfoLine {
-    constructor(public type:HaeuserbuchInfoLineType, public text:string) {}
-}
-
-export class HaeuserbuchYearInfoLine {
-    constructor(public year:string, public text:string) {}
-}
-
 export class HaeuserbuchInfo extends Info {
-    constructor(type:string, public gemeinde:string, public id:string) {
-        super(type);
+    constructor(public gemeinde:string, public id:string) {
+        super('haeuserbuch');
     }
 }
 
@@ -46,14 +30,13 @@ export function mapInfo(i:InfoExport):Info|null {
         return null;
     }
     if( i.t == 'wikipedia' ) {
-        return new WikipediaInfo(i.t, i.a['page'] as string);
+        return new WikipediaInfo(i.a['page'] as string);
     }
     else if( i.t == 'common' ) {
-        return new CommonInfo(i.t, i.a['t'] as string, i.a['s'] as string, i.a['u'] as string)
+        return new CommonInfo(i.a['t'] as string, i.a['s'] as string, i.a['u'] as string)
     }
-    else if( i.t == 'haeuserbuch' && window.localStorage.getItem('experimental') ) {
+    else if( i.t == 'haeuserbuch' ) {
         return new HaeuserbuchInfo(
-            i.t, 
             i.a['g'], 
             i.a['x']
         )

@@ -18,11 +18,12 @@
 
         return props.sources?.map(s => sources?.get(s))
     })
+
 </script>
 <template>
     <div v-for="source of sourcesData" :key="source?.id" class="hb-text-box">
         <h2>Quelle {{ source?.signatureOld }}</h2>
-        <span v-if="source?.signatureNew" class="signature">Signatur: {{  source?.archive }}, {{ source?.signatureNew }}</span>
+        <span v-if="source?.signatureNew" class="signature">Signatur: {{  source?.archive }}, <span :class="{lost: source?.signatureNew.toLocaleLowerCase().includes('verlust')}">{{ source?.signatureNew }}</span></span>
         <p v-text="source?.name"/>
     </div>
 </template>
@@ -43,5 +44,10 @@
     .hb-text-box p {
         margin:5pt 0;
         white-space: pre-line;
+    }
+
+    .hb-text-box .lost {
+        color: red;
+        font-weight: bold
     }
 </style>

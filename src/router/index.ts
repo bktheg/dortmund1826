@@ -28,6 +28,11 @@ const router = createRouter({
       path: '/parzelle/:gemeinde/:flur/:nr',
       name: 'parzelle',
       component: () => import('../views/ParzelleView.vue')
+    },
+    {
+      path: '/haeuserbuch/:gemeinde/:id',
+      name: 'haeuserbuch',
+      component: () => import('../views/HaeuserbuchView.vue')
     }
   ]
 })

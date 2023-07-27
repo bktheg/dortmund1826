@@ -3,6 +3,7 @@ import axios from 'axios'
 
 type HaeuserbuchExport = {
     b:HaeuserbuchBuildingExport[], // buildings
+    t:HaeuserbuchStreetExport[], // streets
     q:string, // quelle
     u:string, // url
     s:HaeuserbuchSourceExport[] // sources
@@ -40,8 +41,14 @@ type HaeuserbuchBuildingExport = {
     l:number[], // location
 }
 
+type HaeuserbuchStreetExport = {
+    i:string, // id
+    n:string, // name
+    b:HaeuserbuchYearInfoExport[], // infos
+}
+
 export class Haeuserbuch {
-    constructor(public gemeindeId:string, public source:string, public url:string, public buildings:HaeuserbuchBuilding[], public sources:Map<string,HaeuserbuchSource>) {}
+    constructor(public gemeindeId:string, public source:string, public url:string, public buildings:HaeuserbuchBuilding[], public streets:HaeuserbuchStreet[], public sources:Map<string,HaeuserbuchSource>) {}
 }
 
 export class HaeuserbuchBuilding {
@@ -68,6 +75,14 @@ export class HaeuserbuchBuilding {
             return `${this.street} ${this.number}`
         }
         return null
+    }
+}
+
+export class HaeuserbuchStreet {
+    constructor(public id:string, public name:string, public infos:HaeuserbuchYearInfo[]) {}
+
+    getAddress():string|null {
+        return this.name
     }
 }
 
@@ -130,7 +145,9 @@ export const useHaeuserbuchStore = defineStore({
             const sources = new Map<string,HaeuserbuchSource>()
             hbExport.s?.map(s => new HaeuserbuchSource(s.i, s.o, s.s, s.a, s.n)).forEach(s => sources.set(s.id, s))
 
-            const hb = new Haeuserbuch(gemeinde, hbExport.q, hbExport.u, buildings, sources);
+            const streets = hbExport.t?.map(s => new HaeuserbuchStreet(s.i, s.n, s.b.map(i => mapYearInfo(i))))
+
+            const hb = new Haeuserbuch(gemeinde, hbExport.q, hbExport.u, buildings, streets, sources);
             this.haeuserbuecher.set(gemeinde, hb);
         } catch (error) {
           this.error = error

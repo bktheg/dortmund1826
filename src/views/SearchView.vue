@@ -81,6 +81,11 @@ export default {
         },
         searchType(oldValue, newValue) {
             this.search();
+        },
+        loading(oldValue, newValue) {
+            if( newValue ) {
+                this.search()
+            }
         }
     },
     computed: {
@@ -168,7 +173,7 @@ export default {
             if( match.location ) {
                 this.emitter.emit("map-highlight-location", {location:match.location});
             }
-            else if( match.route != null ) {
+            if( match.route != null ) {
                 this.$router.push(match.route)
             }
         },
@@ -352,8 +357,8 @@ export default {
                         <div class="position">{{match.locationDesc}}</div>
                         <div class="type">{{getTypeLabel(match.typeEnum)}}</div>
                         {{match.name}}
-                        <ul v-if="match.descriptions.length > 0" class="description">
-                            <li v-for="desc of match.descriptions"><span v-html="desc" /></li>
+                        <ul v-if="match.getHighlightedDescriptions().length > 0" class="description">
+                            <li v-for="desc of match.getHighlightedDescriptions()"><span v-html="desc" /></li>
                         </ul>
                     </li>
                 </ul>

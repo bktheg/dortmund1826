@@ -132,3 +132,8 @@ h2 {
 .content .source a {
     color:inherit
 }
+
+.content .backToSearch {
+    display:block;
+    margin-bottom:10pt;
+}

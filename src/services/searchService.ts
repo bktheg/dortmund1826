@@ -1,5 +1,5 @@
 import type { RouteLocationRaw } from 'vue-router'
-import type { Gemeinde } from '@/stores/flurStore'
+import { Gemeinde, Buergermeisterei, Flur } from '@/stores/flurStore'
 import { useFlurStore } from '@/stores/flurStore'
 import { useBezeichnungStore } from '@/stores/bezeichnungStore'
 import { useEigentuemerStore } from '@/stores/eigentuemerStore'
@@ -12,10 +12,19 @@ export class SearchResult {
     public location?:number[]
 
     constructor(
+        public term:string,
         public locationDesc:string,
         public name:string,
         public typeEnum:SearchResultType,
         public gemeinde:Gemeinde) {}
+
+    getHighlightedDescriptions():string[] {
+        return this.descriptions.map(h => {
+            const idx = h.toLocaleLowerCase().indexOf(this.term)
+            const idx2 = idx + this.term.length
+            return h.substring(0,idx) + '<b><u>' + h.substring(idx,idx2) + '</u></b>' + h.substring(idx2)
+        })
+    }
 }
 
 export enum SearchResultType {
@@ -47,7 +56,8 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                 const flur = flurStore.getFlurById(bz.g, bz.f);
                 const gemeinde = flurStore.getGemeindeById(bz.g);
                 const searchResult = new SearchResult(
-                    flur != null ? `Kreis ${flur.gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${flur.gemeinde.buergermeisterei.name} > Gemeinde ${flur.gemeinde.name} > Flur ${flur.nr} gnt. ${flur.name}` : "",
+                    term,
+                    flur != null ? buildPath(flur) : buildPath(gemeinde),
                     bz.n,
                     mapTypeToEnum(bz.t),
                     gemeinde
@@ -59,7 +69,8 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
         for( const gemeinde of flurStore.gemeinden ) {
             if( gemeinde.name.toLocaleLowerCase().includes(term) ) {
                 const searchResult = new SearchResult(
-                    `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name}`,
+                    term,
+                    buildPath(gemeinde.buergermeisterei),
                     `Gemeinde ${gemeinde.name}`,
                     SearchResultType.ADMIN,
                     gemeinde
@@ -72,7 +83,8 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             const gemeinde = flur.gemeinde;
             if( flur.name.toLocaleLowerCase().includes(term) ) {
                 const searchResult = new SearchResult(
-                    `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                    term,
+                    buildPath(gemeinde),
                     `Flur ${flur.nr} gnt. ${flur.name}`,
                     SearchResultType.FLUR,
                     gemeinde
@@ -81,6 +93,8 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                 result.push(searchResult)
             }
         }
+
+        result.sort((a,b) => b.typeEnum-a.typeEnum)
     }
     else if( searchType == "owner" ) {
         const eigentuemerStore = useEigentuemerStore();
@@ -88,7 +102,8 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
             if( owner.name && owner.name.toLocaleLowerCase().includes(term) ) {
                 const gemeinde = flurStore.getGemeindeById(owner.gemeindeId);
                 const searchResult = new SearchResult(
-                    `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                    term,
+                    buildPath(gemeinde),
                     owner.name,
                     SearchResultType.OWNER,
                     gemeinde
@@ -110,7 +125,8 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     }
                     const eigentuemer = eigentuemerStore.eigentuemer.find(e => e.gemeindeId == p.gemeindeId && e.id == p.artikel);
                     const searchResult = new SearchResult(
-                        `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                        term,
+                        buildPath(gemeinde),
                         `${p.flur}-${p.parzelle} (${eigentuemer?.name})`,
                         SearchResultType.PARZELLE,
                         gemeinde
@@ -128,6 +144,36 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
     else if( searchType == "haeuserbuch" ) {
         const hbStore = useHaeuserbuchStore();
         for( const hb of hbStore.haeuserbuecher.values() ) {
+            for( const street of hb.streets ) {
+                const hits:string[] = []
+                if( street.name.toLocaleLowerCase().includes(term) ) {
+                    hits.push(street.name)
+                }
+                for( const info of street.infos ) {
+                    if( info.text.toLocaleLowerCase().includes(term) ) {
+                        hits.push(info.text)
+                    }
+                }
+
+                if( hits.length > 0 ) {
+                    const gemeinde = flurStore.getGemeindeById(hb.gemeindeId);
+                    const searchResult = new SearchResult(
+                        term,
+                        buildPath(gemeinde),
+                        street.name,
+                        SearchResultType.BEZEICHNUNG_LINE,
+                        gemeinde
+                    )
+                    searchResult.route = {name: "haeuserbuch", params:{gemeinde:gemeinde.id, id: street.id}}
+                    searchResult.descriptions = hits
+                    result.push(searchResult);
+
+                    if( result.length > maxResults ) {
+                        break;
+                    }
+                }
+            }
+
             for( const building of hb.buildings ) {
                 const hits:string[] = []
                 for( const info of building.infos ) {
@@ -149,17 +195,14 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                 if( hits.length > 0 ) {
                     const gemeinde = flurStore.getGemeindeById(hb.gemeindeId);
                     const searchResult = new SearchResult(
-                        `Kreis ${gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${gemeinde.buergermeisterei.name} > Gemeinde ${gemeinde.name}`,
+                        term,
+                        buildPath(gemeinde),
                         building.getAddress() || '',
                         SearchResultType.GEBAEUDE,
                         gemeinde
                     )
-                    searchResult.location = building.location
-                    searchResult.descriptions = hits.map(h => {
-                        const idx = h.toLocaleLowerCase().indexOf(term)
-                        const idx2 = idx + term.length
-                        return h.substring(0,idx) + '<b><u>' + h.substring(idx,idx2) + '</u></b>' + h.substring(idx2)
-                    })
+                    searchResult.route = {name: "haeuserbuch", params:{gemeinde:gemeinde.id, id: building.id}}
+                    searchResult.descriptions = hits
                     result.push(searchResult);
 
                     if( result.length > maxResults ) {
@@ -173,9 +216,22 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
     if( !adminFilter.includes('__all') ) {
         result = result.filter(r => isIncludedInFilter(adminFilter, r.gemeinde));
     }
-    result.sort((a,b) => b.typeEnum-a.typeEnum)
+
 
     return result.slice(0,maxResults);
+}
+
+function buildPath(admin:Gemeinde|Buergermeisterei|Flur):string {
+    if( admin instanceof Gemeinde ) {
+        return `Kreis ${admin.buergermeisterei.kreis.name} > Bürgermeisterei ${admin.buergermeisterei.name} > Gemeinde ${admin.name}`
+    }
+    else if( admin instanceof Buergermeisterei ) {
+        `Kreis ${admin.kreis.name} > Bürgermeisterei ${admin.name}`
+    }
+    else if( admin instanceof Flur ) {
+        `Kreis ${admin.gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${admin.gemeinde.buergermeisterei.name} > Gemeinde ${admin.gemeinde.name} > Flur ${admin.nr} gnt. ${admin.name}`
+    }
+    return ''
 }
 
 function isIncludedInFilter(adminFilter:string[], gemeinde:Gemeinde):boolean {
