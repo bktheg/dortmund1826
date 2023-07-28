@@ -137,3 +137,35 @@ h2 {
     display:block;
     margin-bottom:10pt;
 }
+
+.haeuserbuch .haeuserbuch-year-lines td {
+    padding:0
+}
+.haeuserbuch .haeuserbuch-year-lines .year {
+    padding-right:5pt;
+    text-align:right;
+    width:38pt;
+    white-space: nowrap;
+    vertical-align: top;
+}
+.haeuserbuch ul.haeuserbuch-year-lines {
+    padding-left:16pt;
+}
+
+.haeuserbuch .haeuserbuch-lines {
+    list-style:none;
+    padding-left:0;
+}
+
+.haeuserbuch .haeuserbuch-lines li {
+    line-height:normal;
+    padding: 2pt 0pt;
+}
+
+.haeuserbuch h3 {
+    font-size: inherit;
+}
+
+.haeuserbuch h4 {
+    padding-top:4pt;
+}

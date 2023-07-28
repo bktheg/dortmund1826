@@ -76,15 +76,15 @@
             <section class="location">Kreis {{gemeinde?.buergermeisterei.kreis.name}} > Bürgermeisterei {{gemeinde?.buergermeisterei.name}} > Gemeinde {{gemeinde?.name}} > Flur {{flur?.nr}} gnt. {{flur?.name}} > Parzelle {{location.parzelleNr}}</section>
             <template v-if="gemeinde?.buergermeisterei.kreis.infos.length>0">
                 <h2>Kreis {{gemeinde?.buergermeisterei.kreis.name }}</h2>
-                <InfoListComponent :infos="gemeinde?.buergermeisterei.kreis.infos"/>
+                <InfoListComponent :infos="gemeinde?.buergermeisterei.kreis.infos" :gemeinde="gemeinde?.id"/>
             </template>
             <template v-if="gemeinde?.buergermeisterei.infos.length>0">
                 <h2>Bürgermeisterei {{gemeinde?.buergermeisterei.name }}</h2>
-                <InfoListComponent :infos="gemeinde?.buergermeisterei.infos"/>
+                <InfoListComponent :infos="gemeinde?.buergermeisterei.infos" :gemeinde="gemeinde?.id"/>
             </template>
             <template v-if="gemeinde?.infos.length>0">
                 <h2>Gemeinde {{gemeinde?.name }}</h2>
-                <InfoListComponent :infos="gemeinde?.infos"/>
+                <InfoListComponent :infos="gemeinde?.infos" :gemeinde="gemeinde?.id"/>
             </template>
             <h2>Parzelle Nr. {{location.parzelleNr}}</h2>
             <LoadingSpinner v-if="loading"/>
@@ -120,7 +120,7 @@
                     </template>
                 </dl>
                 <template v-if="parzelle?.info">
-                    <InfoListComponent :infos="parzelle?.info"/>
+                    <InfoListComponent :infos="parzelle?.info" :gemeinde="parzelle?.gemeindeId"/>
                 </template>
             </template>
             <h2>Urkatasterunterlagen</h2>

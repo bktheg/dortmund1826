@@ -25,6 +25,13 @@ import { useHaeuserbuchStore } from "@/stores/haeuserbuchStore";
     fetchBezeichnungen()
     fetchEigentuemer()
 
+type TreeselectValue = {
+    label: string
+    id: string
+    children?: TreeselectValue[]
+    isDisabled?: boolean
+}
+
 export default {
     data() {
         return {
@@ -106,7 +113,7 @@ export default {
         },
         calcFilterOptions():any[] {
             const flurStore = useFlurStore();
-            const result:any[] = [];
+            const result:TreeselectValue[] = [];
             for( const g of flurStore.gemeinden ) {
                 let kreis = result.find(e => e.id == `kreis-${g.buergermeisterei.kreis.id}`)
                 if( !kreis ) {
@@ -114,13 +121,20 @@ export default {
                     result.push(kreis);
                 }
                 
-                let bmstr = kreis.children.find((e:any) => e.id == `bmstr-${g.buergermeisterei.id}`);
+                let bmstr = kreis.children?.find(e => e.id == `bmstr-${g.buergermeisterei.id}`);
                 if( !bmstr ) {
                     bmstr = {id:`bmstr-${g.buergermeisterei.id}`,label:`Bürgermstr. ${g.buergermeisterei.name}`, children:[]};
-                    kreis.children.push(bmstr);
+                    kreis.children?.push(bmstr);
                 }
-                bmstr.children.push({id:g.id, label:g.name});
+                bmstr.children?.push({id:g.id, label:g.name, isDisabled:this.searchType == 'haeuserbuch' && !g.haeuserbuch});
             }
+            for( const kreis of result ) {
+                for( const bmstr of kreis.children || [] ) {
+                    bmstr.isDisabled = bmstr.children?.every(e => e.isDisabled)
+                }
+                kreis.isDisabled = kreis.children?.every(e => e.isDisabled)
+            }            
+
             return [{id:'__all', label:'Provinz Westfalen', children:result}];
         },
         loading():boolean {

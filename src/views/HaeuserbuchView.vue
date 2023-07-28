@@ -7,6 +7,7 @@
     import {storeToRefs} from 'pinia'
     import {HaeuserbuchInfo} from '../services/infoService'
     import haeuserbuchInfo from '@/components/haeuserbuchInfo.vue'
+    import HaeuserbuchStreet from '@/components/HaeuserbuchStreet.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
     import type {Emitter} from 'mitt';
 
@@ -20,13 +21,12 @@
     
     const route = useRoute();
     
-    const gemeindeId = ref(route.params.gemeinde as string);
-    const id = ref(route.params.id as string);
+    const gemeindeId = computed(() => route.params.gemeinde as string);
+    const id = computed(() => route.params.id as string);
     
     haeuserbuchStore.fetchHaeuserbuch(gemeindeId.value)
 
     const hbEntry = computed(() => getHaeuserbuch.value(gemeindeId.value)?.buildings.filter(b => b.id == id.value)[0]);
-    const hbInfo = computed(() => new HaeuserbuchInfo(gemeindeId.value, id.value))
 
     const router = useRouter();
     const lastPage = router.options.history.state.back?.toString();
@@ -52,7 +52,8 @@
             <a v-if="lastPage" class="backToSearch" href="#" @click="back">Zurück</a>
             <LoadingSpinner v-if="loading"/>
             <template v-else>
-                <haeuserbuchInfo :info="hbInfo" :expanded="true" :expandable="false" />
+                <haeuserbuchInfo v-if="hbEntry" :gemeinde="gemeindeId" :id="id" :expanded="true" :expandable="false" />
+                <HaeuserbuchStreet v-else :gemeinde="gemeindeId" :id="id" />
             </template>
         </div>
     </div>

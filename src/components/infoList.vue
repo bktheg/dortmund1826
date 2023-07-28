@@ -5,14 +5,15 @@
     import HaeuserbuchInfoComponent from '@/components/haeuserbuchInfo.vue'
 
     const props = defineProps({
-        infos: { type: Array<Info>, required: true }
+        infos: { type: Array<Info>, required: true },
+        gemeinde: { type: String, required: true }
     })
 </script>
 <template>
     <div v-for="info of props?.infos" class="infoentry">
         <WikipediaInfoComponent v-if="info instanceof WikipediaInfo" :page="(info as WikipediaInfo).page"/>
         <CommonInfoComponent v-if="(info instanceof CommonInfo)" :info="(info as CommonInfo)"/>
-        <HaeuserbuchInfoComponent v-if="(info instanceof HaeuserbuchInfo)" :info="(info as HaeuserbuchInfo)"/>
+        <HaeuserbuchInfoComponent v-if="(info instanceof HaeuserbuchInfo)" :id="(info as HaeuserbuchInfo).id" :gemeinde="(info as HaeuserbuchInfo).gemeinde || props.gemeinde"/>
     </div>
 </template>
 

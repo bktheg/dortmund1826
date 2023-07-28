@@ -74,7 +74,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             <h1 id="funktionen">Funktionen</h1>
             <h2>Suchfunktion</h2>
             <p>
-                Die Suche ist in der oberen rechten Ecke zu finden. Sie erlaubt die Suche entweder nach Ortsangaben (Dörfer, Orte, Bezeichnungen, Gewässer und dergleichen) oder nach Eigentümern.
+                Die Suche ist in der oberen rechten Ecke zu finden. Sie erlaubt die Suche entweder nach Ortsangaben (Dörfer, Orte, Bezeichnungen, Gewässer und dergleichen), Eigentümern, Parzellen und Einträgen in Häuserbüchern (aktuell ist nur das Dortmunder Häuserbuch hinterlegt).
                 Die Suche erfolgt automatisch nach Eingabe des Suchtexts. Platzhalter werden bei nicht unterstützt. Die Suche kann auf einzelne Kreise, Bürgermeistereien oder Gemeinden eingeschränkt werden.
             </p>
             <p>

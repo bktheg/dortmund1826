@@ -65,16 +65,16 @@ export class HaeuserbuchBuilding {
     ) {}
 
     getAddress():string|null {
-        if( this.oldNumber != 'ohne' && this.number != 'ohne' ) {
+        if( this.oldNumber != '' && this.oldNumber != 'ohne' && this.number != '' && this.number != 'ohne' ) {
             return `Hausnummer ${this.oldNumber} (${this.street} ${this.number})`
         }
-        if( this.oldNumber != 'ohne' ) {
+        if( this.oldNumber != '' && this.oldNumber != 'ohne' ) {
             return `Hausnummer ${this.oldNumber}`
         }
-        if( this.number != 'ohne' ) {
+        if( this.number != '' && this.number != 'ohne' ) {
             return `${this.street} ${this.number}`
         }
-        return null
+        return 'ohne'
     }
 }
 
