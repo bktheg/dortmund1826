@@ -15,7 +15,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 <li><a href="#umfang-der-karte">Umfang der Karte</a></li>
                 <li><a href="#hintergrundkarten">Hintergrundkarten</a></li>
                 <li><a href="#literatur">Literatur</a></li>
-                <li><a href="#software">Software</a></li>
+                <li><a href="#software">Software und Rohdaten</a></li>
                 <li><a href="#autor">Autor/Kontakt</a></li>
             </ol>
 
@@ -188,10 +188,14 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
                 </ul>
             </p>
 
-            <h1 id="Software">Software</h1>
+            <h1 id="Software">Software und Rohdaten</h1>
             <p>
                 Die für die Datenaufbereitung im Rahmen von dortmund1826 geschriebene Software steht auf github unter MIT-Lizenz zur Verfügung: <a href="https://github.com/bktheg/genmap">genmap-Tool</a>.
                 Der Sourcecode zu dieser Website steht ebenfalls auf github unter MIT-Lizenz bereit: <a href="https://github.com/bktheg/dortmund1826">dortmund1826</a>
+            </p>
+            <p>
+                Teile der für dortmund1826 verwendeten Rohdaten stehen unter der Open Data Commons Attribution License allen Interessenten zur Verfügung: <a href="https://github.com/bktheg/dortmund1826-data">dortmund1826-data</a>.
+                Die Daten sind größtenteils in Exceldateien erfasst.
             </p>
 
             <h1 id="autor">Autor/Kontakt</h1>
