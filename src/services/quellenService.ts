@@ -27,7 +27,10 @@ export function expandSourceToAbbr(source:string|null|undefined) {
         return '<a href="#quelle-ka-ennepe-ruhr">Ennepe-Ruhr</a>'
 
     case 'ka hagen':
-        return '<a href="#quelle-ka-hagen">Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen</a>'
+        return '<a href="#quelle-ka-hagen">Stadt Hagen</a>'
+
+    case 'ka herne':
+        return '<a href="#quelle-ka-herne">Stadt Herne</a>'
 
     case '?':
         return 'unbekannt';
@@ -61,6 +64,10 @@ export function expandSourceToDetailedSource(source:string|null|undefined) {
         archiv = 'Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen'
         break;
 
+    case 'ka herne':
+        archiv = 'Fachbereich Kataster und Geoinformation der Stadt Herne'
+        break;
+
     case '?':
         archiv = 'Unbekannt';
         break;
@@ -90,6 +97,8 @@ export function expandSourceToText(source:string|null|undefined) {
         return "Liegenschaftskataster u. Geoinformation des Ennepe-Ruhr-Kreises"
     case 'ka hagen':
         return "Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen"
+    case 'ka herne':
+        return "Fachbereich Kataster und Geoinformation der Stadt Herne"
     case '?':
         return 'Der Verbleib der Unterlagen ist unbekannt, möglicherweise sind sie nicht mehr erhalten';
     }

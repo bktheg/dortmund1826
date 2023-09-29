@@ -124,6 +124,15 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
 
                 <p class="legal" v-html="getLegalText('KA Hagen')"/>
             </template>
+
+            <template v-if="hasSource('KA Herne')">
+                <h2 id="quelle-ka-hagen">Fachbereich Kataster und Geoinformation der Stadt Herne</h2>
+                <p>
+                    Basis sind die vom Fachbereich Kataster und Geoinformation der Stadt Herne für dortmund1826.de bereitgestellten Urkarten und Flurbücher.
+                </p>
+
+                <p class="legal" v-html="getLegalText('KA Herne')"/>
+            </template>
             
             <h2>Weitere Quellen</h2>
             <p>
