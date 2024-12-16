@@ -126,12 +126,10 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             </template>
 
             <template v-if="hasSource('KA Herne')">
-                <h2 id="quelle-ka-hagen">Fachbereich Kataster und Geoinformation der Stadt Herne</h2>
+                <h2 id="quelle-ka-herne">Fachbereich Kataster und Geoinformation der Stadt Herne</h2>
                 <p>
                     Basis sind die vom Fachbereich Kataster und Geoinformation der Stadt Herne für dortmund1826.de bereitgestellten Urkarten und Flurbücher.
                 </p>
-
-                <p class="legal" v-html="getLegalText('KA Herne')"/>
             </template>
             
             <h2>Weitere Quellen</h2>
@@ -155,14 +153,16 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             <div class="fluren">
                 <table>
                     <thead>
-                        <th>Kreis</th>
-                        <th>Bürgermeisterei</th>
-                        <th>Gemeinde</th>
-                        <th>Flur</th>
-                        <th>Name</th>
-                        <th>Quellen Vermessung</th>
-                        <th>Quellen Flurbuch</th>
-                        <th>Quellen Urkarten</th>
+                        <tr>
+                            <th>Kreis</th>
+                            <th>Bürgermeisterei</th>
+                            <th>Gemeinde</th>
+                            <th>Flur</th>
+                            <th>Name</th>
+                            <th>Quellen Vermessung</th>
+                            <th>Quellen Flurbuch</th>
+                            <th>Quellen Urkarten</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr v-for="flur in flure">

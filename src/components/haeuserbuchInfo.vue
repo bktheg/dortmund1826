@@ -47,7 +47,7 @@
         <span class="expand" v-if="props.expandable && !expanded">&#9658;</span>
         Eintrag im Häuserbuch <template v-if="address">für {{ address }}</template>
     </h3>
-    <p v-if="expanded" class="haeuserbuch info-indent">
+    <div v-if="expanded" class="haeuserbuch info-indent">
         <div v-if="!entry?.location">Achtung: Der Eintrag konnte keiner Parzelle in der Zeit um 1826 zugeordnet werden!</div>
         <ul class="haeuserbuch-lines">
             <li v-if="entry?.flur">{{ entry?.flur.text }}</li>
@@ -86,7 +86,7 @@
             <a v-if="sourceUrl" target="_blank" :href="sourceUrl">{{ source }}</a>
         <span v-else>{{ source }}</span>
     </div>
-    </p>
+</div>
 </template>
 
 <style scoped>

@@ -129,13 +129,15 @@
                 
                 <table class="mutterrolle">
                     <thead>
-                        <th>Flur</th>
-                        <th>Parzelle</th>
-                        <th>Lage¹</th>
-                        <th>Kulturart</th>
-                        <th>Klasse²</th>
-                        <th>Fläche³</th>
-                        <th v-if="showReinertrag">Reinertrag⁴</th>
+                        <tr>
+                            <th>Flur</th>
+                            <th>Parzelle</th>
+                            <th>Lage¹</th>
+                            <th>Kulturart</th>
+                            <th>Klasse²</th>
+                            <th>Fläche³</th>
+                            <th v-if="showReinertrag">Reinertrag⁴</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr v-for="row in mutterrolle?.rows">
@@ -149,13 +151,15 @@
                         </tr>
                     </tbody>
                     <tfoot>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>{{gesamtflaeche}}</td>
-                        <td v-if="showReinertrag">{{gesamtErtrag}}</td>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{gesamtflaeche}}</td>
+                            <td v-if="showReinertrag">{{gesamtErtrag}}</td>
+                        </tr>
                     </tfoot>
                 </table>
                 <section class="footnotes">

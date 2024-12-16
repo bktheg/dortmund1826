@@ -65,14 +65,14 @@ export default {
     this.wmsLayers.set('uraufnahme', new WmsLayer(
         'uraufnahme',
         'Uraufnahme (1836-1850)',
-        'https://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=false&width=256&height=256&layers=WMS_NW_URAUFNAHME',
+        'https://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=false&width=256&height=256&layers=WMS_NW_URAUFNAHME&styles=',
         12.5,
         24,
         'Geobasis NRW'));
     this.wmsLayers.set('neuaufnahme', new WmsLayer(
         'neuaufnahme',
         'Neuaufnahme (1891-1912)',
-        'https://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=false&width=256&height=256&layers=nw_neuaufnahme',
+        'https://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=false&width=256&height=256&layers=nw_neuaufnahme&styles=',
         12,
         24,
         'Geobasis NRW'));

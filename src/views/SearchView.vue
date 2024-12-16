@@ -1,6 +1,4 @@
 <script setup lang="ts">
-</script>
-<script lang="ts">
     import "vue3-treeselect/dist/vue3-treeselect.css"
     import _debounce from 'lodash/debounce';
     import type {DebouncedFunc} from 'lodash'
@@ -14,7 +12,10 @@
     import Treeselect from '@/components/treeselect/components/Treeselect.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
     import { useAllParzellenStore } from "@/stores/allParzellenStore";
-import { useHaeuserbuchStore } from "@/stores/haeuserbuchStore";
+    import { useHaeuserbuchStore } from "@/stores/haeuserbuchStore";
+    import { onMounted, ref, watch, computed, inject, nextTick } from 'vue'
+    import { onBeforeRouteUpdate, useRouter } from 'vue-router'
+    import type {Emitter} from 'mitt';
 
 
     const { fetchFlure } = useFlurStore()
@@ -25,212 +26,203 @@ import { useHaeuserbuchStore } from "@/stores/haeuserbuchStore";
     fetchBezeichnungen()
     fetchEigentuemer()
 
-type TreeselectValue = {
-    label: string
-    id: string
-    children?: TreeselectValue[]
-    isDisabled?: boolean
-}
+    type TreeselectValue = {
+        label: string
+        id: string
+        children?: TreeselectValue[]
+        isDisabled?: boolean
+    }
 
-export default {
-    data() {
-        return {
-            bezeichnungen:[] as BezeichnungExport[],
-            matches:[] as SearchResult[],
-            searchtext: "",
-            searchType: "lage",
-            searchDebounce: null as any as DebouncedFunc<() => void>,
-            maxResults: 100,
-            filterValue: ['__all']
-        }
-    },
-    components: {
-        Treeselect,
-        LoadingSpinner
-    },
-    async mounted() {
-        this.searchDebounce = _debounce(() => {
-                this.matches = []
-                if( !this.searchtext || this.searchtext.trim() == "") {
+    const bezeichnungen = ref([] as BezeichnungExport[])
+    const matches = ref([] as SearchResult[])
+    const searchtext = ref("")
+    const searchType = ref("lage")
+    const searchDebounce = ref(null as any as DebouncedFunc<() => void>)
+    const maxResults = ref(100)
+    const filterValue = ref(['__all'])
+
+    const router = useRouter();
+    const emitter = inject('emitter') as Emitter<any>
+
+
+    onMounted(async () => {
+        searchDebounce.value = _debounce(() => {
+                matches.value = []
+                if( !searchtext.value || searchtext.value.trim() == "") {
                     return;
                 }
                
-                const text = this.searchtext.trimStart().toLocaleLowerCase();
-                this.matches = this.doSearch(text);
+                const text = searchtext.value.trimStart().toLocaleLowerCase();
+                matches.value = doSearch(text);
         }, 200)
-        this.searchtext = this.$router.currentRoute.value.params.term as string
-        this.searchType = this.$router.currentRoute.value.params.type as string
-        this.filterValue = this.unserializeFilter(this.$router.currentRoute.value.params.filter as string);
-        if( !this.searchType ) {
-            this.searchType = 'lage';
+        searchtext.value = router.currentRoute.value.params.term as string
+        searchType.value = router.currentRoute.value.params.type as string
+        filterValue.value = unserializeFilter(router.currentRoute.value.params.filter as string);
+        if( !searchType.value ) {
+            searchType.value = 'lage';
         }
 
-        this.search();
-    },
-    async beforeRouteUpdate(to, from) {
-        this.$nextTick(() => {
+        search();
+    })
+
+
+    onBeforeRouteUpdate(async (to, from) => {
+        nextTick(() => {
             const newType = to.params.type as string;
             const newTerm = to.params.term as string;
             const newFilter = to.params.filter as string;
-            if( newType != this.searchType || newTerm != this.searchtext || newFilter != this.serializeFilter(this.filterValue) ) {
-                this.searchType = newType;
-                this.searchtext = newTerm;
-                this.filterValue = this.unserializeFilter(newFilter);
-                if( this.searchtext && this.searchDebounce ) {
-                    this.searchDebounce();
+            if( newType != searchType.value || newTerm != searchtext.value || newFilter != serializeFilter(filterValue.value) ) {
+                searchType.value = newType;
+                searchtext.value = newTerm;
+                filterValue.value = unserializeFilter(newFilter);
+                if( searchtext.value && searchDebounce.value ) {
+                    searchDebounce.value();
                 }
             }
         });
-    },
-    watch: {
-        filterValue(oldValue, newValue) {
-            this.search();
-        },
-        searchType(oldValue, newValue) {
-            this.search();
-        },
-        loading(oldValue, newValue) {
-            if( newValue ) {
-                this.search()
-            }
-        }
-    },
-    computed: {
-        calcSearchTypeOptions():any[] {
-            return [{
-                label:"Ortsangabe",
-                id:"lage"
-            },{
-                label:"Eigentümer",
-                id:"owner"
-            },{
-                label:"Parzelle",
-                id:"parzelle"
-            },{
-                label:"Eintrag Häuserbuch",
-                id:"haeuserbuch"
-            }]
-        },
-        calcFilterOptions():any[] {
-            const flurStore = useFlurStore();
-            const result:TreeselectValue[] = [];
-            for( const g of flurStore.gemeinden ) {
-                let kreis = result.find(e => e.id == `kreis-${g.buergermeisterei.kreis.id}`)
-                if( !kreis ) {
-                    kreis = {label:`Kreis ${g.buergermeisterei.kreis.name}`, id:`kreis-${g.buergermeisterei.kreis.id}`, children:[]};
-                    result.push(kreis);
-                }
-                
-                let bmstr = kreis.children?.find(e => e.id == `bmstr-${g.buergermeisterei.id}`);
-                if( !bmstr ) {
-                    bmstr = {id:`bmstr-${g.buergermeisterei.id}`,label:`Bürgermstr. ${g.buergermeisterei.name}`, children:[]};
-                    kreis.children?.push(bmstr);
-                }
-                bmstr.children?.push({id:g.id, label:g.name, isDisabled:this.searchType == 'haeuserbuch' && !g.haeuserbuch});
-            }
-            for( const kreis of result ) {
-                for( const bmstr of kreis.children || [] ) {
-                    bmstr.isDisabled = bmstr.children?.every(e => e.isDisabled)
-                }
-                kreis.isDisabled = kreis.children?.every(e => e.isDisabled)
-            }            
+    })
+   
+    const calcSearchTypeOptions = computed(() => {
+        return [{
+            label:"Ortsangabe",
+            id:"lage"
+        },{
+            label:"Eigentümer",
+            id:"owner"
+        },{
+            label:"Parzelle",
+            id:"parzelle"
+        },{
+            label:"Eintrag Häuserbuch",
+            id:"haeuserbuch"
+        }]
+    })
 
-            return [{id:'__all', label:'Provinz Westfalen', children:result}];
-        },
-        loading():boolean {
-            const flurStore = useFlurStore();
-            const eigentuemerStore = useEigentuemerStore();
-            const bezeichnungStore = useBezeichnungStore();
-            const allParzellenStore = useAllParzellenStore();
-            const haeuserbuchStore = useHaeuserbuchStore();
-
-            return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading || allParzellenStore.loading || haeuserbuchStore.loading.size > 0
-        }
-    },
-    methods: {
-        limitText: function(count:number) {
-            return `+${count}`
-        },
-        search: function() {
-            if( this.searchtext ) {
-                this.searchDebounce();
+    const calcFilterOptions = computed(() => {
+        const flurStore = useFlurStore();
+        const result:TreeselectValue[] = [];
+        for( const g of flurStore.gemeinden ) {
+            let kreis = result.find(e => e.id == `kreis-${g.buergermeisterei.kreis.id}`)
+            if( !kreis ) {
+                kreis = {label:`Kreis ${g.buergermeisterei.kreis.name}`, id:`kreis-${g.buergermeisterei.kreis.id}`, children:[]};
+                result.push(kreis);
             }
-        },
-        serializeFilter(filters:string[]) {
-            if( filters.includes('__all') ) {
-                return null;
-            }
-            return filters.join(',');
-        },
-        unserializeFilter(filterString:string):string[] {
-            if( !filterString ) {
-                return ['__all'];
-            }
-            return filterString.split(',');
-        },
-        doSearch: function(term:string):SearchResult[] {
-            if( this.searchType == "parzelle" ) {
-                const allParzellenStore = useAllParzellenStore();
-                allParzellenStore.fetchAllParzellen();
-            }
-            else if( this.searchType == "haeuserbuch" ) {
-               const haeuserbuchStore = useHaeuserbuchStore()
-               const flurStore = useFlurStore()
-               flurStore.gemeinden.filter(g => g.haeuserbuch).forEach(g => haeuserbuchStore.fetchHaeuserbuch(g.id))
-            }
-
-            this.$router.replace({name:'search', params:{type:this.searchType, term:this.searchtext, filter:this.serializeFilter(this.filterValue)}, hash:window.location.hash})
             
-            return searchByTerm(term, this.searchType, this.filterValue, this.maxResults);
-        },
-        resultSelected: function(match:SearchResult) {
-            if( match.location ) {
-                this.emitter.emit("map-highlight-location", {location:match.location});
+            let bmstr = kreis.children?.find(e => e.id == `bmstr-${g.buergermeisterei.id}`);
+            if( !bmstr ) {
+                bmstr = {id:`bmstr-${g.buergermeisterei.id}`,label:`Bürgermstr. ${g.buergermeisterei.name}`, children:[]};
+                kreis.children?.push(bmstr);
             }
-            if( match.route != null ) {
-                this.$router.push(match.route)
+            bmstr.children?.push({id:g.id, label:g.name, isDisabled:searchType.value == 'haeuserbuch' && !g.haeuserbuch});
+        }
+        for( const kreis of result ) {
+            for( const bmstr of kreis.children || [] ) {
+                bmstr.isDisabled = bmstr.children?.every(e => e.isDisabled)
             }
-        },
-        getTypeLabel: function(type:SearchResultType) {
-            switch(type) {
-                case SearchResultType.ADMIN:
-                    return "Verwaltungseinheit";
-                case SearchResultType.FLUR:
-                    return "Flur";
-                case SearchResultType.ORT:
-                    return "Dorf/Stadt";
-                case SearchResultType.BEZEICHNUNG:
-                case SearchResultType.BEZEICHNUNG_LINE:
-                    return "Bezeichnung";
-                case SearchResultType.GEWAESSER:
-                    return "Gewässer";
-                case SearchResultType.GEBAEUDE:
-                    return "Gebäude";
-                case SearchResultType.OWNER:
-                    return "Eigentümer";
-            }
-        },
-        getTypeCss: function(type:SearchResultType) {
-            switch(type) {
-                case SearchResultType.ADMIN:
-                    return "admin";
-                case SearchResultType.FLUR:
-                    return "flur";
-                case SearchResultType.ORT:
-                    return "town";
-                case SearchResultType.BEZEICHNUNG:
-                case SearchResultType.BEZEICHNUNG_LINE:
-                    return "name";
-                case SearchResultType.GEWAESSER:
-                    return "gewaesser";
-                case SearchResultType.GEBAEUDE:
-                    return "gebaeude";
-                case SearchResultType.OWNER:
-                    return "owner";
-            }
+            kreis.isDisabled = kreis.children?.every(e => e.isDisabled)
+        }            
+
+        return [{id:'__all', label:'Provinz Westfalen', children:result}];
+    })
+    const loading = computed(() => {
+        const flurStore = useFlurStore();
+        const eigentuemerStore = useEigentuemerStore();
+        const bezeichnungStore = useBezeichnungStore();
+        const allParzellenStore = useAllParzellenStore();
+        const haeuserbuchStore = useHaeuserbuchStore();
+
+        return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading || allParzellenStore.loading || haeuserbuchStore.loading.size > 0
+    })
+    
+    watch(filterValue, (oldValue, newValue) => search())
+    watch(searchType, (oldValue, newValue) => search())
+    watch(loading, (oldValue, newValue) => {
+        if( newValue ) {
+            search()
+        }
+    })
+
+    function limitText(count:number) {
+        return `+${count}`
+    }
+    function search() {
+        if( searchtext.value ) {
+            searchDebounce.value();
         }
     }
-}
+    function serializeFilter(filters:string[]) {
+        if( filters.includes('__all') ) {
+            return null;
+        }
+        return filters.join(',');
+    }
+    function unserializeFilter(filterString:string):string[] {
+        if( !filterString ) {
+            return ['__all'];
+        }
+        return filterString.split(',');
+    }
+    function doSearch(term:string):SearchResult[] {
+        if( searchType.value == "parzelle" ) {
+            const allParzellenStore = useAllParzellenStore();
+            allParzellenStore.fetchAllParzellen();
+        }
+        else if( searchType.value == "haeuserbuch" ) {
+            const haeuserbuchStore = useHaeuserbuchStore()
+            const flurStore = useFlurStore()
+            flurStore.gemeinden.filter(g => g.haeuserbuch).forEach(g => haeuserbuchStore.fetchHaeuserbuch(g.id))
+        }
+
+        router.replace({name:'search', params:{type:searchType.value, term:searchtext.value, filter:serializeFilter(filterValue.value)}, hash:window.location.hash})
+        
+        return searchByTerm(term, searchType.value, filterValue.value, maxResults.value);
+    }
+    function resultSelected(match:SearchResult) {
+        if( match.location ) {
+            emitter.emit("map-highlight-location", {location:match.location});
+        }
+        if( match.route != null ) {
+            router.push(match.route)
+        }
+    }
+    function getTypeLabel(type:SearchResultType) {
+        switch(type) {
+            case SearchResultType.ADMIN:
+                return "Verwaltungseinheit";
+            case SearchResultType.FLUR:
+                return "Flur";
+            case SearchResultType.ORT:
+                return "Dorf/Stadt";
+            case SearchResultType.BEZEICHNUNG:
+            case SearchResultType.BEZEICHNUNG_LINE:
+                return "Bezeichnung";
+            case SearchResultType.GEWAESSER:
+                return "Gewässer";
+            case SearchResultType.GEBAEUDE:
+                return "Gebäude";
+            case SearchResultType.OWNER:
+                return "Eigentümer";
+        }
+    }
+    function getTypeCss(type:SearchResultType) {
+        switch(type) {
+            case SearchResultType.ADMIN:
+                return "admin";
+            case SearchResultType.FLUR:
+                return "flur";
+            case SearchResultType.ORT:
+                return "town";
+            case SearchResultType.BEZEICHNUNG:
+            case SearchResultType.BEZEICHNUNG_LINE:
+                return "name";
+            case SearchResultType.GEWAESSER:
+                return "gewaesser";
+            case SearchResultType.GEBAEUDE:
+                return "gebaeude";
+            case SearchResultType.OWNER:
+                return "owner";
+        }
+    }
 </script>
 
 <style>
@@ -364,7 +356,7 @@ export default {
                 <input class="text" type="text" placeholder="Suchbegriff eingeben" v-model="searchtext" @keyup="search()"/>
                 <input class="button" type="submit" value="Suchen" @click="search()"/>
             </section>
-            <p>
+            <div>
                 <LoadingSpinner v-if="loading" />
                 <ul id="searchresult">
                     <li v-for="match in matches" @click="resultSelected(match)" :class="`type-${getTypeCss(match.typeEnum)}`">
@@ -376,7 +368,7 @@ export default {
                         </ul>
                     </li>
                 </ul>
-            </p>
+            </div>
             <p v-if="matches.length >= maxResults">
                 Es werden maximal {{maxResults}} Treffer angezeigt
             </p>
