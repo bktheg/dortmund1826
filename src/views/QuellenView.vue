@@ -59,7 +59,7 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             <h1 id="administrative-grenzen">Administrative Grenzen</h1>
             <p>
                 Zum Zeitpunkt der Aufstellung des Urkatasters waren die Kreise in Bürgermeistereien untergliedert.
-                Die Bürgermeistereien gliederten sich ihrerseits mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einem oder mehreren Fluren.
+                Die Bürgermeistereien gliederten sich ihrerseits in mehrere Gemeinden auf. Jede Gemeinde bestand im Kataster aus einer oder mehreren Fluren.
             </p>
             <p>
                 Die aufgeführten Gemeinden und ihre Grenzen basieren auf den Angaben auf den Urkarten des Urkatasters.
