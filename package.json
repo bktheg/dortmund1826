@@ -5,6 +5,7 @@
     "dev": "vite",
     "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
+    "data-preview": "vite --port 4173 --mode staging",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit"
   },

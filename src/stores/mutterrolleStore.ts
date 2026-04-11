@@ -54,7 +54,7 @@ export const useMutterrolleStore = defineStore({
         }
         this.loading.add(gemeinde)
         try {
-            const mutterrollenExport = await axios.get(`/mutterrollen_${gemeinde}.json?v=${__APP_VERSION__}`)
+            const mutterrollenExport = await axios.get(import.meta.env.VITE_SERVER_URL+`/mutterrollen_${gemeinde}.json?v=${__APP_VERSION__}`)
                 .then((response) => response.data)
             const result = new Map<string,Mutterrolle>();
             for( const artikelNr in mutterrollenExport ) {

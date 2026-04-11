@@ -35,6 +35,13 @@ npm install
 npm run dev
 ```
 
+### Start data preview mode
+Requires a local genmap (https://github.com/bktheg/genmap) installation running in preview mode.
+
+```sh
+npm run data-preview
+```
+
 ### Type-Check, Compile and Minify for Production
 
 ```sh

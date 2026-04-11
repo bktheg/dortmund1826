@@ -58,10 +58,12 @@ export default {
         hoveredArea: null as mapboxgl.MapboxGeoJSONFeature | null,
         hoverLayer: 'kataster_areas_1826v2',
         wmsLayers: new Map<string,WmsLayer>(),
-        dynamicLayerPrefix: 'kataster-areas-'
+        dynamicLayerPrefix: 'kataster-areas-',
+        localDevMode: false
     }
   },
   mounted() {
+    this.localDevMode = import.meta.env.VITE_SERVER_URL != null && import.meta.env.VITE_SERVER_URL != ''
     this.wmsLayers.set('uraufnahme', new WmsLayer(
         'uraufnahme',
         'Uraufnahme (1836-1850)',
@@ -92,6 +94,16 @@ export default {
     });
 
     this.map.on('load', () => {
+        if( this.localDevMode ) {
+            // Dev mode, use alternative data source
+            for( let elem in this.map?.style._layers ) {
+                if( !elem.startsWith('kataster') && !elem.startsWith('Kataster') ) {
+                    this.map.removeLayer(elem)
+                }
+            }
+            this.map.getSource('composite').setUrl(import.meta.env.VITE_SERVER_URL+'/tilejson.json')
+        }
+
         for( const layer of this.wmsLayers.values() ) {
             this.map?.addSource(`wms-${layer.id}-source`, {
                         'type': 'raster',

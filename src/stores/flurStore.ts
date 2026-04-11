@@ -142,8 +142,8 @@ export const useFlurStore = defineStore({
             this.flure = []
             this.gemeinden = []
             this.loading = true
-            try {              
-                await axios.get("/admin.json?v="+__APP_VERSION__)
+            try {
+                await axios.get(import.meta.env.VITE_SERVER_URL+`/admin.json?v=${__APP_VERSION__}`)
                     .then((response) => response.data as AdminExport)
                     .then((data) => {
                         this.kreise = data.k.map(k => new Kreis(k.i, k.n, mapInfos(k.a)))

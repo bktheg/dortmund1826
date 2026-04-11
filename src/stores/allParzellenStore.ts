@@ -26,7 +26,7 @@ export const useAllParzellenStore = defineStore({
         this.loading = true
         this.parzellen = []
         try {
-            const parzellenExport = await axios.get("/allparzellen.json?v="+__APP_VERSION__)
+            const parzellenExport = await axios.get(import.meta.env.VITE_SERVER_URL+`/allparzellen.json?v=${__APP_VERSION__}`)
                 .then((response) => response.data)
             const parzellenResult = []
             for( const gemeinde in parzellenExport ) {

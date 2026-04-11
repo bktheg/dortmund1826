@@ -135,7 +135,7 @@ export const useHaeuserbuchStore = defineStore({
         }
         this.loading.add(gemeinde)
         try {
-            const hbExport = await axios.get(`/haeuserbuch_${gemeinde}.json?v=${__APP_VERSION__}`)
+            const hbExport = await axios.get(import.meta.env.VITE_SERVER_URL+`/haeuserbuch_${gemeinde}.json?v=${__APP_VERSION__}`)
                 .then((response) => response.data) as HaeuserbuchExport
 
             const buildings = hbExport.b?.map(r => 

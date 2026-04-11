@@ -59,7 +59,7 @@ export const useParzelleStore = defineStore({
         }
         this.loading.add(loadingId);
         try {
-            const parzellenExport = await axios.get(`/parzellen_${gemeinde}_${flur}.json?v=${__APP_VERSION__}`)
+            const parzellenExport = await axios.get(import.meta.env.VITE_SERVER_URL+`/parzellen_${gemeinde}_${flur}.json?v=${__APP_VERSION__}`)
                 .then((response) => response.data) as ParzelleExport[]
                 
             const result:Parzelle[] = [];
