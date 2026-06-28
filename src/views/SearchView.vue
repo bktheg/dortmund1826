@@ -134,10 +134,10 @@
         return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading || allParzellenStore.loading || haeuserbuchStore.loading.size > 0
     })
     
-    watch(filterValue, (oldValue, newValue) => search())
-    watch(searchType, (oldValue, newValue) => search())
-    watch(loading, (oldValue, newValue) => {
-        if( newValue ) {
+    watch(filterValue, () => search())
+    watch(searchType, () => search())
+    watch(loading, (newValue) => {
+        if (!newValue) {
             search()
         }
     })
@@ -146,7 +146,7 @@
         return `+${count}`
     }
     function search() {
-        if( searchtext.value ) {
+        if( searchtext.value && searchDebounce.value ) {
             searchDebounce.value();
         }
     }

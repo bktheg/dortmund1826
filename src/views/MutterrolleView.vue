@@ -38,6 +38,12 @@
 
     mutterrolleStore.fetchMutterrollen(gemeindeId.value);
 
+    watch(() => route.params, (params) => {
+        gemeindeId.value = params.gemeinde as string;
+        artikelNr.value = params.artikelNr as string;
+        mutterrolleStore.fetchMutterrollen(gemeindeId.value);
+    }, { deep: true });
+
     const mutterrolle = computed(() => mutterrollen.value.get(gemeindeId.value)?.get(artikelNr.value));
     const gemeinde = computed(() => getGemeindeById(gemeindeId.value))
 
@@ -77,7 +83,7 @@
         if( !mutterrolle.value ) {
             return '';
         }
-        const sum = mutterrolle.value.rows.map(r => toPfennig(r.reinertrag)).reduce((a,b) => a+b, 0);
+        const sum = mutterrolle.value.rows.filter(r => r.reinertrag).map(r => toPfennig(r.reinertrag)).reduce((a,b) => a+b, 0);
         
         const t = Math.floor(sum/(FACTOR_TALER*FACTOR_GROSCHEN));
         const g = Math.floor((sum-t*FACTOR_TALER*FACTOR_GROSCHEN)/FACTOR_GROSCHEN);
@@ -89,6 +95,7 @@
     watch(() => mutterrolle.value, (value) => {
         if( value != null ) {
             emitter.emit('map-highlight-areas', {artikel:value.id, gemeindeId:value.gemeindeId} as HighlightEvent);
+            if (value.rows.length === 0) return;
             const min = [value.rows[0].location[0],value.rows[0].location[1]];
             const max = [value.rows[0].location[0],value.rows[0].location[1]];
             for( const row of value.rows ) {

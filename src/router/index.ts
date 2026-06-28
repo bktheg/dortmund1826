@@ -33,6 +33,16 @@ const router = createRouter({
       path: '/haeuserbuch/:gemeinde/:id',
       name: 'haeuserbuch',
       component: () => import('../views/HaeuserbuchView.vue')
+    },
+    {
+      path: '/layer/:layername/:addr',
+      name: 'layer-building',
+      component: () => import('../views/LayerBuildingView.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue')
     }
   ]
 })

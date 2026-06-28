@@ -107,3 +107,5 @@ dist
 /public/flure.json
 /public/bezeichnungen.json
 /public/*.json
+/.claude
+/_bmad
