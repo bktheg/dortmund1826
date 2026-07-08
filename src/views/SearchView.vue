@@ -13,7 +13,7 @@
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
     import { useAllParzellenStore } from "@/stores/allParzellenStore";
     import { useHaeuserbuchStore } from "@/stores/haeuserbuchStore";
-    import { onMounted, ref, watch, computed, inject, nextTick } from 'vue'
+    import { onMounted, ref, shallowRef, watch, computed, inject, nextTick } from 'vue'
     import { onBeforeRouteUpdate, useRouter } from 'vue-router'
     import type {Emitter} from 'mitt';
 
@@ -34,7 +34,7 @@
     }
 
     const bezeichnungen = ref([] as BezeichnungExport[])
-    const matches = ref([] as SearchResult[])
+    const matches = shallowRef([] as SearchResult[])
     const searchtext = ref("")
     const searchType = ref("lage")
     const searchDebounce = ref(null as any as DebouncedFunc<() => void>)

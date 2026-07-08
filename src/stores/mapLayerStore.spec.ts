@@ -104,7 +104,7 @@ describe('mapLayerStore', () => {
 
             const route = buildRoute({ addr })
 
-            expect(route?.name).toBe('layer-building')
+            expect(route?.name).toBe('layer-details')
             expect(route?.params?.layername).toBe('vector-do1914')
             expect(decodeAddressParam(route?.params?.addr as string)).toEqual([
                 { strasse: 'Rheinischestraße', hnr: '60 2/2' },
@@ -216,6 +216,38 @@ describe('mapLayerStore', () => {
         })
     })
 
+    describe('enableLayer', () => {
+        it('turns a hidden layer on and shows it', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, '')
+            const map = makeMockMap()
+            const layer = store.layers.find(l => l.id === 'vector-do1914')!
+            layer.visible = false
+            const showSpy = vi.spyOn(layer, 'show')
+            store.enableLayer('vector-do1914', map)
+            expect(layer.visible).toBe(true)
+            expect(showSpy).toHaveBeenCalledOnce()
+        })
+
+        it('is a no-op when the layer is already visible', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, '')
+            const map = makeMockMap()
+            const layer = store.layers.find(l => l.id === 'vector-do1914')!
+            layer.visible = true
+            const showSpy = vi.spyOn(layer, 'show')
+            store.enableLayer('vector-do1914', map)
+            expect(showSpy).not.toHaveBeenCalled()
+        })
+
+        it('is a no-op for an unknown id', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, '')
+            const map = makeMockMap()
+            expect(() => store.enableLayer('nonexistent', map)).not.toThrow()
+        })
+    })
+
     describe('reorderLayer', () => {
         it('moves a WmsLayer before its target', () => {
             const store = useMapLayerStore()
@@ -268,11 +300,74 @@ describe('mapLayerStore', () => {
         })
     })
 
+    describe('grey-ghost emphasis', () => {
+        it('keeps the topmost visible sortable layer emphasized and ghosts the ones below', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            const map = makeMockMap()
+            const top = store.layers.find(l => l.id === '1826')!
+            const below = store.layers.find(l => l.id === 'vector-do1914')!
+            below.visible = true
+            const topSpy = vi.spyOn(top, 'setEmphasis')
+            const belowSpy = vi.spyOn(below, 'setEmphasis')
+            store.toggleLayer('vector-do1914', map)
+            expect(topSpy).toHaveBeenCalledWith(map, true)
+            expect(belowSpy).toHaveBeenCalledWith(map, false)
+        })
+
+        it('restores emphasis (full colour) on a layer that becomes topmost after the one above is hidden', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            const map = makeMockMap()
+            const below = store.layers.find(l => l.id === 'vector-do1914')!
+            below.visible = true
+            store.toggleLayer('vector-do1914', map) // below is ghosted under 1826
+            const belowSpy = vi.spyOn(below, 'setEmphasis')
+            const layer1826 = store.layers.find(l => l.id === '1826')!
+            layer1826.visible = false
+            store.toggleLayer('1826', map) // 1826 hidden → vector-do1914 is now topmost
+            expect(belowSpy).toHaveBeenLastCalledWith(map, true)
+        })
+
+        it('recomputes emphasis after a reorder', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            const map = makeMockMap()
+            const vector = store.layers.find(l => l.id === 'vector-do1914')!
+            vector.visible = true
+            const vectorSpy = vi.spyOn(vector, 'setEmphasis')
+            // Move vector-do1914 above 1826 → it becomes topmost and must be emphasized
+            store.reorderLayer('vector-do1914', '1826', map)
+            expect(vectorSpy).toHaveBeenLastCalledWith(map, true)
+        })
+    })
+
     describe('updateDisabledStatus', () => {
+        // Builds a mock mapbox map at a given zoom. `sourceBounds` is the tilejson
+        // `[west, south, east, north]` reported by getSource().bounds (undefined = tilejson
+        // not yet loaded); `viewBounds` is the current viewport in the same order.
+        function makeZoomMap(
+            zoom: number,
+            sourceBounds?: [number, number, number, number],
+            viewBounds: [number, number, number, number] = [7.45, 51.45, 7.55, 51.55],
+        ) {
+            const [vw, vs, ve, vn] = viewBounds
+            return {
+                getZoom: () => zoom,
+                getSource: () => ({ bounds: sourceBounds }),
+                getBounds: () => ({
+                    getWest: () => vw,
+                    getSouth: () => vs,
+                    getEast: () => ve,
+                    getNorth: () => vn,
+                }),
+            }
+        }
+
         it('sets disabled=true for layers whose minZoom exceeds current zoom', () => {
             const store = useMapLayerStore()
             store.initLayers(false, '')
-            store.updateDisabledStatus(10)
+            store.updateDisabledStatus(makeZoomMap(10))
             // uraufnahme minZoom=12.5, neuaufnahme minZoom=12 → both disabled at zoom 10
             expect(store.layers.find(l => l.id === 'uraufnahme')?.disabled).toBe(true)
             expect(store.layers.find(l => l.id === 'neuaufnahme')?.disabled).toBe(true)
@@ -281,7 +376,7 @@ describe('mapLayerStore', () => {
         it('sets disabled=false for layers whose minZoom is at or below current zoom', () => {
             const store = useMapLayerStore()
             store.initLayers(false, '')
-            store.updateDisabledStatus(13)
+            store.updateDisabledStatus(makeZoomMap(13))
             expect(store.layers.find(l => l.id === 'uraufnahme')?.disabled).toBe(false)
             expect(store.layers.find(l => l.id === 'neuaufnahme')?.disabled).toBe(false)
         })
@@ -289,9 +384,48 @@ describe('mapLayerStore', () => {
         it('static layers with minZoom=0 are never disabled', () => {
             const store = useMapLayerStore()
             store.initLayers(false, '')
-            store.updateDisabledStatus(0)
+            store.updateDisabledStatus(makeZoomMap(0))
             expect(store.layers.find(l => l.id === '1826')?.disabled).toBe(false)
             expect(store.layers.find(l => l.id === 'heute')?.disabled).toBe(false)
+        })
+
+        it('keeps a vector layer enabled while the viewport intersects its bbox', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            store.updateDisabledStatus(makeZoomMap(15, [7.4, 51.4, 7.6, 51.6], [7.45, 51.45, 7.55, 51.55]))
+            expect(store.layers.find(l => l.id === 'vector-do1914')?.disabled).toBe(false)
+        })
+
+        it('disables a vector layer when the viewport is panned entirely outside its bbox', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            store.updateDisabledStatus(makeZoomMap(15, [7.4, 51.4, 7.6, 51.6], [8.0, 52.0, 8.2, 52.2]))
+            expect(store.layers.find(l => l.id === 'vector-do1914')?.disabled).toBe(true)
+        })
+
+        it('does not disable a vector layer on bounds grounds before its tilejson has loaded', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            // sourceBounds undefined = tilejson not yet loaded; viewport is far away but bounds unknown
+            store.updateDisabledStatus(makeZoomMap(15, undefined, [8.0, 52.0, 8.2, 52.2]))
+            expect(store.layers.find(l => l.id === 'vector-do1914')?.disabled).toBe(false)
+        })
+
+        it('keeps a vector layer enabled when panned into an adjacent world copy of its bbox', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            // renderWorldCopies: viewport centred on the region one world east → unwrapped
+            // longitudes ~367.4..367.6 while the bbox stays at ~7.5°E.
+            store.updateDisabledStatus(makeZoomMap(15, [7.4, 51.4, 7.6, 51.6], [367.45, 51.45, 367.55, 51.55]))
+            expect(store.layers.find(l => l.id === 'vector-do1914')?.disabled).toBe(false)
+        })
+
+        it('disables a vector layer panned to a longitude between world copies of its bbox', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            // Far from the region in every world copy (~180°E away) → out of bounds.
+            store.updateDisabledStatus(makeZoomMap(15, [7.4, 51.4, 7.6, 51.6], [187.4, 51.45, 187.6, 51.55]))
+            expect(store.layers.find(l => l.id === 'vector-do1914')?.disabled).toBe(true)
         })
     })
 })

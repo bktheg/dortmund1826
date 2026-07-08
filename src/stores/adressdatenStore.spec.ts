@@ -123,7 +123,7 @@ describe('adressdatenStore', () => {
         await store.fetchAdressbuch('betenstr.')
 
         const url = vi.mocked(axios.get).mock.calls[0][0] as string
-        expect(url).toContain('/adressdaten/1914/betenstr.json?v=')
+        expect(url).toContain('/adressdaten/1914/by-street/betenstr.json?v=')
         expect(url).not.toContain('betenstr..json')
     })
 
@@ -134,7 +134,7 @@ describe('adressdatenStore', () => {
         await store.fetchAdressbuch('suedwall')
 
         const url = vi.mocked(axios.get).mock.calls[0][0] as string
-        expect(url).toContain('/adressdaten/1914/suedwall.json?v=')
+        expect(url).toContain('/adressdaten/1914/by-street/suedwall.json?v=')
     })
 
     it('does not fetch again when the same street is requested twice', async () => {

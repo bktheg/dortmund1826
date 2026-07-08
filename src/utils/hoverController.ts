@@ -169,9 +169,10 @@ export class HoverController {
     }
 
     private setFeatureHover(descriptor: HoverDescriptor, id: any, hover: boolean): void {
-        // Feature-state highlighting requires a feature id. Tiles served without
-        // ids (e.g. the local data-preview tileset) would make setFeatureState
-        // throw "The feature id parameter must be provided." — skip instead.
+        // Feature-state highlighting requires a feature id. Every gebaeudef feature
+        // carries its ogc_fid as feature.id, but this guard stays defensive: a null
+        // id would make setFeatureState throw "The feature id parameter must be
+        // provided." — skip instead.
         if (id == null) return
         this.map.setFeatureState(
             { source: descriptor.source, sourceLayer: descriptor.sourceLayer, id },

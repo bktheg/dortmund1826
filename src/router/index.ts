@@ -35,9 +35,19 @@ const router = createRouter({
       component: () => import('../views/HaeuserbuchView.vue')
     },
     {
+      path: '/layer/:layername/info',
+      name: 'layer-info',
+      component: () => import('../views/LayerInfoView.vue')
+    },
+    {
+      path: '/layer/:layername/addressdata/by-gewerbetype/:gewerbetype',
+      name: 'layer-gewerbetype',
+      component: () => import('../views/LayerGewerbeTypeView.vue')
+    },
+    {
       path: '/layer/:layername/:addr',
-      name: 'layer-building',
-      component: () => import('../views/LayerBuildingView.vue')
+      name: 'layer-details',
+      component: () => import('../views/LayerDetailsView.vue')
     },
     {
       path: '/:pathMatch(.*)*',

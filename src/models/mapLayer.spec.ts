@@ -11,6 +11,7 @@ function makeMockMap(existingLayers: string[] = [], existingStyleLayers: Record<
         getLayer: vi.fn((id: string) => layerIds.has(id) ? { id } : null),
         getSource: vi.fn(() => ({ minzoom: 12, maxzoom: 24 })),
         setLayoutProperty: vi.fn(),
+        setPaintProperty: vi.fn(),
         style: { _layers: existingStyleLayers },
     }
 }
@@ -80,6 +81,13 @@ describe('WmsLayer', () => {
 
     it('addToMap with null map is a no-op', () => {
         expect(() => layer.addToMap(null)).not.toThrow()
+    })
+
+    it('setEmphasis never touches paint — raster tiles must not ghost when stacked below another layer', () => {
+        map = makeMockMap(['wms-uraufnahme-layer'])
+        layer.setEmphasis(map, false)
+        layer.setEmphasis(map, true)
+        expect(map.setPaintProperty).not.toHaveBeenCalled()
     })
 })
 

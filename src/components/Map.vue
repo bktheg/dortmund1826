@@ -4,7 +4,10 @@ import router from '@/router';
 import type mapboxgl from 'mapbox-gl'
 import { usePreviewStore } from '@/stores/previewStore'
 import { useMapLayerStore } from '@/stores/mapLayerStore'
+import { hasLayerInfo } from '@/services/layerInfoService'
 import { HoverController } from '@/utils/hoverController'
+import { DurchfahrtCrossController } from '@/utils/durchfahrtCrossController'
+import { GewerbeHighlightController } from '@/utils/gewerbeHighlightController'
 
 export type HighlightEvent = {
     gemeindeId:string;
@@ -45,7 +48,7 @@ export default {
         const previewStore = usePreviewStore()
         const dragFromId = ref<string | null>(null)
         const dragOverId = ref<string | null>(null)
-        return { layerStore, previewStore, dragFromId, dragOverId }
+        return { layerStore, previewStore, dragFromId, dragOverId, hasLayerInfo }
     },
     data() {
         return {
@@ -56,6 +59,8 @@ export default {
             dynamicLayerPrefix: 'kataster-areas-',
             localDevMode: false,
             hoverController: null as HoverController | null,
+            durchfahrtCrossController: null as DurchfahrtCrossController | null,
+            gewerbeHighlightController: null as GewerbeHighlightController | null,
         }
     },
     mounted() {
@@ -78,6 +83,8 @@ export default {
             customAttribution:"Christopher Jung"
         });
 
+        this.setupGewerbeHighlight();
+
         this.map.on('load', () => {
             if( this.localDevMode ) {
                 // Dev mode, use alternative data source
@@ -91,16 +98,24 @@ export default {
 
             this.layerStore.addAllToMap(this.map)
 
-            this.layerStore.updateDisabledStatus(this.map.getZoom())
+            this.layerStore.updateDisabledStatus(this.map)
 
             document.getElementsByClassName('ctrl-parzellen-detail').item(0)?.addEventListener('click', () => {
                 this.clickEnabled = !this.clickEnabled;
             });
 
             this.setupHover();
+            this.setupDurchfahrtCross();
         });
 
-        this.map.on('zoom', () => this.layerStore.updateDisabledStatus(this.map?.getZoom() ?? 0));
+        this.map.on('zoom', () => this.layerStore.updateDisabledStatus(this.map));
+        // Panning does not change zoom, so re-evaluate the bbox-based disabling on moveend too.
+        this.map.on('moveend', () => this.layerStore.updateDisabledStatus(this.map));
+        // A vector layer's tilejson bounds arrive asynchronously; re-evaluate once a source
+        // finishes loading so the layer greys out immediately if the viewport is already outside it.
+        this.map.on('sourcedata', (e:any) => {
+            if (e.isSourceLoaded) this.layerStore.updateDisabledStatus(this.map);
+        });
 
         const nav = new window.mapboxgl.NavigationControl();
         this.map.addControl(nav, 'top-left');
@@ -157,6 +172,25 @@ export default {
             }
         })
 
+        this.emitter.on('map-enable-layer', (layerId:string) => {
+            const enable = () => this.layerStore.enableLayer(layerId, this.map);
+            if( this.map.loaded() ) {
+                enable();
+            }
+            else {
+                this.map.on('load', enable);
+            }
+        });
+
+        this.emitter.on('map-highlight-buildings', (buildingIds:number[] | null) => {
+            if( buildingIds && buildingIds.length > 0 ) {
+                this.gewerbeHighlightController?.setTargets(buildingIds);
+            }
+            else {
+                this.gewerbeHighlightController?.clear();
+            }
+        });
+
         this.emitter.on("map-resize", () => {
           setTimeout(() => this.map.resize(), 50)
         });
@@ -164,6 +198,8 @@ export default {
 
     beforeUnmount() {
         this.hoverController?.teardown()
+        this.durchfahrtCrossController?.teardown()
+        this.gewerbeHighlightController?.teardown()
     },
 
     watch: {
@@ -217,6 +253,26 @@ export default {
                 navigate: (route) => router.push(route),
             });
             this.hoverController.setup();
+        },
+
+        setupDurchfahrtCross() {
+            const getLayer = () => this.layerStore.layers.find(l => l.id === 'vector-do1914');
+            if (!getLayer()) return;
+            this.durchfahrtCrossController = new DurchfahrtCrossController({
+                map: this.map,
+                getLayer,
+            });
+            this.durchfahrtCrossController.setup();
+        },
+
+        setupGewerbeHighlight() {
+            const getLayer = () => this.layerStore.layers.find(l => l.id === 'vector-do1914');
+            if (!getLayer()) return;
+            this.gewerbeHighlightController = new GewerbeHighlightController({
+                map: this.map,
+                getLayer,
+            });
+            this.gewerbeHighlightController.setup();
         },
 
         onHighlightAreas(target:HighlightEvent) {
@@ -285,10 +341,12 @@ export default {
                 <label :class="layer.disabled ? 'disabled' : ''">
                     <input type="checkbox" value="true" :id="layerCheckboxId(layer.id)" v-model="layer.visible" @change="layerStore.toggleLayer(layer.id, map)"/>{{layer.name}}
                 </label>
+                <router-link v-if="hasLayerInfo(layer.id)" class="layer-info-btn" :to="{ name: 'layer-info', params: { layername: layer.id } }" title="Informationen zur Kartenebene">i</router-link>
                 <div v-for="child of layerStore.layers.filter(l => l.parentId === layer.id)" :key="child.id">
                     <label :class="child.disabled ? 'disabled' : ''">
                         <input type="checkbox" value="true" :id="layerCheckboxId(child.id)" v-model="child.visible" @change="layerStore.toggleLayer(child.id, map)"/>{{child.name}}
                     </label>
+                    <router-link v-if="hasLayerInfo(child.id)" class="layer-info-btn" :to="{ name: 'layer-info', params: { layername: child.id } }" title="Informationen zur Kartenebene">i</router-link>
                 </div>
             </div>
         </template>
@@ -320,14 +378,54 @@ export default {
 
     #layer > div {
         padding: .5em .7em .4em;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 0.5em;
     }
 
     #layer div:last-child {
         border: none;
     }
 
+    #layer label {
+        flex: 1 1 auto;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4em;
+    }
+
+    #layer label input[type=checkbox] {
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
     label.disabled {
         color:darkgray
+    }
+
+    .layer-info-btn {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.4em;
+        height: 1.4em;
+        text-align: center;
+        border-radius: 3px;
+        color: #808080;
+        font-size: 0.85em;
+        font-style: italic;
+        font-family: Georgia, 'Times New Roman', serif;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color .12s ease, color .12s ease;
+    }
+
+    .layer-info-btn:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+        color: #303030;
     }
 
     #layer > div[draggable="true"] {
@@ -335,12 +433,16 @@ export default {
     }
 
     .drag-handle {
+        flex: 0 0 auto;
         color: #666;
-        margin-right: 0.2em;
         user-select: none;
     }
 
     #layer > div > div {
+        flex-basis: 100%;
+        display: flex;
+        align-items: center;
+        column-gap: 0.5em;
         padding-left: 2em;
     }
 

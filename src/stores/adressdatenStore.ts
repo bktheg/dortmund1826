@@ -199,7 +199,7 @@ export const useAdressdatenStore = defineStore({
         this.loading.add(cleanedStreet)
         try {
             const fileName = cleanedStreet.endsWith('.') ? cleanedStreet+'json' : cleanedStreet+'.json'
-            const adressbuchExport = await axios.get(import.meta.env.VITE_SERVER_URL+`/adressdaten/1914/${fileName}?v=${__APP_VERSION__}`)
+            const adressbuchExport = await axios.get(import.meta.env.VITE_SERVER_URL+`/adressdaten/1914/by-street/${fileName}?v=${__APP_VERSION__}`)
                 .then((response) => response.data as AdressbuchExport)
             const gebaeude = adressbuchExport.g?.map(g =>
                 new Gebaeude(g.c, g.h, g.o, g.j, g.t, mapGewerbe(g.g), mapBehoerden(g.b))) ?? [];

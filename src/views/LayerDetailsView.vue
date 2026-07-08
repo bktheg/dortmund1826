@@ -1,15 +1,51 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, onMounted, inject } from 'vue'
 import { useRoute } from 'vue-router'
+import type { Emitter } from 'mitt'
 import { storeToRefs } from 'pinia'
 import { useAdressdatenStore, cleanStreet, cleanHnr, type Adressbuch, type Gebaeude } from '../stores/adressdatenStore'
+import { useGewerbeTypeStore } from '@/stores/gewerbeTypeStore'
+import { matchesHnr } from '@/services/addressComparatorService'
 import { decodeAddressParam } from '@/utils/buildingAddresses'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const route = useRoute()
 const layername = computed(() => route.params.layername as string)
 
+const gewerbeTypeStore = useGewerbeTypeStore()
+const { index } = storeToRefs(gewerbeTypeStore)
+
+const emitter = inject('emitter') as Emitter<any>
+
+onMounted(() => {
+    if (isSupportedLayer.value) {
+        gewerbeTypeStore.fetchIndex()
+    }
+})
+
+const brancheSlugMap = computed(() => {
+    const map = new Map<string, string>()
+    for (const t of index.value) {
+        for (const b of t.bezeichnungen) {
+            if (!map.has(b)) {
+                map.set(b, t.slug)
+            }
+        }
+    }
+    return map
+})
+
+function slugForBranche(branche: string): string | undefined {
+    return brancheSlugMap.value.get(branche)
+}
+
 const isSupportedLayer = computed(() => layername.value === 'vector-do1914')
+
+watch(isSupportedLayer, (supported) => {
+    if (supported) {
+        emitter.emit('map-enable-layer', layername.value)
+    }
+}, { immediate: true })
 
 const addresses = computed(() =>
     isSupportedLayer.value ? decodeAddressParam(route.params.addr as string) : [])
@@ -44,21 +80,32 @@ interface ResolvedAddress {
     label: string
 }
 
-const resolvedAddresses = computed<ResolvedAddress[]>(() =>
-    addresses.value.map((a, i) => {
+const resolvedAddresses = computed<ResolvedAddress[]>(() => {
+    const result: ResolvedAddress[] = []
+    const seen = new Set<string>()
+    addresses.value.forEach((a, i) => {
         const cleaned = cleanStreet(a.strasse)
         const adressbuch = cleaned ? getAdressbuch.value(cleaned) : undefined
         const cleanedHnr = cleanHnr(a.hnr)
-        const building = adressbuch && cleanedHnr != null
-            ? adressbuch.gebaeude.find(g => g.cleanedHnr === cleanedHnr)
-            : undefined
-        return {
-            key: `${i}-${a.strasse}-${a.hnr}`,
-            adressbuch,
-            building,
-            label: `${a.strasse} ${a.hnr}`.trim(),
+        const label = `${a.strasse} ${a.hnr}`.trim()
+        const matches = adressbuch
+            ? adressbuch.gebaeude.filter(g => matchesHnr(cleanedHnr, g.cleanedHnr))
+            : []
+        if (matches.length > 0) {
+            matches.forEach((building, j) => {
+                const dedupeKey = `${cleaned}|${building.cleanedHnr}`
+                if (seen.has(dedupeKey)) {
+                    return
+                }
+                seen.add(dedupeKey)
+                result.push({ key: `${i}-${j}-${building.cleanedHnr}`, adressbuch, building, label })
+            })
+        } else {
+            result.push({ key: `${i}-${a.strasse}-${a.hnr}`, adressbuch, building: undefined, label })
         }
-    }))
+    })
+    return result
+})
 
 function eigentuemerLine(b: Gebaeude): string {
     let line = b.besitzer ?? ''
@@ -94,7 +141,7 @@ function eigentuemerLine(b: Gebaeude): string {
                                     <span class="eintrag-name">{{ g.name }}</span>
                                     <span v-if="g.namenszusatz" class="eintrag-zusatz"> {{ g.namenszusatz }}</span>
                                     <span v-if="g.adresszusatz" class="eintrag-zusatz"> {{ g.adresszusatz }}</span>
-                                    <span v-if="g.branchen.length > 0" class="eintrag-branchen"> ({{ g.branchen.join(', ') }})</span>
+                                    <span v-if="g.branchen.length > 0" class="eintrag-branchen"> (<template v-for="(b, bi) in g.branchen" :key="'br'+bi"><template v-if="bi > 0">, </template><router-link v-if="slugForBranche(b)" :to="{ name: 'layer-gewerbetype', params: { layername, gewerbetype: slugForBranche(b) } }">{{ b }}</router-link><template v-else>{{ b }}</template></template>)</span>
                                     <span v-if="g.fernsprecher" class="eintrag-zusatz"> {{ g.fernsprecher }}</span>
                                 </li>
                             </ul>

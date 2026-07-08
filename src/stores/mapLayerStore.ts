@@ -112,7 +112,7 @@ export const useMapLayerStore = defineStore('mapLayer', {
                                 hnr: feature.properties?.hnr ?? '',
                             }])
                         return {
-                            name: 'layer-building',
+                            name: 'layer-details',
                             params: {
                                 layername: 'vector-do1914',
                                 addr: param,
@@ -157,6 +157,19 @@ export const useMapLayerStore = defineStore('mapLayer', {
                     else grenzen.hide(map)
                 }
             }
+            this._applyEmphasis(map)
+        },
+
+        // Turn a layer on (idempotent) — used when opening a page tied to a specific
+        // layer so that layer is guaranteed visible in the list and on the map.
+        enableLayer(id: string, map: any): void {
+            const index = this.layers.findIndex(l => l.id === id)
+            if (index === -1) return
+            const layer = this.layers[index]
+            if (layer.visible) return
+            layer.visible = true
+            layer.show(map, this._computeBelowLayerId(index, map))
+            this._applyEmphasis(map)
         },
 
         reorderLayer(layerId: string, targetLayerId: string, map: any): void {
@@ -186,6 +199,23 @@ export const useMapLayerStore = defineStore('mapLayer', {
             ]
 
             this._repositionVisibleLayers(map)
+            this._applyEmphasis(map)
+        },
+
+        // The topmost visible sortable historic layer keeps full colour; every visible
+        // sortable layer stacked below it is desaturated to a grey ghost so the two
+        // epochs read distinctly instead of clashing as same-coloured fills.
+        _applyEmphasis(map: any): void {
+            let topAssigned = false
+            for (const layer of this.layers) {
+                if (layer.parentId || !layer.sortable) continue
+                if (!layer.visible) {
+                    layer.setEmphasis(map, true)
+                    continue
+                }
+                layer.setEmphasis(map, !topAssigned)
+                topAssigned = true
+            }
         },
 
         _findCeiling(map: any): string {
@@ -214,9 +244,10 @@ export const useMapLayerStore = defineStore('mapLayer', {
             }
         },
 
-        updateDisabledStatus(zoom: number): void {
+        updateDisabledStatus(map: any): void {
+            const zoom = map?.getZoom?.() ?? 0
             for (const layer of this.layers) {
-                layer.disabled = zoom < layer.minZoom
+                layer.disabled = zoom < layer.minZoom || layer.isOutOfBounds(map)
             }
         },
     },

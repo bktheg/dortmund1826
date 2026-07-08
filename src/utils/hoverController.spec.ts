@@ -36,6 +36,7 @@ function makeLayer(id: string, descriptor?: HoverDescriptor, visible = true): La
         hoverDescriptor: descriptor,
         addToMap() {}, show() {}, hide() {},
         getAnchorId() { return undefined }, getFloorAnchor() { return undefined }, reposition() {},
+        setEmphasis() {}, isOutOfBounds() { return false },
     }
 }
 

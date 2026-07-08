@@ -109,3 +109,4 @@ dist
 /public/*.json
 /.claude
 /_bmad
+/test-results
