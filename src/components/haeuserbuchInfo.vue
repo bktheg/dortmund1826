@@ -9,7 +9,8 @@
         gemeinde: { type: String, required: true },
         expanded: { type: Boolean, required: false, default: false },
         expandable: { type: Boolean, required: false, default: true },
-        showSource: { type: Boolean, required: false, default: true }
+        showSource: { type: Boolean, required: false, default: true },
+        preferCurrentAddress: { type: Boolean, required: false, default: false }
     })
 
     const haeuserbuchStore = useHaeuserbuchStore()
@@ -28,7 +29,8 @@
     })
 
     const address = computed(() => {
-        return entry.value?.getAddress() || streetEntry.value?.getAddress()
+        const buildingAddress = props.preferCurrentAddress ? entry.value?.getCurrentAddress() : entry.value?.getAddress()
+        return buildingAddress || streetEntry.value?.getAddress()
     })
 
     const source = computed(() => {

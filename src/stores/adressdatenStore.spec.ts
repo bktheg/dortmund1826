@@ -168,4 +168,32 @@ describe('adressdatenStore', () => {
         expect(store.getAdressbuch('suedwall')?.strasse).toBe('Südwall')
         expect(store.getAdressbuch('unbekannt')).toBeUndefined()
     })
+
+    it('fetches and maps the street index, keeping the street coordinate', async () => {
+        vi.mocked(axios.get).mockResolvedValueOnce({ data: { q: 'Adressbuch Dortmund 1914', e: [
+            { s: 'Südwall', f: 'suedwall.json', c: [7.457269, 51.513639] },
+            { s: 'Ohne Geometrie', f: 'ohne-geometrie.json' }
+        ] } })
+
+        const store = useAdressdatenStore()
+        await store.fetchStrassenIndex()
+
+        const url = vi.mocked(axios.get).mock.calls[0][0] as string
+        expect(url).toContain('/adressdaten/1914/by-street/_index.json?v=')
+        expect(store.strassenIndex[0].name).toBe('Südwall')
+        expect(store.strassenIndex[0].center).toEqual([7.457269, 51.513639])
+        expect(store.strassenIndex[1].center).toBeUndefined()
+    })
+
+    it('does not re-fetch the street index after a failed or empty attempt', async () => {
+        vi.mocked(axios.get).mockRejectedValue(new Error('Netzwerkfehler'))
+
+        const store = useAdressdatenStore()
+        await store.fetchStrassenIndex()
+        await store.fetchStrassenIndex()
+
+        expect(store.strassenIndex).toEqual([])
+        expect(store.loadingIndex).toBe(false)
+        expect(axios.get).toHaveBeenCalledTimes(1)
+    })
 })

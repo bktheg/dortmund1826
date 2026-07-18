@@ -1,6 +1,7 @@
 <script setup lang="ts">
     import { useRoute, useRouter } from 'vue-router';
     import { ref,toRefs,reactive,computed,inject,watch,onBeforeUnmount } from 'vue'
+    import mitt from 'mitt';
     import type {Emitter} from 'mitt';
 
     import {useFlurStore} from '../stores/flurStore'
@@ -33,22 +34,33 @@
 
     const route = useRoute();
 
-    const gemeindeId = ref(route.params.gemeinde as string);
-    const artikelNr = ref(route.params.artikelNr as string);
+    function paramToString(value:unknown):string {
+        return typeof value === 'string' ? value : '';
+    }
 
-    mutterrolleStore.fetchMutterrollen(gemeindeId.value);
+    const gemeindeId = ref(paramToString(route.params.gemeinde));
+    const artikelNr = ref(paramToString(route.params.artikelNr));
+
+    if( gemeindeId.value ) {
+        mutterrolleStore.fetchMutterrollen(gemeindeId.value);
+    }
 
     watch(() => route.params, (params) => {
-        gemeindeId.value = params.gemeinde as string;
-        artikelNr.value = params.artikelNr as string;
-        mutterrolleStore.fetchMutterrollen(gemeindeId.value);
+        gemeindeId.value = paramToString(params.gemeinde);
+        artikelNr.value = paramToString(params.artikelNr);
+        if( gemeindeId.value ) {
+            mutterrolleStore.fetchMutterrollen(gemeindeId.value);
+        }
     }, { deep: true });
 
     const mutterrolle = computed(() => mutterrollen.value.get(gemeindeId.value)?.get(artikelNr.value));
     const gemeinde = computed(() => getGemeindeById(gemeindeId.value))
 
-    const emitter = inject('emitter') as Emitter<any>
-    const moveToFlur = (row:MutterrolleRow) => emitter.emit("map-highlight-location", {location:row.location, zoom:16});
+    const emitter = inject<Emitter<any>>('emitter', () => mitt(), true)
+    const moveToFlur = (row:MutterrolleRow) => {
+        if( !row.location?.length ) return;
+        emitter.emit("map-highlight-location", {location:row.location, zoom:16});
+    };
 
     const router = useRouter();
     const lastPage = router.options.history.state.back?.toString();
@@ -69,7 +81,7 @@
         if( !mutterrolle.value ) {
             return '';
         }
-        const sum = mutterrolle.value.rows.map(r => toFeet(r.flaeche)).reduce((a,b) => a+b, 0);
+        const sum = mutterrolle.value.rows.filter(r => r.flaeche).map(r => toFeet(r.flaeche)).reduce((a,b) => a+b, 0);
         
         const m = Math.floor(sum/(180*FACTOR_F));
         const r = Math.floor((sum-m*180*FACTOR_F)/FACTOR_F);
@@ -95,10 +107,11 @@
     watch(() => mutterrolle.value, (value) => {
         if( value != null ) {
             emitter.emit('map-highlight-areas', {artikel:value.id, gemeindeId:value.gemeindeId} as HighlightEvent);
-            if (value.rows.length === 0) return;
-            const min = [value.rows[0].location[0],value.rows[0].location[1]];
-            const max = [value.rows[0].location[0],value.rows[0].location[1]];
-            for( const row of value.rows ) {
+            const located = value.rows.filter(r => (r.location?.length ?? 0) >= 2);
+            if (located.length === 0) return;
+            const min = [located[0].location[0],located[0].location[1]];
+            const max = [located[0].location[0],located[0].location[1]];
+            for( const row of located ) {
                 min[0] = Math.min(min[0], row.location[0]);
                 min[1] = Math.min(min[1], row.location[1]);
                 max[0] = Math.max(max[0], row.location[0]);

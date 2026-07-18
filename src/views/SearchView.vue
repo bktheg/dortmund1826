@@ -8,6 +8,8 @@
     import type {BezeichnungExport} from '../stores/bezeichnungStore'
     import type { SearchResult } from "@/services/searchService";
     import { searchByTerm, SearchResultType } from "@/services/searchService";
+    import { getLayerSearchTypes, getLayerSearchType, isLayerSearchType } from "@/services/layerSearchService";
+    import { useMapLayerStore } from "@/stores/mapLayerStore";
     // @ts-ignore
     import Treeselect from '@/components/treeselect/components/Treeselect.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
@@ -82,20 +84,41 @@
         });
     })
    
+    const layerSearchTypes = computed(() => getLayerSearchTypes())
+    const activeLayerSearch = computed(() => getLayerSearchType(searchType.value))
+
     const calcSearchTypeOptions = computed(() => {
         return [{
-            label:"Ortsangabe",
+            label:"nach Ortsangabe",
             id:"lage"
         },{
-            label:"Eigentümer",
+            label:"nach Eigentümer",
             id:"owner"
         },{
-            label:"Parzelle",
+            label:"nach Parzelle",
             id:"parzelle"
         },{
-            label:"Eintrag Häuserbuch",
+            label:"in Häuserbuch",
             id:"haeuserbuch"
-        }]
+        },
+        ...layerSearchTypes.value.map(t => ({label:t.label, id:t.id}))]
+    })
+
+    // A layer search type stays selectable only while its layer is in the layer list.
+    // The list is only filled once Map.vue mounts, which can happen after this view —
+    // so an empty list means "not known yet", not "layer absent", and a layer search
+    // deep-linked via the route has to be re-run once its layer shows up.
+    watch([layerSearchTypes, searchType], () => {
+        const mapLayerStore = useMapLayerStore()
+        if( mapLayerStore.layers.length == 0 || !isLayerSearchType(searchType.value) ) {
+            return
+        }
+        if( activeLayerSearch.value ) {
+            search()
+        }
+        else {
+            searchType.value = 'lage'
+        }
     })
 
     const calcFilterOptions = computed(() => {
@@ -131,11 +154,20 @@
         const allParzellenStore = useAllParzellenStore();
         const haeuserbuchStore = useHaeuserbuchStore();
 
+        if( activeLayerSearch.value ) {
+            return activeLayerSearch.value.isLoading()
+        }
+
         return flurStore.loading || eigentuemerStore.loading || bezeichnungStore.loading || allParzellenStore.loading || haeuserbuchStore.loading.size > 0
     })
     
     watch(filterValue, () => search())
-    watch(searchType, () => search())
+    watch(searchType, () => {
+        // Start loading the layer's data as soon as its search is picked, not only
+        // once the first character is typed.
+        activeLayerSearch.value?.prefetch()
+        search()
+    })
     watch(loading, (newValue) => {
         if (!newValue) {
             search()
@@ -163,6 +195,23 @@
         return filterString.split(',');
     }
     function doSearch(term:string):SearchResult[] {
+        const layerSearch = activeLayerSearch.value;
+        if( layerSearch ) {
+            layerSearch.prefetch();
+            // The Gemeinde filter is meaningless for a layer search, but it must survive
+            // in the route: dropping it here would make onBeforeRouteUpdate reset the
+            // user's filter, and it would be gone when they switch back.
+            router.replace({name:'search', params:{type:searchType.value, term:searchtext.value, filter:serializeFilter(filterValue.value)}, hash:window.location.hash})
+
+            return layerSearch.search(term, maxResults.value);
+        }
+
+        // Layer search selected, but its layer is not (yet) in the layer list: searching
+        // on with an unknown type would only rewrite the route with a dead search type.
+        if( isLayerSearchType(searchType.value) ) {
+            return [];
+        }
+
         if( searchType.value == "parzelle" ) {
             const allParzellenStore = useAllParzellenStore();
             allParzellenStore.fetchAllParzellen();
@@ -178,12 +227,22 @@
         return searchByTerm(term, searchType.value, filterValue.value, maxResults.value);
     }
     function resultSelected(match:SearchResult) {
+        // A layer's own hit is only legible on top of that layer, and layers start hidden.
+        if( activeLayerSearch.value ) {
+            emitter.emit("map-enable-layer", activeLayerSearch.value.layerId);
+        }
         if( match.location ) {
-            emitter.emit("map-highlight-location", {location:match.location});
+            emitter.emit("map-highlight-location", {location:match.location, zoom:match.zoom});
         }
         if( match.route != null ) {
             router.push(match.route)
         }
+    }
+    function getResultLabel(match:SearchResult) {
+        return match.typeLabel ?? getTypeLabel(match.typeEnum)
+    }
+    function getResultCss(match:SearchResult) {
+        return match.typeCss ?? getTypeCss(match.typeEnum)
     }
     function getTypeLabel(type:SearchResultType) {
         switch(type) {
@@ -235,6 +294,14 @@
         --search-color-gewaesser-highlight:#cce;
         --search-color-gebaeude: #fbb;
         --search-color-gebaeude-highlight: #e99;
+        --search-color-gewerbe: #dfd;
+        --search-color-gewerbe-highlight: #cec;
+        --search-color-behoerde: #ffd;
+        --search-color-behoerde-highlight: #eec;
+        --search-color-strasse: #dff;
+        --search-color-strasse-highlight: #cee;
+        --search-color-besitzer: #edf;
+        --search-color-besitzer-highlight: #dce;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -247,6 +314,14 @@
             --search-color-gewaesser-highlight:#447;
             --search-color-gebaeude: #733;
             --search-color-gebaeude-highlight: #611;
+            --search-color-gewerbe: #464;
+            --search-color-gewerbe-highlight: #353;
+            --search-color-behoerde: #663;
+            --search-color-behoerde-highlight: #552;
+            --search-color-strasse: #366;
+            --search-color-strasse-highlight: #255;
+            --search-color-besitzer: #546;
+            --search-color-besitzer-highlight: #435;
         }
     }
 
@@ -286,7 +361,31 @@
     }
     #searchresult > li.type-gebaeude:hover {
         background-color:var(--search-color-gebaeude-highlight)
-    } 
+    }
+    #searchresult > li.type-gewerbe {
+        background-color:var(--search-color-gewerbe)
+    }
+    #searchresult > li.type-gewerbe:hover {
+        background-color:var(--search-color-gewerbe-highlight)
+    }
+    #searchresult > li.type-behoerde {
+        background-color:var(--search-color-behoerde)
+    }
+    #searchresult > li.type-behoerde:hover {
+        background-color:var(--search-color-behoerde-highlight)
+    }
+    #searchresult > li.type-strasse {
+        background-color:var(--search-color-strasse)
+    }
+    #searchresult > li.type-strasse:hover {
+        background-color:var(--search-color-strasse-highlight)
+    }
+    #searchresult > li.type-besitzer {
+        background-color:var(--search-color-besitzer)
+    }
+    #searchresult > li.type-besitzer:hover {
+        background-color:var(--search-color-besitzer-highlight)
+    }
     #searchresult .position {
         font-size:80%;
     }
@@ -333,11 +432,11 @@
         width:25%;
     }
     .searchfilter .searchtype {
-        width:15%;
-        min-width:80pt;
+        width:30%;
+        min-width:165pt;
     }
     .searchfilter .filter {
-        width:55%;
+        width:45%;
     }
     .searchfilter .vue-treeselect {
         display:inline-block;
@@ -349,8 +448,10 @@
     <div id="contentview">
         <div class="content">
             <section class="searchfilter">
-                Suche nach <Treeselect ref="searchTypeRef" :always-open="false" class="searchtype" :options="calcSearchTypeOptions" :multiple="false" v-model="searchType" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'" :clearable="false" v-on:search-change="search()"/>
-                in <Treeselect class="filter" :options="calcFilterOptions" :multiple="true" v-model="filterValue" :limit="2" :limitText="limitText" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'"/>
+                Suche <Treeselect ref="searchTypeRef" :always-open="false" class="searchtype" :options="calcSearchTypeOptions" :multiple="false" v-model="searchType" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'" :clearable="false" v-on:search-change="search()"/>
+                <template v-if="!activeLayerSearch">
+                    in <Treeselect class="filter" :options="calcFilterOptions" :multiple="true" v-model="filterValue" :limit="2" :limitText="limitText" :loadingText="'Lade...'" :noResultsText="'Kein Treffer'" :placeholder="'Bitte auswählen'"/>
+                </template>
             </section>
             <section class="searchinput">
                 <input class="text" type="text" placeholder="Suchbegriff eingeben" v-model="searchtext" @keyup="search()"/>
@@ -359,10 +460,10 @@
             <div>
                 <LoadingSpinner v-if="loading" />
                 <ul id="searchresult">
-                    <li v-for="match in matches" @click="resultSelected(match)" :class="`type-${getTypeCss(match.typeEnum)}`">
+                    <li v-for="match in matches" @click="resultSelected(match)" :class="`type-${getResultCss(match)}`">
                         <div class="position">{{match.locationDesc}}</div>
-                        <div class="type">{{getTypeLabel(match.typeEnum)}}</div>
-                        {{match.name}}
+                        <div class="type">{{getResultLabel(match)}}</div>
+                        <span v-html="match.getHighlightedName()" />
                         <ul v-if="match.getHighlightedDescriptions().length > 0" class="description">
                             <li v-for="desc of match.getHighlightedDescriptions()"><span v-html="desc" /></li>
                         </ul>

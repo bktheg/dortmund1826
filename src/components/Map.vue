@@ -197,6 +197,8 @@ export default {
     },
 
     beforeUnmount() {
+        this.dragFromId = null
+        this.dragOverId = null
         this.hoverController?.teardown()
         this.durchfahrtCrossController?.teardown()
         this.gewerbeHighlightController?.teardown()

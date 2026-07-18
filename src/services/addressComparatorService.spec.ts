@@ -47,4 +47,17 @@ describe('matchesHnr', () => {
     it('returns false (no throw) for an unparseable house number', () => {
         expect(matchesHnr('abc', '13-17')).toBe(false)
     })
+
+    it('matches a #-prefixed house number against its plain form', () => {
+        expect(matchesHnr('#15', '15')).toBe(true)
+        expect(matchesHnr('15', '#15')).toBe(true)
+        expect(matchesHnr('#15', '13-17')).toBe(true)
+        expect(matchesHnr('#15', '17')).toBe(false)
+    })
+
+    it('matches a space-separated fraction against its plain number range', () => {
+        expect(matchesHnr('10 1/2', '10 1/2')).toBe(true)
+        expect(matchesHnr('10 1/2', '10-12')).toBe(true)
+        expect(matchesHnr('10 1/2', '12-14')).toBe(false)
+    })
 })

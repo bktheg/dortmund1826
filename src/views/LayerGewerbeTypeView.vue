@@ -3,6 +3,7 @@ import { computed, inject, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Emitter } from 'mitt'
 import { useGewerbeTypeStore } from '@/stores/gewerbeTypeStore'
+import type { GewerbeTypeEintrag } from '@/models/adressbuch'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const route = useRoute()
@@ -52,6 +53,13 @@ watch(highlightBuildingIds, (ids) => {
     emitter.emit('map-highlight-buildings', ids.length > 0 ? ids : null)
 }, { immediate: true })
 
+const adresseText = (e: GewerbeTypeEintrag) => `${e.adresse.strasse} ${e.adresse.hnr}`.trim()
+
+const moveToAdresse = (e: GewerbeTypeEintrag) => {
+    if (!e.center) return
+    emitter.emit('map-highlight-location', { location: e.center, zoom: 16 })
+}
+
 onBeforeUnmount(() => emitter.emit('map-highlight-buildings', null))
 </script>
 
@@ -81,7 +89,10 @@ onBeforeUnmount(() => emitter.emit('map-highlight-buildings', null))
                             <tr v-for="(e, i) in liste.eintraege" :key="i">
                                 <td>{{ e.name }}</td>
                                 <td>{{ e.namenszusatz }}</td>
-                                <td>{{ `${e.adresse.strasse} ${e.adresse.hnr}`.trim() }}</td>
+                                <td>
+                                    <a v-if="e.center" href="#" @click.prevent="moveToAdresse(e)">{{ adresseText(e) }}</a>
+                                    <template v-else>{{ adresseText(e) }}</template>
+                                </td>
                                 <td>{{ e.adresszusatz }}</td>
                                 <td>{{ e.fernsprecher }}</td>
                             </tr>

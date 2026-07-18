@@ -71,11 +71,15 @@ export function expandSourceToDetailedSource(source:string|null|undefined) {
     case '?':
         archiv = 'Unbekannt';
         break;
+
+    default:
+        archiv = extractArchivPart(source);
+        break;
     }
 
     if( source != null && source.indexOf(':') > -1 ) {
         const bestaende = source.substring(source.indexOf(':')+1).split(',').map(s => "Best. "+s.trim()).join(", ");
-        return archiv+" "+bestaende;
+        return (archiv+" "+bestaende).trim();
     }
 
     return archiv;

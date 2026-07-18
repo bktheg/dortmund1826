@@ -10,7 +10,7 @@
     "preview": "vite preview --port 4173",
     "data-preview": "vite --port 4173 --mode staging",
     "build-only": "vite build",
-    "type-check": "vue-tsc --noEmit",
+    "type-check": "vue-tsc --noEmit && vue-tsc -p tsconfig.config.json --noEmit && vue-tsc -p e2e/tsconfig.json --noEmit",
     "test": "vitest",
     "test:e2e": "playwright test"
   },

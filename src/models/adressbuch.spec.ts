@@ -58,6 +58,34 @@ describe('mapGewerbeTypeListe', () => {
         expect(liste.eintraege[1].buildingIds).toEqual([])
     })
 
+    it('maps the building center (bc) and leaves it undefined when absent', () => {
+        const liste = mapGewerbeTypeListe({
+            t: ['Bäcker'],
+            q: '',
+            e: [
+                { n: 'Meier', z: '', a: '', f: '', s: 'M', h: '1', cs: 'm', ch: '1', bc: [7.457269, 51.513639] },
+                { n: 'Vogel', z: '', a: '', f: '', s: 'M', h: '2', cs: 'm', ch: '2' },
+            ]
+        })
+        expect(liste.eintraege[0].center).toEqual([7.457269, 51.513639])
+        expect(liste.eintraege[1].center).toBeUndefined()
+    })
+
+    it('treats a bc of any length other than two as no center', () => {
+        const liste = mapGewerbeTypeListe({
+            t: ['Bäcker'],
+            q: '',
+            e: [
+                { n: 'Kurz', z: '', a: '', f: '', s: 'M', h: '1', cs: 'm', ch: '1', bc: [7.45] },
+                { n: 'Leer', z: '', a: '', f: '', s: 'M', h: '2', cs: 'm', ch: '2', bc: [] },
+                { n: 'Lang', z: '', a: '', f: '', s: 'M', h: '3', cs: 'm', ch: '3', bc: [7.45, 51.51, 1] },
+            ]
+        })
+        expect(liste.eintraege[0].center).toBeUndefined()
+        expect(liste.eintraege[1].center).toBeUndefined()
+        expect(liste.eintraege[2].center).toBeUndefined()
+    })
+
     it('preserves empty-string fields verbatim and does not crash', () => {
         const liste = mapGewerbeTypeListe({
             t: [],

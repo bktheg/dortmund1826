@@ -274,6 +274,14 @@ describe('mapLayerStore', () => {
             expect(store.layers.map(l => l.id)).toEqual(['uraufnahme', '1826', '1826-grenzen', 'neuaufnahme', 'heute'])
         })
 
+        it('is a no-op when the target is a child layer', () => {
+            const store = useMapLayerStore()
+            store.initLayers(false, '')
+            const map = makeMockMap()
+            store.reorderLayer('uraufnahme', '1826-grenzen', map)
+            expect(store.layers.map(l => l.id)).toEqual(['1826', '1826-grenzen', 'uraufnahme', 'neuaufnahme', 'heute'])
+        })
+
         it('is a no-op when fromId equals targetId', () => {
             const store = useMapLayerStore()
             store.initLayers(false, '')

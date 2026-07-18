@@ -68,6 +68,22 @@ describe('expandSourceToDetailedSource', () => {
     it('handles single bestand', () => {
         expect(expandSourceToDetailedSource('lav:K551')).toBe('Landesarchiv NRW Abteilung Westfalen Best. K551')
     })
+
+    it('falls back to the raw archive name for unknown archives', () => {
+        expect(expandSourceToDetailedSource('unknown')).toBe('unknown')
+    })
+
+    it('does not emit a leading space when an unknown archive has bestaende', () => {
+        expect(expandSourceToDetailedSource('unknown:123')).toBe('unknown Best. 123')
+    })
+
+    it('resolves all katasteramt archive codes', () => {
+        expect(expandSourceToDetailedSource('ka recklinghausen')).toBe('Katasteramt Recklinghausen')
+        expect(expandSourceToDetailedSource('ka ennepe-ruhr')).toBe('Katasteramt Ennepe-Ruhr')
+        expect(expandSourceToDetailedSource('ka hagen')).toBe('Fachbereich Geoinformation und Liegenschaftskataster der Stadt Hagen')
+        expect(expandSourceToDetailedSource('ka herne')).toBe('Fachbereich Kataster und Geoinformation der Stadt Herne')
+        expect(expandSourceToDetailedSource('?')).toBe('Unbekannt')
+    })
 })
 
 describe('expandSourceToText', () => {

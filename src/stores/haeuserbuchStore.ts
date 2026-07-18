@@ -76,6 +76,13 @@ export class HaeuserbuchBuilding {
         }
         return 'ohne'
     }
+
+    getCurrentAddress():string|null {
+        if( this.number != '' && this.number != 'ohne' ) {
+            return `${this.street} ${this.number}`
+        }
+        return this.getAddress()
+    }
 }
 
 export class HaeuserbuchStreet {

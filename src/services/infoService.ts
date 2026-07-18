@@ -26,7 +26,7 @@ export class HaeuserbuchInfo extends Info {
 }
 
 export function mapInfo(i:InfoExport):Info|null {
-    if( !i || !i.t ) {
+    if( !i || !i.t || !i.a ) {
         return null;
     }
     if( i.t == 'wikipedia' ) {

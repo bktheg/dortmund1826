@@ -3,9 +3,10 @@
     import { ref,toRefs,reactive,computed,inject,watch } from 'vue'
     import { storeToRefs } from 'pinia'
     import type {Emitter} from 'mitt';
-    import {expandSourceToDetailedSource} from '@/services/quellenService'
+    import {expandSourceToDetailedSource,expandSourceToText} from '@/services/quellenService'
     import InfoListComponent from '@/components/infoList.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
+    import HaeuserbuchAbsenceNotice from '@/components/HaeuserbuchAbsenceNotice.vue'
 
     import {useFlurStore} from '@/stores/flurStore'
     import {useParzelleStore} from '@/stores/parzelleStore'
@@ -122,22 +123,23 @@
                 <template v-if="parzelle?.info">
                     <InfoListComponent :infos="parzelle?.info" :gemeinde="parzelle?.gemeindeId"/>
                 </template>
+                <HaeuserbuchAbsenceNotice v-if="gemeinde" :gemeinde="gemeinde"/>
             </template>
             <h2>Urkatasterunterlagen</h2>
             <dl class="properties">
                 <dd>Vermessung</dd>
-                <dt>{{expandSourceToDetailedSource(gemeinde?.quelleVermessung)}}</dt>
+                <dt><abbr :title="expandSourceToText(gemeinde?.quelleVermessung)">{{expandSourceToDetailedSource(gemeinde?.quelleVermessung)}}</abbr></dt>
                 <dd>Urkarte</dd>
-                <dt>{{expandSourceToDetailedSource(flur?.quelleUrkarten)}}</dt>
+                <dt><abbr :title="expandSourceToText(flur?.quelleUrkarten)">{{expandSourceToDetailedSource(flur?.quelleUrkarten)}}</abbr></dt>
                 <dd>Flurbuch</dd>
-                <dt>{{expandSourceToDetailedSource(gemeinde?.quelleFlurbuch)}}</dt>
-                <template v-if="gemeinde?.quelleMutterrollen && gemeinde?.quelleMutterrollen != '?'">
+                <dt><abbr :title="expandSourceToText(gemeinde?.quelleFlurbuch)">{{expandSourceToDetailedSource(gemeinde?.quelleFlurbuch)}}</abbr></dt>
+                <template v-if="gemeinde?.quelleMutterrollen">
                     <dd>Mutterrolle</dd>
-                    <dt>{{expandSourceToDetailedSource(gemeinde?.quelleMutterrollen)}}</dt>
+                    <dt><abbr :title="expandSourceToText(gemeinde?.quelleMutterrollen)">{{expandSourceToDetailedSource(gemeinde?.quelleMutterrollen)}}</abbr></dt>
                 </template>
-                <template v-if="gemeinde?.quelleGueterverzeichnis && gemeinde?.quelleGueterverzeichnis != '?'">
+                <template v-if="gemeinde?.quelleGueterverzeichnis">
                     <dd>Güterverzeichnis</dd>
-                    <dt>{{expandSourceToDetailedSource(gemeinde?.quelleGueterverzeichnis)}}</dt>
+                    <dt><abbr :title="expandSourceToText(gemeinde?.quelleGueterverzeichnis)">{{expandSourceToDetailedSource(gemeinde?.quelleGueterverzeichnis)}}</abbr></dt>
                 </template>
             </dl>
             <template v-if="flur?.legalText">

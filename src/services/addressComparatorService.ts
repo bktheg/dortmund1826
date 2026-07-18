@@ -12,8 +12,9 @@ export function matchesHnr(hnr1: string | null, hnr2: string | null): boolean {
     }
 
     try {
-        const hnrParts1 = splitHnr(hnr1)
-        const hnrParts2 = splitHnr(hnr2)
+        // cleanHnr's fast path keeps a leading '#'; hnrPartToInt has no pattern for it
+        const hnrParts1 = splitHnr(hnr1.replace(/#/g, ''))
+        const hnrParts2 = splitHnr(hnr2.replace(/#/g, ''))
         if (isEven(hnrParts1[0]) != isEven(hnrParts2[0])) {
             return false
         }
@@ -76,8 +77,8 @@ function hnrPartToInt(hnrPart: string): number {
     else if (hnrPart.includes(' ')) {
         const parts = hnrPart.split(" ");
         let value = parseInt(parts[0])
-        for (let i = 1; i < hnrPart.length; i++) {
-            value += parseHnrFractionPart(parts[1]) / Math.max(Math.pow(10, i - 1), 1)
+        for (let i = 1; i < parts.length; i++) {
+            value += parseHnrFractionPart(parts[i]) / Math.max(Math.pow(10, i - 1), 1)
         }
         return value
     }

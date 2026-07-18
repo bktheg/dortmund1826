@@ -31,7 +31,7 @@ Per year (`{jahr}`, e.g. `1914`):
 - **`by-gewerbe-type/`** — one file per business type; each holds every entry of
   that type with its address. Use to highlight all buildings of a type on the map.
 
-`by-gewerbe-type/<slug>.json` and `by-name/gewerbe.json` entries also carry the
+Every `by-name/*.json` and `by-gewerbe-type/<slug>.json` entry also carries the
 building geometry link (`bi`/`bc`, see below) so the map can select the actual
 buildings for an entry without a spatial query.
 
@@ -42,14 +42,33 @@ buildings for an entry without a spatial query.
   - `s` = street (raw), `h` = house number (raw) — for display.
   - `cs` = clean/normalized street, `ch` = clean/normalized house number — for
     matching against map/tile data (same normalization the tiles use).
-- **Building link** (`by-gewerbe-type/<slug>.json` and `by-name/gewerbe.json`
-  entries only):
+- **Building link** (every `by-name/*.json` and `by-gewerbe-type/<slug>.json`
+  entry — but never in `by-street`):
   - `bi` = building ids (`ogc_fid`) of every building whose address matches this
     entry, resolved with the **same 3-tier logic as the `gebaeudef` tile layer**
-    (so the set equals what the map shows). Sorted, deduplicated.
-  - `bc` = `[lon, lat]` (WGS84) — the combined center of those buildings (mean of
-    their centroids). Use to pan/place a marker for the entry.
+    (so the set equals what the map shows). Sorted, deduplicated. These are the
+    MVT **feature ids** on the `gebaeude`/`gebaeudef` tile layers — i.e. an id in
+    `bi` matches `feature.getId()` in OpenLayers, so you can select/highlight the
+    building features directly.
+  - `bc` = `[lon, lat]` (WGS84) — the center to pan to / place a marker on. It is
+    the mean centroid of the entry's **main** buildings only: Nebengebäude
+    (`gebaeude.nebengeb` set and non-zero — sheds, back buildings) are ignored,
+    because averaging them in drags the marker into the backyard. If an address
+    matches *nothing but* Nebengebäude, they are all we have, so `bc` falls back
+    to the mean over all matched buildings. Either way `bi` still lists **every**
+    matched building, Nebengebäude included — so `bc` is not necessarily the
+    center of the buildings in `bi`.
   - Both keys are **omitted when no building matches** — see the warning below.
+- **Street coordinate** (`by-street` files only): `c` = `[lon, lat]` (WGS84) — a
+  point on the street itself, namely the midpoint of the longest linestring of
+  its geometry. Use to pan to a street. **Omitted** when the street has no
+  matching geometry (roughly half of the address-book streets: geometries only
+  exist inside the surveyed `alk2_grenzen` area).
+- Both coordinate fields — `bc`, and the top-level `c` of a `by-street` file — are
+  WGS84 `[lon, lat]` rounded to 6 decimals. (Careful: the key `c` means something
+  else elsewhere in this format — a clean house number inside `g[]`, a category on
+  a Behörde entry, an entry count in the `by-name`/`by-gewerbe-type` indexes. Only
+  the **top level of a `by-street` file and its `_index` entry** is a coordinate.)
 - **`e`** — the array of entries (in `by-name` and `_index` files).
 - Filenames in `by-street` and slugs in `by-gewerbe-type` are ASCII-safe
   (umlauts expanded: `ä→ae`, `ö→oe`, `ü→ue`, `ß→ss`; other chars → `-`).
@@ -68,6 +87,7 @@ buildings for an entry without a spatial query.
 {
   "s": "Musterstraße",              // street name
   "q": "Adressbuch Dortmund 1914",
+  "c": [7.457269, 51.513639],       // [lon, lat] of the street (omitted if no geometry)
   "g": [                            // buildings (Gebäude), one per house number
     {
       "c": "1",                     // clean house number
@@ -93,10 +113,15 @@ Behörde entry: `c`=category, `u`=subcategory, `n`=name, `z`=detail, `f`=phone.
 ### `by-street/_index.json`
 
 ```jsonc
-{ "q": "...", "e": [ { "s": "Musterstraße", "f": "musterstrasse.json" } ] }
+{ "q": "...", "e": [
+  { "s": "Musterstraße", "f": "musterstrasse.json", "c": [7.457269, 51.513639] }
+] }
 ```
 
-`s` = street name, `f` = filename in this folder. Sorted by `s`.
+`s` = street name, `f` = filename in this folder, `c` = `[lon, lat]` of the
+street (same value as in the street file; omitted when the street has no
+geometry). Sorted by `s`. `c` lets you pan to a street straight from the index,
+without fetching its file.
 
 ### `by-name/gewerbe.json`
 
@@ -111,7 +136,8 @@ One entry per firm+address (duplicates merged, all `b` types collected).
 ] }
 ```
 
-`bi` = matching building ids (`ogc_fid`), `bc` = `[lon, lat]` combined center.
+`bi` = matching building ids (`ogc_fid`), `bc` = `[lon, lat]` center of the
+matching **main** buildings (Nebengebäude ignored unless nothing else matches).
 Both absent when no building matches.
 
 ### `by-name/behoerden.json`
@@ -121,9 +147,14 @@ One entry per record.
 ```jsonc
 { "q": "...", "e": [
   { "n": "Name", "z": "Detail", "k": "Kategorie", "u": "Unterkategorie",
-    "f": "", "s": "...", "h": "...", "cs": "...", "ch": "..." }
+    "f": "", "s": "...", "h": "...", "cs": "...", "ch": "...",
+    "bi": [8, 7855], "bc": [7.457269, 51.513639] }  // building link (omitted if none)
 ] }
 ```
+
+`bi` = matching building ids (`ogc_fid`), `bc` = `[lon, lat]` center of the
+matching **main** buildings (Nebengebäude ignored unless nothing else matches).
+Both absent when no building matches.
 
 ### `by-name/owners.json`
 
@@ -132,11 +163,15 @@ One entry per house number with an owner (largest file).
 ```jsonc
 { "q": "...", "e": [
   { "n": "Schulz", "j": "Kaufmann", "t": "E",
-    "s": "Musterstraße", "h": "1", "cs": "musterstrasse", "ch": "1" }
+    "s": "Musterstraße", "h": "1", "cs": "musterstrasse", "ch": "1",
+    "bi": [8, 7855], "bc": [7.457269, 51.513639] }  // building link (omitted if none)
 ] }
 ```
 
 `n` = owner, `j` = occupation, `t` = owner type (`E` / `E*`).
+`bi` = matching building ids (`ogc_fid`), `bc` = `[lon, lat]` center of the
+matching **main** buildings (Nebengebäude ignored unless nothing else matches).
+Both absent when no building matches.
 
 ### `by-name/_index.json`
 
@@ -165,8 +200,9 @@ still appear in `by-name/gewerbe.json`).
 }
 ```
 
-`bi` = matching building ids (`ogc_fid`), `bc` = `[lon, lat]` combined center
-(mean of the buildings' centroids). Both omitted when no building matches.
+`bi` = matching building ids (`ogc_fid`), `bc` = `[lon, lat]` center of the
+matching **main** buildings (Nebengebäude ignored unless nothing else matches).
+Both omitted when no building matches.
 
 ### `by-gewerbe-type/_index.json`
 

@@ -10,21 +10,46 @@ export class SearchResult {
     public descriptions:string[] = []
     public route?:RouteLocationRaw
     public location?:number[]
+    public zoom?:number
+    // Set by layer search providers so they can label and colour their own
+    // result types without SearchView having to know them.
+    public typeLabel?:string
+    public typeCss?:string
 
     constructor(
         public term:string,
         public locationDesc:string,
         public name:string,
         public typeEnum:SearchResultType,
-        public gemeinde:Gemeinde) {}
+        public gemeinde?:Gemeinde) {}
+
+    getHighlightedName():string {
+        return this.highlight(this.name)
+    }
 
     getHighlightedDescriptions():string[] {
-        return this.descriptions.map(h => {
-            const idx = h.toLocaleLowerCase().indexOf(this.term)
-            const idx2 = idx + this.term.length
-            return h.substring(0,idx) + '<b><u>' + h.substring(idx,idx2) + '</u></b>' + h.substring(idx2)
-        })
+        return this.descriptions.map(h => this.highlight(h))
     }
+
+    // The result is rendered with v-html, so the source text is escaped before the
+    // match markers go in — a name or description is data, never markup.
+    private highlight(text:string):string {
+        const idx = text.toLocaleLowerCase().indexOf(this.term.toLocaleLowerCase())
+        if( idx < 0 ) {
+            return escapeHtml(text)
+        }
+        const idx2 = idx + this.term.length
+        return escapeHtml(text.substring(0,idx))
+            + '<b><u>' + escapeHtml(text.substring(idx,idx2)) + '</u></b>'
+            + escapeHtml(text.substring(idx2))
+    }
+}
+
+function escapeHtml(text:string):string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
 }
 
 export enum SearchResultType {
@@ -36,7 +61,11 @@ export enum SearchResultType {
     FLUR=6,
     ORT=7,
     OWNER=8,
-    PARZELLE=9
+    PARZELLE=9,
+    GEWERBE=10,
+    BEHOERDE=11,
+    STRASSE=12,
+    ADRESSBUCH_BESITZER=13
 }
 
 
@@ -226,16 +255,20 @@ function buildPath(admin:Gemeinde|Buergermeisterei|Flur):string {
         return `Kreis ${admin.buergermeisterei.kreis.name} > Bürgermeisterei ${admin.buergermeisterei.name} > Gemeinde ${admin.name}`
     }
     else if( admin instanceof Buergermeisterei ) {
-        `Kreis ${admin.kreis.name} > Bürgermeisterei ${admin.name}`
+        return `Kreis ${admin.kreis.name} > Bürgermeisterei ${admin.name}`
     }
     else if( admin instanceof Flur ) {
-        `Kreis ${admin.gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${admin.gemeinde.buergermeisterei.name} > Gemeinde ${admin.gemeinde.name} > Flur ${admin.nr} gnt. ${admin.name}`
+        return `Kreis ${admin.gemeinde.buergermeisterei.kreis.name} > Bürgermeisterei ${admin.gemeinde.buergermeisterei.name} > Gemeinde ${admin.gemeinde.name} > Flur ${admin.nr} gnt. ${admin.name}`
     }
     return ''
 }
 
-function isIncludedInFilter(adminFilter:string[], gemeinde:Gemeinde):boolean {
+function isIncludedInFilter(adminFilter:string[], gemeinde?:Gemeinde):boolean {
     if( adminFilter.includes('__all') ) {
+        return true
+    }
+    // A result without a Gemeinde (layer search) cannot be excluded by a Gemeinde filter
+    if( !gemeinde ) {
         return true
     }
     return adminFilter.includes(gemeinde.id) || adminFilter.includes('kreis-'+gemeinde.buergermeisterei.kreis.id) || adminFilter.includes('bmstr-'+gemeinde.buergermeisterei.id);

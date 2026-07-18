@@ -10,6 +10,10 @@ describe('mapInfo', () => {
         expect(mapInfo({ t: '', a: {} })).toBeNull()
     })
 
+    it('returns null when the attribute object is null', () => {
+        expect(mapInfo({ t: 'wikipedia', a: null })).toBeNull()
+    })
+
     it('maps wikipedia type', () => {
         const result = mapInfo({ t: 'wikipedia', a: { page: 'Dortmund' } })
         expect(result).toBeInstanceOf(WikipediaInfo)

@@ -191,6 +191,8 @@ export const useMapLayerStore = defineStore('mapLayer', {
 
             const targetIdx = remaining.findIndex(l => l.id === targetLayerId)
             if (targetIdx === -1) return
+            // Dropping before a child would split it from its parent group
+            if (remaining[targetIdx].parentId) return
 
             this.layers = [
                 ...remaining.slice(0, targetIdx),

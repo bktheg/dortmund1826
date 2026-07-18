@@ -16,9 +16,9 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 ## Technology Stack & Versions
 
-- **Vue** 3.5.13 — Composition API (`<script setup lang="ts">`) is the project standard
-- **TypeScript** ~4.7.4 — `allowJs: true`, ES2019 target, `@/` alias for `src/`
-- **Vite** 3.0.1 — build tool; `__APP_VERSION__` global defined via `vite.config.ts`
+- **Vue** ^3.5.39 — Composition API (`<script setup lang="ts">`) is the project standard
+- **TypeScript** ~5.9.3 — `allowJs: true`, `strict: true`, `verbatimModuleSyntax: true`, ES2019 lib, `@/` alias for `src/`
+- **Vite** ^8.1.3 — build tool; `__APP_VERSION__` global defined via `vite.config.ts`
 - **Vue Router** 4.5 — web history mode; all routes except home use lazy `import()`
 - **Pinia** 2.0.17 — `defineStore({ id, state, actions })` pattern; no getters pattern established
 - **Mapbox GL** v2.15.0 — loaded via CDN script tag in `index.html`, NOT an npm package; `@types/mapbox-gl` provides TS types only
@@ -37,7 +37,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Always use `<script setup lang="ts">` — this is the project standard; do not use the Options API for new code
 - Import path alias `@/` resolves to `src/` — prefer it over relative paths for cross-directory imports
 - `allowJs: true` is set — vendored JS in `src/components/treeselect/` may require `// @ts-ignore` on imports from it
-- No strict mode in tsconfig — do not add `"strict": true` without discussion, as it would break existing code
+- `strict: true` and `verbatimModuleSyntax: true` are enabled in tsconfig — keep new code strict-null-safe and use `import type` for type-only imports
 - `__APP_VERSION__` is a compile-time global injected by Vite — no need to import it, use directly in expressions
 - Mapbox GL must be typed via `import type mapboxgl from 'mapbox-gl'` (types only) — never do a value import since there's no npm package; the runtime global is loaded by the CDN script
 - Domain data from the API uses single-letter property names (e.g. `n`, `f`, `r`, `e`, `a`, `k`, `l`, `t`, `p`, `i`, `b`) — always define a typed `*Export` interface for raw API data and map it to a proper domain class; never use single-letter props in UI code
@@ -67,13 +67,12 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 ### Testing Rules
 
-- **Unit tests**: Vitest 0.34.x + @vue/test-utils + jsdom — installed; run with `npm test`
-  - Use `vitest@^0.34` — the 1.x/2.x line requires Vite 5+ and is incompatible with this project's Vite 3
-  - Test files live alongside source: `src/stores/*.spec.ts`, `src/services/*.spec.ts`
+- **Unit tests**: Vitest ^4.1.10 + @vue/test-utils + happy-dom (`test.environment` in `vite.config.ts`) — run with `npm test`
+  - Test files live alongside source: `src/stores/*.spec.ts`, `src/services/*.spec.ts` (glob `src/**/*.spec.ts`)
   - Mock `axios` via factory: `vi.mock('axios', () => ({ default: { get: vi.fn() } }))` — use a real Pinia instance via `createPinia()` + `setActivePinia()` in `beforeEach`
   - Highest value targets already covered: `infoService`, `quellenService`, `searchService` (SearchResult), `parzelleStore`
-- **E2E tests**: Playwright is the recommended next step — the app runs fully against `public/` mock data with empty `VITE_SERVER_URL`, so no backend is needed; Mapbox tiles require an API key but DOM content is testable without tile rendering
-- Type checking remains a separate gate: `vue-tsc --noEmit` (already in `npm run build`)
+- **E2E tests**: Playwright ^1.44 in `e2e/` — the app runs fully against `public/` mock data with empty `VITE_SERVER_URL`, so no backend is needed; Mapbox tiles require an API key but DOM content is testable without tile rendering
+- Type checking is a separate gate covering three projects: `npm run type-check` runs `vue-tsc --noEmit` for `src` (root tsconfig) plus `-p tsconfig.config.json` (Vite/Vitest config) and `-p e2e/tsconfig.json` (Playwright tests); all three enable `strict` + `verbatimModuleSyntax`
 
 ### Code Quality & Style Rules
 
@@ -101,7 +100,6 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - **Never use single-letter API field names in UI or business logic** — define `*Export` types for raw data and map to domain classes immediately after fetch (see `parzelleStore.ts`)
 - **Never use Options API for new components** — the project standard is `<script setup lang="ts">` exclusively
 - **Do not mutate nested `Map`/`Set` state in Pinia directly** — use `this.$patch(state => { ... })` to ensure reactivity
-- **`buildPath()` in `searchService.ts` has silent bugs** — the `Buergermeisterei` and `Flur` branches are missing `return` statements and silently return `''`; do not copy this pattern
 - **`__APP_VERSION__` is not typed** — declare it in `src/env.d.ts` if TypeScript complains: `declare const __APP_VERSION__: string`
 - **Mapbox layer IDs follow the pattern `wms-{id}-layer` / `wms-{id}-source`** — check for existing layer/source before adding (see `getLayer()`/`getSource()` guards in Map.vue)
 - **All user-visible text must be in German** — do not introduce English strings in templates or computed labels

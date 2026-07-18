@@ -1,11 +1,14 @@
 /**
  * Domain DTOs and pure mappers for the address-book `by-name/` and
- * `by-gewerbe-type/` data families (Export Address Book output).
+ * `by-gewerbe-type/` data families (Export Address Book output), plus the
+ * `by-street/_index.json` street index.
  *
- * The `by-street/` family lives in `adressdatenStore` and is intentionally
- * separate. Both families here keep every key in their JSON (empty values are
- * empty strings, never omitted), so mapping is straightforward with no
- * falsy-omission handling.
+ * The per-street `by-street/<street>.json` files live in `adressdatenStore`
+ * and are intentionally separate. Both families here keep every key in their
+ * JSON (empty values are empty strings, never omitted) — EXCEPT the building
+ * link `bi`/`bc` and the street coordinate `c`, which are dropped entirely
+ * when nothing matched. Absence there means "no buildings" / "no geometry",
+ * hence the optional `center`.
  *
  * Every entry carries BOTH the raw address (`strasse`/`hnr`, for display) and
  * the pre-normalized address (`cleanStrasse`/`cleanHnr`, for matching against
@@ -32,7 +35,8 @@ export type GewerbeTypeEintragExport = AdresseExport & {
     z: string,   // Namenszusatz
     a: string,   // Adresszusatz
     f: string,   // Fernsprecher
-    bi?: number[] // Gebäude-IDs (ogc_fid); fehlt, wenn kein Gebäude matcht
+    bi?: number[], // Gebäude-IDs (ogc_fid); fehlt, wenn kein Gebäude matcht
+    bc?: number[]  // [lon, lat] Mittelpunkt der Gebäude; fehlt, wenn kein Gebäude matcht
 }
 
 export type GewerbeTypeListeExport = {
@@ -46,21 +50,33 @@ export type GewerbeNameEintragExport = AdresseExport & {
     z: string,      // Namenszusatz
     b: string[],    // Branchen
     a: string,      // Adresszusatz
-    f: string       // Fernsprecher
+    f: string,      // Fernsprecher
+    bi?: number[],  // Gebäude-IDs (ogc_fid); fehlt, wenn kein Gebäude matcht
+    bc?: number[]   // [lon, lat] Mittelpunkt der Gebäude; fehlt, wenn kein Gebäude matcht
 }
 
 export type BehoerdeNameEintragExport = AdresseExport & {
-    n: string,  // Name
-    z: string,  // Detail/Namenszusatz
-    k: string,  // Kategorie (im by-name als `k`, nicht `c`)
-    u: string,  // Unterkategorie
-    f: string   // Fernsprecher
+    n: string,      // Name
+    z: string,      // Detail/Namenszusatz
+    k: string,      // Kategorie (im by-name als `k`, nicht `c`)
+    u: string,      // Unterkategorie
+    f: string,      // Fernsprecher
+    bi?: number[],  // Gebäude-IDs (ogc_fid); fehlt, wenn kein Gebäude matcht
+    bc?: number[]   // [lon, lat] Mittelpunkt der Gebäude; fehlt, wenn kein Gebäude matcht
 }
 
 export type BesitzerNameEintragExport = AdresseExport & {
-    n: string,  // Besitzer
-    j: string,  // Beruf
-    t: string   // Art des Besitzers: E oder E*
+    n: string,      // Besitzer
+    j: string,      // Beruf
+    t: string,      // Art des Besitzers: E oder E*
+    bi?: number[],  // Gebäude-IDs (ogc_fid); fehlt, wenn kein Gebäude matcht
+    bc?: number[]   // [lon, lat] Mittelpunkt der Gebäude; fehlt, wenn kein Gebäude matcht
+}
+
+export type StrasseIndexEintragExport = {
+    s: string,  // Straßenname
+    f: string,  // Dateiname im by-street/-Ordner
+    c?: number[] // [lon, lat] auf der Straße; fehlt, wenn keine Geometrie existiert
 }
 
 export type NameListeExport<E> = {
@@ -92,7 +108,8 @@ export class GewerbeTypeEintrag {
         public adresszusatz: string,
         public fernsprecher: string,
         public adresse: Adresse,
-        public buildingIds: number[]
+        public buildingIds: number[],
+        public center?: [number, number]
     ) {}
 }
 
@@ -111,7 +128,9 @@ export class GewerbeEintrag {
         public branchen: string[],
         public adresszusatz: string,
         public fernsprecher: string,
-        public adresse: Adresse
+        public adresse: Adresse,
+        public buildingIds: number[] = [],
+        public center?: [number, number]
     ) {}
 }
 
@@ -122,7 +141,9 @@ export class BehoerdeEintrag {
         public kategorie: string,
         public unterkategorie: string,
         public fernsprecher: string,
-        public adresse: Adresse
+        public adresse: Adresse,
+        public buildingIds: number[] = [],
+        public center?: [number, number]
     ) {}
 }
 
@@ -131,7 +152,17 @@ export class BesitzerEintrag {
         public name: string,
         public beruf: string,
         public typ: string,
-        public adresse: Adresse
+        public adresse: Adresse,
+        public buildingIds: number[] = [],
+        public center?: [number, number]
+    ) {}
+}
+
+export class StrasseIndexEintrag {
+    constructor(
+        public name: string,
+        public datei: string,
+        public center?: [number, number]
     ) {}
 }
 
@@ -139,12 +170,19 @@ function mapAdresse(e: AdresseExport): Adresse {
     return new Adresse(e.s ?? '', e.h ?? '', e.cs ?? '', e.ch ?? '')
 }
 
+function mapCenter(c?: number[]): [number, number] | undefined {
+    if (c?.length !== 2 || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) {
+        return undefined
+    }
+    return [c[0], c[1]]
+}
+
 export function mapGewerbeType(e: GewerbeTypeExport): GewerbeType {
     return new GewerbeType(e.slug ?? '', e.t ?? [], e.c ?? 0)
 }
 
 export function mapGewerbeTypeEintrag(e: GewerbeTypeEintragExport): GewerbeTypeEintrag {
-    return new GewerbeTypeEintrag(e.n, e.z, e.a, e.f, mapAdresse(e), e.bi ?? [])
+    return new GewerbeTypeEintrag(e.n, e.z, e.a, e.f, mapAdresse(e), e.bi ?? [], mapCenter(e.bc))
 }
 
 export function mapGewerbeTypeListe(data: GewerbeTypeListeExport): GewerbeTypeListe {
@@ -152,13 +190,17 @@ export function mapGewerbeTypeListe(data: GewerbeTypeListeExport): GewerbeTypeLi
 }
 
 export function mapGewerbeEintrag(e: GewerbeNameEintragExport): GewerbeEintrag {
-    return new GewerbeEintrag(e.n, e.z, e.b ?? [], e.a, e.f, mapAdresse(e))
+    return new GewerbeEintrag(e.n, e.z, e.b ?? [], e.a, e.f, mapAdresse(e), e.bi ?? [], mapCenter(e.bc))
 }
 
 export function mapBehoerdeEintrag(e: BehoerdeNameEintragExport): BehoerdeEintrag {
-    return new BehoerdeEintrag(e.n, e.z, e.k, e.u, e.f, mapAdresse(e))
+    return new BehoerdeEintrag(e.n, e.z, e.k, e.u, e.f, mapAdresse(e), e.bi ?? [], mapCenter(e.bc))
 }
 
 export function mapBesitzerEintrag(e: BesitzerNameEintragExport): BesitzerEintrag {
-    return new BesitzerEintrag(e.n, e.j, e.t, mapAdresse(e))
+    return new BesitzerEintrag(e.n, e.j, e.t, mapAdresse(e), e.bi ?? [], mapCenter(e.bc))
+}
+
+export function mapStrasseIndexEintrag(e: StrasseIndexEintragExport): StrasseIndexEintrag {
+    return new StrasseIndexEintrag(e.s ?? '', e.f ?? '', mapCenter(e.c))
 }

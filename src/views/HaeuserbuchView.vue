@@ -8,25 +8,28 @@
     import {HaeuserbuchInfo} from '../services/infoService'
     import haeuserbuchInfo from '@/components/haeuserbuchInfo.vue'
     import HaeuserbuchStreet from '@/components/HaeuserbuchStreet.vue'
+    import HaeuserbuchAbsenceNotice from '@/components/HaeuserbuchAbsenceNotice.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
     import type {Emitter} from 'mitt';
 
     const emitter = inject('emitter') as Emitter<any>
 
-    const { fetchFlure, getGemeindeById, getFlurById } = useFlurStore()
+    const flurStore = useFlurStore()
     const haeuserbuchStore = useHaeuserbuchStore()
     const { getHaeuserbuch } = storeToRefs(haeuserbuchStore)
 
-    fetchFlure()
-    
+    flurStore.fetchFlure()
+
     const route = useRoute();
-    
+
     const gemeindeId = computed(() => route.params.gemeinde as string);
     const id = computed(() => route.params.id as string);
-    
+
     haeuserbuchStore.fetchHaeuserbuch(gemeindeId.value)
 
     const hbEntry = computed(() => getHaeuserbuch.value(gemeindeId.value)?.buildings.filter(b => b.id == id.value)[0]);
+
+    const gemeinde = computed(() => flurStore.loading ? null : flurStore.getGemeindeById(gemeindeId.value));
 
     const router = useRouter();
     const lastPage = router.options.history.state.back?.toString();
@@ -37,7 +40,7 @@
     }
 
     const loading = computed(() => {
-        return haeuserbuchStore.loading.size > 0
+        return flurStore.loading || haeuserbuchStore.loading.size > 0
     })
 
     watch(hbEntry, () => {
@@ -53,6 +56,7 @@
             <LoadingSpinner v-if="loading"/>
             <template v-else>
                 <haeuserbuchInfo v-if="hbEntry" :gemeinde="gemeindeId" :id="id" :expanded="true" :expandable="false" />
+                <HaeuserbuchAbsenceNotice v-else-if="gemeinde && !gemeinde.haeuserbuch" :gemeinde="gemeinde" />
                 <HaeuserbuchStreet v-else :gemeinde="gemeindeId" :id="id" />
             </template>
         </div>

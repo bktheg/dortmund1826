@@ -85,6 +85,24 @@ describe('adressbuchNameStore', () => {
         expect(axios.get).toHaveBeenCalledTimes(1)
     })
 
+    it('does not re-fetch a list that legitimately came back empty', async () => {
+        vi.mocked(axios.get).mockResolvedValue({ data: { q: 'Adressbuch Dortmund 1914', e: [] } })
+        const store = useAdressbuchNameStore()
+        await store.fetchGewerbe()
+        await store.fetchGewerbe()
+        expect(store.gewerbe).toEqual([])
+        expect(axios.get).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not re-fetch a list whose request failed — callers may retry on every keystroke', async () => {
+        vi.mocked(axios.get).mockRejectedValue(new Error('Netzwerkfehler'))
+        const store = useAdressbuchNameStore()
+        await store.fetchBesitzer()
+        await store.fetchBesitzer()
+        await store.fetchBesitzer()
+        expect(axios.get).toHaveBeenCalledTimes(1)
+    })
+
     it('sets errorGewerbe and leaves the gewerbe list empty on failure', async () => {
         const err = new Error('Netzwerkfehler')
         vi.mocked(axios.get).mockRejectedValueOnce(err)

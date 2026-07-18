@@ -133,13 +133,11 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             </template>
             
             <h2>Weitere Quellen</h2>
-            <p>
-                <ul>
-                    <li>Dortmund: Dortmunder Häuserbuch, Robert von den Berken, 1927; Adressbuch 1874</li>
-                    <li>Huckarde: Verzeichnis derjenigen Haus Nummern die sich in der Commune Huckarde befinden pro 1825, in: Stadtarchiv Dortmund, Best. 3-1047</li>
-                    <li>Mengede: Karte Schott, Einwohnerverzeichnis Bürgermeisterei Castrop 1849 (herzlichen Dank an den Heimatverein Mengede e.V.)</li>
-                </ul>
-            </p>
+            <ul>
+                <li>Dortmund: Dortmunder Häuserbuch, Robert von den Berken, 1927; Adressbuch 1874</li>
+                <li>Huckarde: Verzeichnis derjenigen Haus Nummern die sich in der Commune Huckarde befinden pro 1825, in: Stadtarchiv Dortmund, Best. 3-1047</li>
+                <li>Mengede: Karte Schott, Einwohnerverzeichnis Bürgermeisterei Castrop 1849 (herzlichen Dank an den Heimatverein Mengede e.V.)</li>
+            </ul>
 
 
             <h1 id="umfang-der-karte">Umfang der Karte</h1>           
@@ -185,13 +183,12 @@ import {expandSourceToAbbr, expandSourceToText} from '../services/quellenService
             
             
             <h1 id="literatur">Literatur</h1>
-            <p>Weiterführende Literaturempfehlungen zum Thema Katasterwesen und Urkataster:
-                <ul>
-                    <li>Vermessung in Dortmund. Beiträge zur Geschichte des Vermessungs- und Katasterwesens. Stadt Dortmund, Vermessungs- und Katasteramt. Dortmund, 1976</li>
-                    <li>Geschichte des Grundsteuer- und Vermessungswesens im Herzogtum Westfalen. Klemens Wiesemann. Herausgegeben vom Schieferbergbau- und Heimatmuseum Holthausen. Fredeburg, 1993</li>
-                    <li>Die Urkatasteraufnahme in Westfalen. Veröffentlichungen des Landesarchivs Nordrhein-Westfalen 20. Gerald Kreucher. Düsseldorf, 2008</li>
-                </ul>
-            </p>
+            <p>Weiterführende Literaturempfehlungen zum Thema Katasterwesen und Urkataster:</p>
+            <ul>
+                <li>Vermessung in Dortmund. Beiträge zur Geschichte des Vermessungs- und Katasterwesens. Stadt Dortmund, Vermessungs- und Katasteramt. Dortmund, 1976</li>
+                <li>Geschichte des Grundsteuer- und Vermessungswesens im Herzogtum Westfalen. Klemens Wiesemann. Herausgegeben vom Schieferbergbau- und Heimatmuseum Holthausen. Fredeburg, 1993</li>
+                <li>Die Urkatasteraufnahme in Westfalen. Veröffentlichungen des Landesarchivs Nordrhein-Westfalen 20. Gerald Kreucher. Düsseldorf, 2008</li>
+            </ul>
 
             <h1 id="Software">Software und Rohdaten</h1>
             <p>

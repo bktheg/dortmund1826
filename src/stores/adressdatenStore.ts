@@ -1,5 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import {
+    mapStrasseIndexEintrag,
+    type StrasseIndexEintrag,
+    type StrasseIndexEintragExport,
+    type NameListeExport
+} from '../models/adressbuch'
 
 type GewerbeExport = {
     b:string[], // Branchen
@@ -185,13 +191,35 @@ export const useAdressdatenStore = defineStore({
     id: 'adressdaten',
     state: () => ({
       adressbuecher: new Map<string,Adressbuch>(),
+      strassenIndex: [] as StrasseIndexEintrag[],
       loading: new Set<string>(),
+      loadingIndex: false,
+      loadedIndex: false,
       error: null as unknown
     }),
     getters: {
         getAdressbuch: (state) => (cleanedStreet:string) => state.adressbuecher.get(cleanedStreet)
     },
     actions: {
+      // loadedIndex latches on the first completed attempt: guarding on the list
+      // length would re-fetch forever if the index is empty or the request fails,
+      // since callers may retry on every keystroke.
+      async fetchStrassenIndex() {
+        if( this.loadingIndex || this.loadedIndex ) {
+            return;
+        }
+        this.loadingIndex = true
+        try {
+            const data = await axios.get(import.meta.env.VITE_SERVER_URL+`/adressdaten/1914/by-street/_index.json?v=${__APP_VERSION__}`)
+                .then((response) => response.data as NameListeExport<StrasseIndexEintragExport>)
+            this.strassenIndex = data.e?.map(mapStrasseIndexEintrag) ?? []
+        } catch (error) {
+            this.error = error
+        } finally {
+            this.loadedIndex = true
+            this.loadingIndex = false
+        }
+      },
       async fetchAdressbuch(cleanedStreet:string) {
         if( !cleanedStreet || this.loading.has(cleanedStreet) || this.adressbuecher.has(cleanedStreet) ) {
             return;

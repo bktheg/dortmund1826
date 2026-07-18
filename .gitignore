@@ -109,4 +109,6 @@ dist
 /public/*.json
 /.claude
 /_bmad
+/_bmad-output/brainstorming
+/_bmad-output/implementation-artifacts
 /test-results

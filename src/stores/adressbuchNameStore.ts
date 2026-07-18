@@ -18,6 +18,11 @@ import {
  * (businesses, authorities, property owners). Each list loads at most once and
  * is cached for client-side name search. The lists are independent — a
  * consumer can load only the one it needs.
+ *
+ * The `loaded*` flags latch on the first completed attempt, successful or not.
+ * Guarding on the list length instead would re-fetch forever whenever a list
+ * legitimately comes back empty or the request fails, since callers may retry
+ * on every keystroke.
  */
 export const useAdressbuchNameStore = defineStore({
     id: 'adressbuchName',
@@ -28,13 +33,16 @@ export const useAdressbuchNameStore = defineStore({
         loadingGewerbe: false,
         loadingBehoerden: false,
         loadingBesitzer: false,
+        loadedGewerbe: false,
+        loadedBehoerden: false,
+        loadedBesitzer: false,
         errorGewerbe: null as unknown,
         errorBehoerden: null as unknown,
         errorBesitzer: null as unknown
     }),
     actions: {
         async fetchGewerbe() {
-            if (this.loadingGewerbe || this.gewerbe.length > 0) {
+            if (this.loadingGewerbe || this.loadedGewerbe) {
                 return;
             }
             this.loadingGewerbe = true
@@ -45,11 +53,12 @@ export const useAdressbuchNameStore = defineStore({
             } catch (error) {
                 this.errorGewerbe = error
             } finally {
+                this.loadedGewerbe = true
                 this.loadingGewerbe = false
             }
         },
         async fetchBehoerden() {
-            if (this.loadingBehoerden || this.behoerden.length > 0) {
+            if (this.loadingBehoerden || this.loadedBehoerden) {
                 return;
             }
             this.loadingBehoerden = true
@@ -60,11 +69,12 @@ export const useAdressbuchNameStore = defineStore({
             } catch (error) {
                 this.errorBehoerden = error
             } finally {
+                this.loadedBehoerden = true
                 this.loadingBehoerden = false
             }
         },
         async fetchBesitzer() {
-            if (this.loadingBesitzer || this.besitzer.length > 0) {
+            if (this.loadingBesitzer || this.loadedBesitzer) {
                 return;
             }
             this.loadingBesitzer = true
@@ -75,6 +85,7 @@ export const useAdressbuchNameStore = defineStore({
             } catch (error) {
                 this.errorBesitzer = error
             } finally {
+                this.loadedBesitzer = true
                 this.loadingBesitzer = false
             }
         }

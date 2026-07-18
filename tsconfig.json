@@ -10,8 +10,8 @@
     "allowJs": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
-    "strict": false,
-    "verbatimModuleSyntax": false
+    "strict": true,
+    "verbatimModuleSyntax": true
   },
 
   "references": [

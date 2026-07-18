@@ -119,14 +119,16 @@ export class WmsLayer implements Layer {
     }
 
     show(map: any | null, belowLayerId: string = 'Kataster-Kulturarten'): void {
+        const source = map?.getSource(`wms-${this.id}-source`)
+        if (source == null) return
         if (map?.getLayer(`wms-${this.id}-layer`) == null) {
             map?.addLayer({
                 id: `wms-${this.id}-layer`,
                 type: 'raster',
                 source: `wms-${this.id}-source`,
                 paint: {},
-                minzoom: map?.getSource(`wms-${this.id}-source`).minzoom,
-                maxzoom: map?.getSource(`wms-${this.id}-source`).maxzoom,
+                minzoom: source.minzoom,
+                maxzoom: source.maxzoom,
             })
             map?.moveLayer(`wms-${this.id}-layer`, belowLayerId)
         }

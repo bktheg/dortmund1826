@@ -37,6 +37,27 @@ test('parzelle view renders eigentuemer and location', async ({ page }) => {
     await expect(page.locator('#contentview')).toContainText('Marre')
 })
 
+test('somborn parzelle surfaces unknown Mutterrolle and Häuserbuch absence', async ({ page }) => {
+    await page.goto('/parzelle/somborn/1/1')
+    await expect(page.locator('#contentview')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('#contentview')).toContainText('Parzelle Nr. 1', { timeout: 15000 })
+    // Somborn's Mutterrolle source is '?', which must now render as an "Unbekannt" row
+    // instead of being suppressed. The value sits in the <dt> immediately after the label <dd>.
+    await expect(page.locator('.properties dd', { hasText: 'Mutterrolle' })).toBeVisible()
+    const mutterrolleValue = page.locator('.properties dd:has-text("Mutterrolle") + dt')
+    await expect(mutterrolleValue).toContainText('Unbekannt')
+    // No Häuserbuch is on file for Somborn — the absence notice must be shown
+    await expect(page.locator('#contentview')).toContainText('Kein Häuserbuch')
+})
+
+test('dortmund parzelle shows no Häuserbuch absence notice', async ({ page }) => {
+    await page.goto('/parzelle/dortmund/1/1')
+    await expect(page.locator('#contentview')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('#contentview')).toContainText('Parzelle Nr. 1', { timeout: 15000 })
+    // Dortmund has a Häuserbuch — the absence notice must not appear
+    await expect(page.locator('#contentview')).not.toContainText('Kein Häuserbuch')
+})
+
 test('quellen view renders static content', async ({ page }) => {
     await page.goto('/quellen')
     await expect(page.locator('#contentview')).toBeVisible()
