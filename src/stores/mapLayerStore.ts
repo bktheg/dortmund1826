@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { WmsLayer, VectorLayer, StaticLayer } from '@/models/mapLayer'
 import type { Layer } from '@/models/mapLayer'
 import { getDo1914LayerDefinitions } from '@/stores/do1914LayerStyles'
+import { getDo1610LayerDefinitions, getDo1610HatchImages } from '@/stores/do1610LayerStyles'
 import { buildGebaeudefHighlightFilter } from '@/utils/hoverUtils'
 import { addrPropertyToParam, encodeAddressParam } from '@/utils/buildingAddresses'
 
@@ -14,6 +15,20 @@ export const useMapLayerStore = defineStore('mapLayer', {
     actions: {
         initLayers(preview: boolean, serverUrl: string): void {
             const result: Layer[] = []
+
+            // Listed first so the layer list reads chronologically (oldest on top).
+            if (preview) {
+                result.push(new VectorLayer(
+                    'vector-do1610',
+                    'Dortmund 1610',
+                    serverUrl + '/tilesets/do1610,do1610_labels/tilejson.json',
+                    3, 18,
+                    '',
+                    getDo1610LayerDefinitions(),
+                    undefined,
+                    getDo1610HatchImages(),
+                ))
+            }
 
             const layer1826 = new StaticLayer(
                 '1826',

@@ -19,6 +19,7 @@ const sampleExport = {
     p: [51.5, 7.4],
     i: [],
     b: null,
+    u: [],
 }
 
 describe('parzelleStore', () => {
@@ -61,6 +62,7 @@ describe('parzelleStore', () => {
         expect(p.lage).toBe('Am Berg')
         expect(p.position).toEqual([51.5, 7.4])
         expect(p.buildings).toEqual([])
+        expect(p.subareas).toEqual([])
     })
 
     it('maps buildings array entries to ParzelleBuilding instances', async () => {
@@ -78,6 +80,58 @@ describe('parzelleStore', () => {
         expect(buildings![0].bezeichnung).toBe('Wohnhaus')
         expect(buildings![0].hnr).toBe('12a')
         expect(buildings![1].bezeichnung).toBe('Scheune')
+    })
+
+    it('maps subarea (u) entries to ParzelleSubarea instances', async () => {
+        const exportWithSubareas = {
+            ...sampleExport,
+            u: [{ e: 'Meyer, Fritz', a: '88', t: 'Wohnhaus', k: 'II', f: '0,0230', r: '0,05' }],
+        }
+        vi.mocked(axios.get).mockResolvedValueOnce({ data: [exportWithSubareas] })
+
+        const store = useParzelleStore()
+        await store.fetchParzellen('gem01', 1)
+
+        const subareas = store.parzellen.get('gem01')?.get(1)?.[0].subareas
+        expect(subareas).toHaveLength(1)
+        expect(subareas![0].eigentuemer).toBe('Meyer, Fritz')
+        expect(subareas![0].artikelNr).toBe('88')
+        expect(subareas![0].typ).toBe('Wohnhaus')
+        expect(subareas![0].klasse).toBe('II')
+        expect(subareas![0].flaeche).toBe('0,0230')
+        expect(subareas![0].reinertrag).toBe('0,05')
+    })
+
+    it('maps subarea entries with omitted optional fields to undefined', async () => {
+        const exportWithSparseSubarea = {
+            ...sampleExport,
+            u: [{ e: 'Krause, Otto', a: '55' }],
+        }
+        vi.mocked(axios.get).mockResolvedValueOnce({ data: [exportWithSparseSubarea] })
+
+        const store = useParzelleStore()
+        await store.fetchParzellen('gem01', 1)
+
+        const subareas = store.parzellen.get('gem01')?.get(1)?.[0].subareas
+        expect(subareas).toHaveLength(1)
+        expect(subareas![0].eigentuemer).toBe('Krause, Otto')
+        expect(subareas![0].artikelNr).toBe('55')
+        expect(subareas![0].typ).toBeUndefined()
+        expect(subareas![0].klasse).toBeUndefined()
+        expect(subareas![0].flaeche).toBeUndefined()
+        expect(subareas![0].reinertrag).toBeUndefined()
+    })
+
+    it('maps a missing u field to an empty subareas array', async () => {
+        const exportWithoutSubareas = { ...sampleExport } as Partial<typeof sampleExport>
+        delete exportWithoutSubareas.u
+        vi.mocked(axios.get).mockResolvedValueOnce({ data: [exportWithoutSubareas] })
+
+        const store = useParzelleStore()
+        await store.fetchParzellen('gem01', 1)
+
+        const subareas = store.parzellen.get('gem01')?.get(1)?.[0].subareas
+        expect(subareas).toEqual([])
     })
 
     it('maps InfoExport entries in i field via mapInfos', async () => {

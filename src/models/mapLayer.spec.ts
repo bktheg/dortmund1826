@@ -109,6 +109,40 @@ describe('VectorLayer', () => {
         expect(map.addSource).toHaveBeenCalledWith('do1914', expect.objectContaining({ type: 'vector' }))
     })
 
+    describe('images', () => {
+        const hatchDefs = [
+            { id: 'hatch', 'source-layer': 'areas', type: 'fill', paint: { 'fill-color': '#d55555', 'fill-opacity': 1, 'fill-pattern': 'hatch-img' } },
+        ]
+        const image = { width: 1, height: 1 } as ImageData
+        let hatchLayer: VectorLayer
+
+        beforeEach(() => {
+            hatchLayer = new VectorLayer('do1610', 'Dortmund 1610', 'https://example.com/tiles.json', 3, 19, '', JSON.parse(JSON.stringify(hatchDefs)), undefined, { 'hatch-img': () => image })
+        })
+
+        it('addToMap registers images that are not yet on the map', () => {
+            const imgMap = { ...makeMockMap(), hasImage: vi.fn(() => false), addImage: vi.fn() }
+            hatchLayer.addToMap(imgMap)
+            expect(imgMap.addImage).toHaveBeenCalledWith('hatch-img', image)
+        })
+
+        it('addToMap does not re-register an existing image', () => {
+            const imgMap = { ...makeMockMap(), hasImage: vi.fn(() => true), addImage: vi.fn() }
+            hatchLayer.addToMap(imgMap)
+            expect(imgMap.addImage).not.toHaveBeenCalled()
+        })
+
+        it('setEmphasis drops fill-pattern when ghosted and restores it when emphasized', () => {
+            const id = hatchLayer.layerDefinitions[0].id
+            const setPaint = vi.fn()
+            const emphMap = { ...makeMockMap(), getLayer: vi.fn(() => ({})), setPaintProperty: setPaint }
+            hatchLayer.setEmphasis(emphMap, false)
+            expect(setPaint).toHaveBeenCalledWith(id, 'fill-pattern', undefined)
+            hatchLayer.setEmphasis(emphMap, true)
+            expect(setPaint).toHaveBeenCalledWith(id, 'fill-pattern', 'hatch-img')
+        })
+    })
+
     it('constructor prefixes sub-layer ids with the layer id', () => {
         expect(layer.layerDefinitions[0].id).toBe('do1914-poly-0')
         expect(layer.layerDefinitions[1].id).toBe('do1914-line-1')

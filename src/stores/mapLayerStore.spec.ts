@@ -30,12 +30,39 @@ describe('mapLayerStore', () => {
             expect(ids).toEqual(['1826', '1826-grenzen', 'uraufnahme', 'neuaufnahme', 'heute'])
         })
 
+        it('includes a non-interactive vector-do1610 layer only when preview=true', () => {
+            const store = useMapLayerStore()
+            store.initLayers(false, 'http://localhost:8080')
+            expect(store.layers.map(l => l.id)).not.toContain('vector-do1610')
+            store.initLayers(true, 'http://localhost:8080')
+            const layer = store.layers.find(l => l.id === 'vector-do1610')!
+            expect(layer.name).toBe('Dortmund 1610')
+            expect(layer.hoverDescriptor).toBeUndefined()
+        })
+
         it('includes vector-do1914 when preview=true and serverUrl is non-empty', () => {
             const store = useMapLayerStore()
             store.initLayers(true, 'http://localhost:8080')
             const ids = store.layers.map(l => l.id)
             expect(ids).toContain('vector-do1914')
             expect(ids.indexOf('vector-do1914')).toBeLessThan(ids.indexOf('heute'))
+        })
+
+        it('serves vector-do1610 labels from the dedicated do1610_labels point layer', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            const layer = store.layers.find(l => l.id === 'vector-do1610') as VectorLayer
+            expect(layer.url).toBe('http://localhost:8080/tilesets/do1610,do1610_labels/tilejson.json')
+            const symbols = layer.layerDefinitions.filter(d => d.type === 'symbol')
+            expect(symbols.length).toBeGreaterThan(0)
+            expect(symbols.every(d => d['source-layer'] === 'do1610_labels')).toBe(true)
+            expect(layer.layerDefinitions.filter(d => d.type !== 'symbol').every(d => d['source-layer'] === 'do1610')).toBe(true)
+        })
+
+        it('lists vector-do1610 first so the list is ordered chronologically', () => {
+            const store = useMapLayerStore()
+            store.initLayers(true, 'http://localhost:8080')
+            expect(store.layers[0].id).toBe('vector-do1610')
         })
 
         it('includes vector-do1914 when preview=true but serverUrl is empty', () => {

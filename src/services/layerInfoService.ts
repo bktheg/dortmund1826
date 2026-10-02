@@ -23,6 +23,14 @@ const LAYER_INFO: Record<string, LayerInfo> = {
             'Einzelne Gebäude lassen sich über die „Untersuchen"-Funktion auswählen, um weitergehende Informationen aus dem Dortmunder Adressbuch von 1914 anzuzeigen. Die Adressbuchdaten wurden überwiegend mittels Texterkennung digitalisiert; einzelne Schreibfehler sind daher möglich. Einträge aus dem Bereich Behörden wurden in der Regel nur erfasst, sofern sie einer konkreten Adresse zugeordnet werden konnten.',
         ],
     },
+    'vector-do1610': {
+        title: 'Dortmund 1610',
+        paragraphs: [
+            'Der Layer verortet die bedeutenden Gebäude Dortmunds im Jahr 1610 und ermöglicht den unmittelbaren Vergleich mit der Urkatasterkarte von 1826. Grundlage ist die Karte „Dortmund um 1610" von Heinrich Scholle; die hier gezeigte Darstellung ist jedoch keine unveränderte Wiedergabe dieser Vorlage.',
+            'Als Bezugsjahr dient 1610, da aus diesem Jahr die perspektivische Vogelschauansicht Dortmunds von Detmar Mulher überliefert ist. Der Kupferstich gilt als zentrale Quelle zur Topographie der frühneuzeitlichen Stadt, weist jedoch erhebliche Verzerrungen auf. Scholle glich ihn daher mit dem Urkataster von 1826 ab, dessen Straßenführung und Parzellierung im Kern noch mittelalterlich geprägt sind und sich deshalb weitgehend auf den Zustand um 1610 zurückprojizieren lassen. Die bis 1826 abgegangenen Bauten, namentlich Klöster, Kapellen und Teile der Befestigungsanlagen, wurden ergänzt; für deren Lage und für den Verlauf der Stadtbefestigung bleibt der Stich Mulhers die maßgebliche Quelle.',
+            'Die Karte samt ausführlicher Dokumentation der Stadtbefestigung, der Kirchen und Klöster, der Straßenfronten und der Wohnhöfe ist veröffentlicht in: „Dortmund im Jahre 1610: Maßstäbliche Rekonstruktion des Stadtbildes" (Dortmund: Verlag des Historischen Vereins Dortmund u. a., 1987). Für eine vertiefte Beschäftigung mit der Stadtgestalt des frühneuzeitlichen Dortmund ist die Lektüre dieses Bandes ausdrücklich empfohlen.',
+        ],
+    },
 }
 
 export function getLayerInfo(id: string): LayerInfo | undefined {

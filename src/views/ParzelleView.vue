@@ -65,6 +65,16 @@
     const loading = computed(() => {
         return flurStore.loading || parzelleStore.loading.size > 0
     })
+
+    const subareaColumns = computed(() => {
+        const subareas = parzelle.value?.subareas || [];
+        return {
+            typ: subareas.some(s => !!s.typ),
+            klasse: subareas.some(s => !!s.klasse),
+            flaeche: subareas.some(s => !!s.flaeche),
+            reinertrag: subareas.some(s => !!s.reinertrag),
+        };
+    });
 </script>
 
 <style>
@@ -120,6 +130,31 @@
                         <dt>{{gebaeudeText}}</dt>
                     </template>
                 </dl>
+                <template v-if="parzelle?.subareas?.length">
+                    <h3>Teilflächen (andere Eigentümer)</h3>
+                    <table class="subareas">
+                        <thead>
+                            <tr>
+                                <th>Eigentümer</th>
+                                <th v-if="subareaColumns.typ">Kulturart</th>
+                                <th v-if="subareaColumns.klasse">Klasse</th>
+                                <th v-if="subareaColumns.flaeche">Größe</th>
+                                <th v-if="subareaColumns.reinertrag">Reinertrag</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(subarea, index) in parzelle?.subareas" :key="index">
+                                <td>
+                                    <RouterLink :to="{name:'mutterrolle', params: {gemeinde: gemeinde?.id, artikelNr:subarea.artikelNr}}">{{subarea.eigentuemer}} ({{subarea.artikelNr}})</RouterLink>
+                                </td>
+                                <td v-if="subareaColumns.typ">{{subarea.typ}}</td>
+                                <td v-if="subareaColumns.klasse">{{subarea.klasse}}</td>
+                                <td v-if="subareaColumns.flaeche">{{subarea.flaeche}}</td>
+                                <td v-if="subareaColumns.reinertrag">{{subarea.reinertrag}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </template>
                 <template v-if="parzelle?.info">
                     <InfoListComponent :infos="parzelle?.info" :gemeinde="parzelle?.gemeindeId"/>
                 </template>
@@ -204,5 +239,20 @@
 
     .footnotes {
         margin-top:10pt;
+    }
+
+    table.subareas {
+        border-collapse: collapse;
+        margin-bottom:10pt;
+    }
+
+    table.subareas th,
+    table.subareas td {
+        text-align:left;
+        padding: 2pt 8pt 2pt 0;
+    }
+
+    table.subareas th {
+        border-bottom: 1pt solid var(--color-light-text);
     }
 </style>

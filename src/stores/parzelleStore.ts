@@ -8,6 +8,15 @@ type ParzelleBuildingExport = {
     n:string // hnr
 }
 
+type ParzelleSubareaExport = {
+    e:string, // eigentuemer
+    a:string, // mutterrolle (artikel)
+    t?:string, // typ
+    k?:string, // klasse
+    f?:string, // flaeche
+    r?:string|null // reinertrag
+}
+
 type ParzelleExport = {
     n:string, // nr
     f:string, // flaeche
@@ -19,28 +28,40 @@ type ParzelleExport = {
     t:string, // typ
     p:number[],// position
     i:InfoExport[], // infos
-    b:ParzelleBuildingExport[] // buildings
+    b:ParzelleBuildingExport[], // buildings
+    u:ParzelleSubareaExport[] // Unterflächen (subareas)
 }
 
 export class ParzelleBuilding {
     constructor(public bezeichnung:string, public hnr:string) {}
 }
 
+export class ParzelleSubarea {
+    constructor(
+        public eigentuemer:string,
+        public artikelNr:string,
+        public typ?:string,
+        public klasse?:string,
+        public flaeche?:string,
+        public reinertrag?:string|null) {}
+}
+
 export class Parzelle {
     constructor(
-        public gemeindeId:string, 
-        public flur:number, 
-        public parzelle:string, 
-        public eigentuemer:string, 
-        public artikelNr:string, 
+        public gemeindeId:string,
+        public flur:number,
+        public parzelle:string,
+        public eigentuemer:string,
+        public artikelNr:string,
         public flaeche:string,
         public reinertrag:string,
-        public typ:string, 
-        public klasse:string, 
-        public lage:string, 
+        public typ:string,
+        public klasse:string,
+        public lage:string,
         public position:number[],
         public info:Info[],
-        public buildings:ParzelleBuilding[]) {}
+        public buildings:ParzelleBuilding[],
+        public subareas:ParzelleSubarea[]) {}
 }
 
 
@@ -65,7 +86,8 @@ export const useParzelleStore = defineStore({
             const result:Parzelle[] = [];
             for( const p of parzellenExport ) {
                 const infos = mapInfos(p.i);
-                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.r, p.t, p.k, p.l, p.p, infos, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n))));
+                const subareas = p.u == null ? [] : p.u.map(u => new ParzelleSubarea(u.e, u.a, u.t, u.k, u.f, u.r));
+                result.push(new Parzelle(gemeinde, flur, p.n, p.e, p.a, p.f, p.r, p.t, p.k, p.l, p.p, infos, p.b == null ? [] : p.b.map(b => new ParzelleBuilding(b.b, b.n)), subareas));
             }
 
             this.$patch((state) => {

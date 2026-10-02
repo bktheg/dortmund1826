@@ -10,7 +10,7 @@ export function getDo1914LayerDefinitions(): any[] {
                 'text-size': ['interpolate', ['linear'], ['zoom'], 17, 8, 22, 20],
                 'text-rotate': ['get', 'rotlabel'],
                 'text-allow-overlap': true,
-                'text-pitch-alignment': 'viewport',
+                'text-pitch-alignment': 'viewport'
             },
             paint: {
                 'text-halo-width': 0.8,

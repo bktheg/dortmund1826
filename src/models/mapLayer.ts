@@ -185,6 +185,9 @@ export class VectorLayer implements Layer {
         public attribution: string,
         public layerDefinitions: any[],
         public parentId?: string,
+        // Images referenced by layer definitions (e.g. `fill-pattern`), built lazily so
+        // canvas work only happens once the layer is actually added to a map.
+        public images: Record<string, () => ImageData> = {},
     ) {
         for (let i = 0; i < layerDefinitions.length; i++) {
             layerDefinitions[i].id = id + '-' + layerDefinitions[i].id + '-' + i
@@ -193,6 +196,9 @@ export class VectorLayer implements Layer {
     }
 
     addToMap(map: any | null): void {
+        for (const [name, createImage] of Object.entries(this.images)) {
+            if (!map?.hasImage(name)) map?.addImage(name, createImage())
+        }
         map?.addSource(this.id, {
             type: 'vector',
             url: this.url,
@@ -262,6 +268,10 @@ export class VectorLayer implements Layer {
             const paint = def.paint ?? {}
             const building = isBuildingLayer(def.id)
             if (def.type === 'fill') {
+                if ('fill-pattern' in paint) {
+                    // A pattern overrides fill-color, so drop it while ghosted.
+                    map.setPaintProperty(def.id, 'fill-pattern', emphasized ? paint['fill-pattern'] : undefined)
+                }
                 map.setPaintProperty(def.id, 'fill-color', emphasized ? paint['fill-color'] : (building ? GHOST_BUILDING_FILL_COLOR : GHOST_FILL_COLOR))
                 map.setPaintProperty(def.id, 'fill-opacity', emphasized ? paint['fill-opacity'] : (building ? GHOST_BUILDING_FILL_OPACITY : GHOST_FILL_OPACITY))
                 if ('fill-outline-color' in paint) {

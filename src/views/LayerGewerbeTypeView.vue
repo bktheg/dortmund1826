@@ -53,6 +53,26 @@ watch(highlightBuildingIds, (ids) => {
     emitter.emit('map-highlight-buildings', ids.length > 0 ? ids : null)
 }, { immediate: true })
 
+watch(liste, (value) => {
+    const located = (value?.eintraege ?? []).filter((e): e is GewerbeTypeEintrag & { center: [number, number] } => !!e.center)
+    if (located.length === 0) return
+    const min: [number, number] = [located[0].center[0], located[0].center[1]]
+    const max: [number, number] = [located[0].center[0], located[0].center[1]]
+    for (const e of located) {
+        min[0] = Math.min(min[0], e.center[0])
+        min[1] = Math.min(min[1], e.center[1])
+        max[0] = Math.max(max[0], e.center[0])
+        max[1] = Math.max(max[1], e.center[1])
+    }
+    const bufferX = Math.max((max[0] - min[0]) * 0.1, 0.001)
+    const bufferY = Math.max((max[1] - min[1]) * 0.1, 0.001)
+    min[0] -= bufferX
+    min[1] -= bufferY
+    max[0] += bufferX
+    max[1] += bufferY
+    emitter.emit('map-highlight-location', { location: [min, max] })
+}, { immediate: true })
+
 const adresseText = (e: GewerbeTypeEintrag) => `${e.adresse.strasse} ${e.adresse.hnr}`.trim()
 
 const moveToAdresse = (e: GewerbeTypeEintrag) => {
