@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia'
 import { useAdressdatenStore, cleanStreet, cleanHnr, type Adressbuch, type Gebaeude } from '../stores/adressdatenStore'
 import { useGewerbeTypeStore } from '@/stores/gewerbeTypeStore'
 import { useHaeuserbuchStore, type HaeuserbuchBuilding } from '@/stores/haeuserbuchStore'
-import { matchesHnr } from '@/services/addressComparatorService'
+import { findMatchingEntries } from '@/services/addressComparatorService'
 import { decodeAddressParam } from '@/utils/buildingAddresses'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import HaeuserbuchInfoComponent from '@/components/haeuserbuchInfo.vue'
@@ -99,12 +99,9 @@ function haeuserbuchBuildingsFor(cleanedStreet: string | null, cleanedHnr: strin
     if (!haeuserbuch?.buildings) {
         return []
     }
-    return haeuserbuch.buildings.filter(b => {
-        if (!b.number || b.number == 'ohne') {
-            return false
-        }
-        return cleanStreet(b.street) == cleanedStreet && matchesHnr(cleanedHnr, cleanHnr(b.number))
-    })
+    const onStreet = haeuserbuch.buildings.filter(b =>
+        b.number && b.number != 'ohne' && cleanStreet(b.street) == cleanedStreet)
+    return findMatchingEntries(cleanedHnr, onStreet, b => cleanHnr(b.number))
 }
 
 const resolvedAddresses = computed<ResolvedAddress[]>(() => {
@@ -116,7 +113,7 @@ const resolvedAddresses = computed<ResolvedAddress[]>(() => {
         const cleanedHnr = cleanHnr(a.hnr)
         const label = `${a.strasse} ${a.hnr}`.trim()
         const matches = adressbuch
-            ? adressbuch.gebaeude.filter(g => matchesHnr(cleanedHnr, g.cleanedHnr))
+            ? findMatchingEntries(cleanedHnr, adressbuch.gebaeude, g => g.cleanedHnr)
             : []
         if (matches.length > 0) {
             matches.forEach((building, j) => {

@@ -147,18 +147,9 @@ export function cleanHnr(hnr:string):string | null {
     lower = replaceAll(lower, '¼', '1/4')
     lower = replaceAll(lower, '⅔', '2/3')
 
-    lower = lower.replace(/([- ]{1}[0-9]{1}\/[0-9]{1})/g, (a, b:string) => {
-        const firstPart = b.charAt(1);
-        const prefix = b.charAt(0) == ' ' ? '' : b.charAt(0);
-        switch( firstPart ) {
-            case "1": return prefix+"a";
-            case "2": return prefix+"b";
-            case "3": return prefix+"c";
-            case "4": return prefix+"d";
-            case "5": return prefix+"e";
-            default: return prefix+"f";
-        }
-    });
+    // Protect fractions (e.g. "17 1/2", "40 1/2-2/2") from the range rewrite below.
+    // They stay fractions: whether a/b and 1/2, 2/2 are synonyms is decided at lookup time.
+    lower = lower.replace(/([- ]{1})([0-9]{1})\/([0-9]{1})(?![0-9])/g, '$1$2|$3')
 
     // remove space between number and alpha, e.g. "15 a" => "15a"
     lower = lower.replace(/([0-9]+)[ ]+([a-z]{1})/g, "$1$2")
@@ -172,10 +163,10 @@ export function cleanHnr(hnr:string):string | null {
 
     if( lower.indexOf(' ') > -1 ) {
         const parts = lower.split(' ');
-        return parts[0].replace('/', '-')+' '+parts[1];
+        return parts[0].replace('/', '-')+' '+parts[1].replace(/\|/g, '/');
     }
     else {
-        return lower.replace('/', '-');
+        return lower.replace('/', '-').replace(/\|/g, '/');
     }
 }
 

@@ -2,14 +2,17 @@ import { describe, it, expect } from 'vitest'
 import { buildGebaeudefHighlightFilter, resolveTopHover } from './hoverUtils'
 
 describe('buildGebaeudefHighlightFilter', () => {
-    it('returns correct filter for normal values', () => {
-        const result = buildGebaeudefHighlightFilter('Teststraße', '42')
-        expect(result).toEqual(['all', ['==', ['get', 'street'], 'Teststraße'], ['==', ['get', 'hnr'], '42']])
+    it('filters on gebaeude_id only', () => {
+        expect(buildGebaeudefHighlightFilter(42)).toEqual(['==', ['get', 'gebaeude_id'], 42])
     })
 
-    it('returns correct filter for empty strings', () => {
-        const result = buildGebaeudefHighlightFilter('', '')
-        expect(result).toEqual(['all', ['==', ['get', 'street'], ''], ['==', ['get', 'hnr'], '']])
+    it('keeps id 0 as a valid id', () => {
+        expect(buildGebaeudefHighlightFilter(0)).toEqual(['==', ['get', 'gebaeude_id'], 0])
+    })
+
+    it('matches nothing when the feature has no gebaeude_id', () => {
+        expect(buildGebaeudefHighlightFilter(undefined)).toBe(false)
+        expect(buildGebaeudefHighlightFilter(null)).toBe(false)
     })
 })
 

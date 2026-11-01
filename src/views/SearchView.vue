@@ -7,7 +7,9 @@
     import {useEigentuemerStore} from '../stores/eigentuemerStore'
     import type {BezeichnungExport} from '../stores/bezeichnungStore'
     import type { SearchResult } from "@/services/searchService";
-    import { searchByTerm, SearchResultType } from "@/services/searchService";
+    import { searchByTerm } from "@/services/searchService";
+    import { getResultCss, getResultLabel } from "@/utils/searchResultTypes";
+    import type { ResultTypeCount } from "@/utils/searchResultTypes";
     import { getLayerSearchTypes, getLayerSearchType, isLayerSearchType } from "@/services/layerSearchService";
     import { useMapLayerStore } from "@/stores/mapLayerStore";
     // @ts-ignore
@@ -42,6 +44,19 @@
     const searchDebounce = ref(null as any as DebouncedFunc<() => void>)
     const maxResults = ref(100)
     const filterValue = ref(['__all'])
+    const phonetic = ref(false)
+    const PHONETIC_LABEL = 'Ähnlich klingende Namen'
+    const PHONETIC_TITLE = 'Findet auch abweichende Schreibweisen, z. B. Meier, Meyer und Maier.'
+    const presentTypes = shallowRef([] as ResultTypeCount[])
+    const hiddenTypes = ref([] as string[])
+    // The search type the hidden types were chosen for; they are dropped when it changes.
+    let hiddenTypesFor = ""
+    const hiddenTypeSet = computed(() => new Set(hiddenTypes.value))
+    const showTypeButtons = computed(() =>
+        presentTypes.value.length >= 2 || presentTypes.value.some(t => hiddenTypeSet.value.has(t.key)))
+    const allTypesHidden = computed(() =>
+        presentTypes.value.length > 0 && matches.value.length == 0 && presentTypes.value.every(t => hiddenTypeSet.value.has(t.key)))
+    const phoneticApplies = computed(() => searchType.value != 'parzelle')
 
     const router = useRouter();
     const emitter = inject('emitter') as Emitter<any>
@@ -50,6 +65,7 @@
     onMounted(async () => {
         searchDebounce.value = _debounce(() => {
                 matches.value = []
+                presentTypes.value = []
                 if( !searchtext.value || searchtext.value.trim() == "") {
                     return;
                 }
@@ -60,9 +76,12 @@
         searchtext.value = router.currentRoute.value.params.term as string
         searchType.value = router.currentRoute.value.params.type as string
         filterValue.value = unserializeFilter(router.currentRoute.value.params.filter as string);
+        phonetic.value = isPhoneticQuery(router.currentRoute.value.query.ph)
         if( !searchType.value ) {
             searchType.value = 'lage';
         }
+        hiddenTypes.value = unserializeHidden(router.currentRoute.value.query.hide)
+        hiddenTypesFor = searchType.value
 
         search();
     })
@@ -73,10 +92,15 @@
             const newType = to.params.type as string;
             const newTerm = to.params.term as string;
             const newFilter = to.params.filter as string;
-            if( newType != searchType.value || newTerm != searchtext.value || newFilter != serializeFilter(filterValue.value) ) {
+            const newPhonetic = isPhoneticQuery(to.query.ph);
+            const newHidden = unserializeHidden(to.query.hide);
+            if( newType != searchType.value || newTerm != searchtext.value || newFilter != serializeFilter(filterValue.value) || newPhonetic != phonetic.value || serializeHidden(newHidden) != serializeHidden(hiddenTypes.value) ) {
                 searchType.value = newType;
                 searchtext.value = newTerm;
                 filterValue.value = unserializeFilter(newFilter);
+                phonetic.value = newPhonetic;
+                hiddenTypes.value = newHidden;
+                hiddenTypesFor = newType;
                 if( searchtext.value && searchDebounce.value ) {
                     searchDebounce.value();
                 }
@@ -162,7 +186,13 @@
     })
     
     watch(filterValue, () => search())
+    watch(phonetic, () => search())
+    watch(hiddenTypes, () => search())
     watch(searchType, () => {
+        if( searchType.value != hiddenTypesFor ) {
+            hiddenTypesFor = searchType.value
+            hiddenTypes.value = []
+        }
         // Start loading the layer's data as soon as its search is picked, not only
         // once the first character is typed.
         activeLayerSearch.value?.prefetch()
@@ -181,6 +211,36 @@
         if( searchtext.value && searchDebounce.value ) {
             searchDebounce.value();
         }
+    }
+    function isPhoneticQuery(value:unknown):boolean {
+        return value === '1'
+    }
+    // The flag is not applied to a Parzelle search, but it stays in the route so the
+    // choice is still there when the user switches back to a name search.
+    function buildQuery() {
+        const query:Record<string, string> = {}
+        if( phonetic.value ) {
+            query.ph = '1'
+        }
+        const hide = serializeHidden(hiddenTypes.value)
+        if( hide ) {
+            query.hide = hide
+        }
+        return query
+    }
+    function serializeHidden(types:string[]):string {
+        return [...types].sort().join(',')
+    }
+    function unserializeHidden(value:unknown):string[] {
+        return typeof value == 'string' && value ? value.split(',').filter(t => !!t) : []
+    }
+    function toggleType(key:string) {
+        hiddenTypes.value = hiddenTypes.value.includes(key)
+            ? hiddenTypes.value.filter(t => t != key)
+            : [...hiddenTypes.value, key]
+    }
+    function onTypeCounts(types:ResultTypeCount[]) {
+        presentTypes.value = types
     }
     function serializeFilter(filters:string[]) {
         if( filters.includes('__all') ) {
@@ -201,9 +261,9 @@
             // The Gemeinde filter is meaningless for a layer search, but it must survive
             // in the route: dropping it here would make onBeforeRouteUpdate reset the
             // user's filter, and it would be gone when they switch back.
-            router.replace({name:'search', params:{type:searchType.value, term:searchtext.value, filter:serializeFilter(filterValue.value)}, hash:window.location.hash})
+            router.replace({name:'search', params:{type:searchType.value, term:searchtext.value, filter:serializeFilter(filterValue.value)}, query:buildQuery(), hash:window.location.hash})
 
-            return layerSearch.search(term, maxResults.value);
+            return layerSearch.search(term, maxResults.value, {phonetic:phonetic.value, hiddenTypes:hiddenTypeSet.value, onTypeCounts});
         }
 
         // Layer search selected, but its layer is not (yet) in the layer list: searching
@@ -222,9 +282,9 @@
             flurStore.gemeinden.filter(g => g.haeuserbuch).forEach(g => haeuserbuchStore.fetchHaeuserbuch(g.id))
         }
 
-        router.replace({name:'search', params:{type:searchType.value, term:searchtext.value, filter:serializeFilter(filterValue.value)}, hash:window.location.hash})
+        router.replace({name:'search', params:{type:searchType.value, term:searchtext.value, filter:serializeFilter(filterValue.value)}, query:buildQuery(), hash:window.location.hash})
         
-        return searchByTerm(term, searchType.value, filterValue.value, maxResults.value);
+        return searchByTerm(term, searchType.value, filterValue.value, maxResults.value, {phonetic:phonetic.value, hiddenTypes:hiddenTypeSet.value, onTypeCounts});
     }
     function resultSelected(match:SearchResult) {
         // A layer's own hit is only legible on top of that layer, and layers start hidden.
@@ -236,50 +296,6 @@
         }
         if( match.route != null ) {
             router.push(match.route)
-        }
-    }
-    function getResultLabel(match:SearchResult) {
-        return match.typeLabel ?? getTypeLabel(match.typeEnum)
-    }
-    function getResultCss(match:SearchResult) {
-        return match.typeCss ?? getTypeCss(match.typeEnum)
-    }
-    function getTypeLabel(type:SearchResultType) {
-        switch(type) {
-            case SearchResultType.ADMIN:
-                return "Verwaltungseinheit";
-            case SearchResultType.FLUR:
-                return "Flur";
-            case SearchResultType.ORT:
-                return "Dorf/Stadt";
-            case SearchResultType.BEZEICHNUNG:
-            case SearchResultType.BEZEICHNUNG_LINE:
-                return "Bezeichnung";
-            case SearchResultType.GEWAESSER:
-                return "Gewässer";
-            case SearchResultType.GEBAEUDE:
-                return "Gebäude";
-            case SearchResultType.OWNER:
-                return "Eigentümer";
-        }
-    }
-    function getTypeCss(type:SearchResultType) {
-        switch(type) {
-            case SearchResultType.ADMIN:
-                return "admin";
-            case SearchResultType.FLUR:
-                return "flur";
-            case SearchResultType.ORT:
-                return "town";
-            case SearchResultType.BEZEICHNUNG:
-            case SearchResultType.BEZEICHNUNG_LINE:
-                return "name";
-            case SearchResultType.GEWAESSER:
-                return "gewaesser";
-            case SearchResultType.GEBAEUDE:
-                return "gebaeude";
-            case SearchResultType.OWNER:
-                return "owner";
         }
     }
 </script>
@@ -329,62 +345,46 @@
         margin:0;
         padding:0
     }
+    .type-town,
+    .type-admin,
+    .type-flur {
+        --type-bg: var(--search-color-flurname);
+        --type-bg-highlight: var(--search-color-flurname-highlight);
+    }
+    .type-gewaesser {
+        --type-bg: var(--search-color-gewaesser);
+        --type-bg-highlight: var(--search-color-gewaesser-highlight);
+    }
+    .type-gebaeude {
+        --type-bg: var(--search-color-gebaeude);
+        --type-bg-highlight: var(--search-color-gebaeude-highlight);
+    }
+    .type-gewerbe {
+        --type-bg: var(--search-color-gewerbe);
+        --type-bg-highlight: var(--search-color-gewerbe-highlight);
+    }
+    .type-behoerde {
+        --type-bg: var(--search-color-behoerde);
+        --type-bg-highlight: var(--search-color-behoerde-highlight);
+    }
+    .type-strasse {
+        --type-bg: var(--search-color-strasse);
+        --type-bg-highlight: var(--search-color-strasse-highlight);
+    }
+    .type-besitzer {
+        --type-bg: var(--search-color-besitzer);
+        --type-bg-highlight: var(--search-color-besitzer-highlight);
+    }
     #searchresult > li {
         list-style: none;
-        background-color:var(--search-color-result);
+        background-color:var(--type-bg, var(--search-color-result));
         margin:5pt 0pt;
         padding:3pt 5pt;
         border-radius: 5pt;
         cursor:pointer;
     }
     #searchresult > li:hover {
-        background-color: var(--search-color-result-highlight)
-    }
-    #searchresult > li.type-town,
-    #searchresult > li.type-admin,
-    #searchresult > li.type-flur {
-        background-color:var(--search-color-flurname)
-    }
-    #searchresult > li.type-town:hover,
-    #searchresult > li.type-admin:hover,
-    #searchresult > li.type-flur:hover {
-        background-color:var(--search-color-flurname-highlight)
-    }
-    #searchresult > li.type-gewaesser {
-        background-color:var(--search-color-gewaesser)
-    }
-    #searchresult > li.type-gewaesser:hover {
-        background-color:var(--search-color-gewaesser-highlight)
-    } 
-    #searchresult > li.type-gebaeude {
-        background-color:var(--search-color-gebaeude)
-    }
-    #searchresult > li.type-gebaeude:hover {
-        background-color:var(--search-color-gebaeude-highlight)
-    }
-    #searchresult > li.type-gewerbe {
-        background-color:var(--search-color-gewerbe)
-    }
-    #searchresult > li.type-gewerbe:hover {
-        background-color:var(--search-color-gewerbe-highlight)
-    }
-    #searchresult > li.type-behoerde {
-        background-color:var(--search-color-behoerde)
-    }
-    #searchresult > li.type-behoerde:hover {
-        background-color:var(--search-color-behoerde-highlight)
-    }
-    #searchresult > li.type-strasse {
-        background-color:var(--search-color-strasse)
-    }
-    #searchresult > li.type-strasse:hover {
-        background-color:var(--search-color-strasse-highlight)
-    }
-    #searchresult > li.type-besitzer {
-        background-color:var(--search-color-besitzer)
-    }
-    #searchresult > li.type-besitzer:hover {
-        background-color:var(--search-color-besitzer-highlight)
+        background-color: var(--type-bg-highlight, var(--search-color-result-highlight))
     }
     #searchresult .position {
         font-size:80%;
@@ -414,6 +414,9 @@
         content: '➔';
         font-weight: bold;
     }
+    #searchresult u.phonetic {
+        text-decoration-style: dotted;
+    }
     .searchinput,
     .searchfilter {
         width:100%;
@@ -421,15 +424,55 @@
     .searchfilter {
         margin-bottom:5pt;
     }
+    .searchoptions {
+        margin:5pt 0;
+        display:flex;
+        flex-wrap:wrap;
+        align-items:center;
+        gap:5pt;
+    }
+    .searchoptions .typefilter {
+        display:flex;
+        flex-wrap:wrap;
+        gap:5pt;
+    }
+    .searchoptions .typefilter button {
+        font:inherit;
+        color:inherit;
+        background-color:var(--type-bg, var(--search-color-result));
+        border:1px solid transparent;
+        border-radius:5pt;
+        padding:2pt 7pt;
+        min-height:17pt;
+        cursor:pointer;
+    }
+    .searchoptions .typefilter button:hover {
+        background-color:var(--type-bg-highlight, var(--search-color-result-highlight));
+    }
+    .searchoptions .typefilter button:focus-visible {
+        outline:2px solid currentColor;
+        outline-offset:1px;
+    }
+    .searchoptions .typefilter button[aria-pressed="false"] {
+        opacity:0.5;
+        text-decoration:line-through;
+    }
+    .searchhint {
+        font-style:italic;
+    }
+    .searchinput {
+        display:flex;
+        gap:5pt;
+    }
     .searchinput .text {
-        width:70%;
+        flex:1 1 auto;
         min-width:200pt;
         height:17pt;
         border: 1px solid #ddd;
         border-radius: 5px;
     }
     .searchinput .button {
-        width:25%;
+        flex:0 0 25%;
     }
     .searchfilter .searchtype {
         width:30%;
@@ -457,8 +500,17 @@
                 <input class="text" type="text" placeholder="Suchbegriff eingeben" v-model="searchtext" @keyup="search()"/>
                 <input class="button" type="submit" value="Suchen" @click="search()"/>
             </section>
+            <section class="searchoptions">
+                <label v-if="phoneticApplies" :title="PHONETIC_TITLE">
+                    <input type="checkbox" v-model="phonetic"/> {{PHONETIC_LABEL}}
+                </label>
+                <div v-if="showTypeButtons" class="typefilter" role="group" aria-label="Ergebnistypen ein- oder ausblenden">
+                    <button v-for="t in presentTypes" :key="t.key" type="button" :class="`type-${t.key}`" :aria-pressed="!hiddenTypeSet.has(t.key)" @click="toggleType(t.key)">{{t.label}} ({{t.count}})</button>
+                </div>
+            </section>
             <div>
                 <LoadingSpinner v-if="loading" />
+                <p v-if="allTypesHidden && !loading" class="searchhint" role="status">Alle Ergebnistypen sind ausgeblendet.</p>
                 <ul id="searchresult">
                     <li v-for="match in matches" @click="resultSelected(match)" :class="`type-${getResultCss(match)}`">
                         <div class="position">{{match.locationDesc}}</div>

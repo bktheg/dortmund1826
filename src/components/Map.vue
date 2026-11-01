@@ -45,10 +45,9 @@ class ParzellenDetailControl {
 export default {
     setup() {
         const layerStore = useMapLayerStore()
-        const previewStore = usePreviewStore()
         const dragFromId = ref<string | null>(null)
         const dragOverId = ref<string | null>(null)
-        return { layerStore, previewStore, dragFromId, dragOverId, hasLayerInfo }
+        return { layerStore, dragFromId, dragOverId, hasLayerInfo }
     },
     data() {
         return {
@@ -67,7 +66,7 @@ export default {
         this.localDevMode = import.meta.env.VITE_SERVER_URL != null && import.meta.env.VITE_SERVER_URL != ''
         const previewStore = usePreviewStore()
         previewStore.init()
-        this.layerStore.initLayers(previewStore.preview, import.meta.env.VITE_SERVER_URL ?? '')
+        this.layerStore.initLayers(import.meta.env.VITE_SERVER_URL ?? '')
 
         window.mapboxgl.accessToken = 'pk.eyJ1IjoiYmt0aGVnIiwiYSI6ImNrZ3dnZnpkazA5d3AyeXBmNGhwdTZrbzYifQ.brEDeLH2Z1BPGZmQNcqwSQ';
         this.map = new window.mapboxgl.Map({
@@ -111,6 +110,8 @@ export default {
         this.map.on('zoom', () => this.layerStore.updateDisabledStatus(this.map));
         // Panning does not change zoom, so re-evaluate the bbox-based disabling on moveend too.
         this.map.on('moveend', () => this.layerStore.updateDisabledStatus(this.map));
+        // The zoom that frames a layer's extent depends on the viewport size.
+        this.map.on('resize', () => this.layerStore.updateDisabledStatus(this.map));
         // A vector layer's tilejson bounds arrive asynchronously; re-evaluate once a source
         // finishes loading so the layer greys out immediately if the viewport is already outside it.
         this.map.on('sourcedata', (e:any) => {
@@ -214,7 +215,7 @@ export default {
 
     methods: {
         onDragStart(id: string, e: DragEvent): void {
-            if (!this.previewStore.preview || !e.dataTransfer) return
+            if (!e.dataTransfer) return
             this.dragFromId = id
             e.dataTransfer.effectAllowed = 'move'
         },
@@ -331,7 +332,7 @@ export default {
     <nav id='layer' :class="{ dragging: !!dragFromId }">
         <template v-for="layer of layerStore.layers" :key="layer.id">
             <div v-if="!layer.parentId"
-                 :draggable="previewStore.preview && layer.sortable"
+                 :draggable="layer.sortable"
                  :class="{ 'drop-target': dragOverId === layer.id && dragFromId !== layer.id, 'is-dragging': dragFromId === layer.id }"
                  @dragstart="onDragStart(layer.id, $event)"
                  @dragend="onDragEnd"
@@ -339,15 +340,17 @@ export default {
                  @dragleave="onDragLeave(layer.id, $event)"
                  @dragover.prevent
                  @drop.prevent="onDrop(layer.id)">
-                <span v-if="previewStore.preview && layer.sortable" class="drag-handle">⠿</span>
+                <span v-if="layer.sortable" class="drag-handle">⠿</span>
                 <label :class="layer.disabled ? 'disabled' : ''">
                     <input type="checkbox" value="true" :id="layerCheckboxId(layer.id)" v-model="layer.visible" @change="layerStore.toggleLayer(layer.id, map)"/>{{layer.name}}
                 </label>
+                <button v-if="layer.canZoomToExtent" type="button" class="layer-info-btn layer-zoom-btn" title="Auf Kartenebene zoomen" aria-label="Auf Kartenebene zoomen" @click="layerStore.zoomToLayer(layer.id, map)"><svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg></button>
                 <router-link v-if="hasLayerInfo(layer.id)" class="layer-info-btn" :to="{ name: 'layer-info', params: { layername: layer.id } }" title="Informationen zur Kartenebene">i</router-link>
                 <div v-for="child of layerStore.layers.filter(l => l.parentId === layer.id)" :key="child.id">
                     <label :class="child.disabled ? 'disabled' : ''">
                         <input type="checkbox" value="true" :id="layerCheckboxId(child.id)" v-model="child.visible" @change="layerStore.toggleLayer(child.id, map)"/>{{child.name}}
                     </label>
+                    <button v-if="child.canZoomToExtent" type="button" class="layer-info-btn layer-zoom-btn" title="Auf Kartenebene zoomen" aria-label="Auf Kartenebene zoomen" @click="layerStore.zoomToLayer(child.id, map)"><svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg></button>
                     <router-link v-if="hasLayerInfo(child.id)" class="layer-info-btn" :to="{ name: 'layer-info', params: { layername: child.id } }" title="Informationen zur Kartenebene">i</router-link>
                 </div>
             </div>
@@ -423,6 +426,13 @@ export default {
         text-decoration: none;
         cursor: pointer;
         transition: background-color .12s ease, color .12s ease;
+    }
+
+    .layer-zoom-btn {
+        border: none;
+        background: none;
+        padding: 0;
+        margin-right: -0.35em;
     }
 
     .layer-info-btn:hover {

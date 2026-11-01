@@ -10,16 +10,12 @@
     import type {MutterrolleRow} from '../stores/mutterrolleStore'
     import type {HighlightEvent} from '../components/Map.vue'
     import LoadingSpinner from '@/components/LoadingSpinner.vue'
+    import {areaToFuss, formatSquareMeterTooltip} from '@/utils/areaConversion'
 
     const FACTOR_F = 100;
 
     const FACTOR_TALER = 30;
     const FACTOR_GROSCHEN = 12;
-
-    function toFeet(flaeche:String):number {
-        const parts = flaeche.split('.');
-        return parseInt(parts[0])*180*FACTOR_F+parseInt(parts[1])*FACTOR_F+parseFloat(parts[2]?.replace(',','.'));
-    }
 
     function toPfennig(money:String):number {
         const parts = money.split('.');
@@ -81,7 +77,7 @@
         if( !mutterrolle.value ) {
             return '';
         }
-        const sum = mutterrolle.value.rows.filter(r => r.flaeche).map(r => toFeet(r.flaeche)).reduce((a,b) => a+b, 0);
+        const sum = mutterrolle.value.rows.filter(r => r.flaeche).map(r => (areaToFuss(r.flaeche) ?? 0)).reduce((a,b) => a+b, 0);
         
         const m = Math.floor(sum/(180*FACTOR_F));
         const r = Math.floor((sum-m*180*FACTOR_F)/FACTOR_F);
@@ -166,7 +162,7 @@
                             <td>{{row.lage}}</td>
                             <td>{{row.kulturart}}</td>
                             <td>{{row.klasse}}</td>
-                            <td>{{row.flaeche}}</td>
+                            <td :title="formatSquareMeterTooltip(row.flaeche)">{{row.flaeche}}</td>
                             <td v-if="showReinertrag">{{row.reinertrag}}</td>
                         </tr>
                     </tbody>
@@ -177,7 +173,7 @@
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td>{{gesamtflaeche}}</td>
+                            <td :title="formatSquareMeterTooltip(gesamtflaeche)">{{gesamtflaeche}}</td>
                             <td v-if="showReinertrag">{{gesamtErtrag}}</td>
                         </tr>
                     </tfoot>

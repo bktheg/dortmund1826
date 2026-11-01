@@ -1,5 +1,5 @@
 import { useMapLayerStore } from '@/stores/mapLayerStore'
-import type { SearchResult } from '@/services/searchService'
+import type { SearchResult, SearchOptions } from '@/services/searchService'
 import { prefetchDo1914, isDo1914Loading, searchDo1914 } from '@/services/do1914SearchService'
 
 /**
@@ -18,7 +18,7 @@ type LayerSearchProvider = {
     layerId:string
     prefetch():void
     isLoading():boolean
-    search(term:string, maxResults:number):SearchResult[]
+    search(term:string, maxResults:number, options?:SearchOptions):SearchResult[]
 }
 
 export type LayerSearchType = LayerSearchProvider & {

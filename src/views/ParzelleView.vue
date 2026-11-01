@@ -11,6 +11,7 @@
     import {useFlurStore} from '@/stores/flurStore'
     import {useParzelleStore} from '@/stores/parzelleStore'
     import {CommonInfo, WikipediaInfo} from '@/services/infoService'
+    import {formatSquareMeterTooltip} from '@/utils/areaConversion'
 
     const flurStore = useFlurStore()
     const parzelleStore = useParzelleStore()
@@ -118,7 +119,7 @@
                     <dt>{{parzelle?.klasse}}</dt>
 
                     <dd>Größe³</dd>
-                    <dt>{{parzelle?.flaeche}}</dt>
+                    <dt :title="formatSquareMeterTooltip(parzelle?.flaeche)">{{parzelle?.flaeche}}</dt>
 
                     <template v-if="parzelle?.reinertrag">
                         <dd>Reinertrag⁴</dd>
@@ -149,7 +150,7 @@
                                 </td>
                                 <td v-if="subareaColumns.typ">{{subarea.typ}}</td>
                                 <td v-if="subareaColumns.klasse">{{subarea.klasse}}</td>
-                                <td v-if="subareaColumns.flaeche">{{subarea.flaeche}}</td>
+                                <td v-if="subareaColumns.flaeche" :title="formatSquareMeterTooltip(subarea.flaeche)">{{subarea.flaeche}}</td>
                                 <td v-if="subareaColumns.reinertrag">{{subarea.reinertrag}}</td>
                             </tr>
                         </tbody>

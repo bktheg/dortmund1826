@@ -49,8 +49,10 @@ export class HoverController {
     setup(): void {
         for (const layer of this.getLayers()) {
             if (!layer.hoverDescriptor) continue
-            this.addHoverLayers(layer.hoverDescriptor)
-            this.registered.push({ layerId: layer.id, descriptor: layer.hoverDescriptor, activeFeature: null })
+            for (const descriptor of [layer.hoverDescriptor, ...(layer.extraHoverDescriptors ?? [])]) {
+                this.addHoverLayers(descriptor)
+                this.registered.push({ layerId: layer.id, descriptor, activeFeature: null })
+            }
         }
 
         this.mouseMoveHandler = (e: any) => this.onMouseMove(e)
@@ -91,14 +93,16 @@ export class HoverController {
             this.map.addLayer(highlightLayer)
         }
         if (this.map.getLayer(descriptor.hitLayerId) == null) {
-            this.map.addLayer({
+            const hitLayer: any = {
                 id: descriptor.hitLayerId,
                 type: 'fill',
                 source: descriptor.source,
                 'source-layer': descriptor.sourceLayer,
                 layout: {},
                 paint: { 'fill-opacity': 0 },
-            })
+            }
+            if (descriptor.hitFilter) hitLayer.filter = descriptor.hitFilter
+            this.map.addLayer(hitLayer)
         }
     }
 

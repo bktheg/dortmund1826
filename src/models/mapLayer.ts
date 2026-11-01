@@ -50,6 +50,8 @@ export interface HoverDescriptor {
     highlightLayerId: string
     source: string
     sourceLayer: string
+    /** Restricts the hit layer to matching features (e.g. only features carrying `addr`). */
+    hitFilter?: any[]
     highlight: HoverHighlight
     selectFeature?: (features: any[]) => any
     buildClickRoute: (feature: any) => ClickRoute | null
@@ -57,19 +59,28 @@ export interface HoverDescriptor {
 
 export type HoverHighlight =
     | { mechanism: 'feature-state'; layerType: 'line' | 'fill'; paint: any }
-    | { mechanism: 'filter'; layerType: 'line' | 'fill'; paint: any; buildFilter: (feature: any) => any[] }
+    | { mechanism: 'filter'; layerType: 'line' | 'fill'; paint: any; buildFilter: (feature: any) => any[] | false }
+
+export interface ExtentCamera {
+    center: [number, number]
+    zoom: number
+}
 
 export interface Layer {
     id: string
     type: string
     visible: boolean
     disabled: boolean
+    /** Whether the "zoom to layer" action is currently offered; kept in sync by the layer store. */
+    canZoomToExtent: boolean
     sortable: boolean
     minZoom: number
     maxZoom: number
     name: string
     parentId?: string
     hoverDescriptor?: HoverDescriptor
+    /** Further hover targets of the same layer; on equal stacking the main descriptor wins. */
+    extraHoverDescriptors?: HoverDescriptor[]
     addToMap(map: any | null): void
     show(map: any | null, belowLayerId?: string): void
     hide(map: any | null): void
@@ -88,12 +99,18 @@ export interface Layer {
      * report true once panned away from their bbox.
      */
     isOutOfBounds(map: any | null): boolean
+    /**
+     * Camera that frames the layer's whole extent, or null when the layer has no known
+     * extent or the zoom needed to frame it lies outside the layer's [minZoom, maxZoom].
+     */
+    getExtentCamera(map: any | null): ExtentCamera | null
 }
 
 export class WmsLayer implements Layer {
     public type: string = 'WmsLayer'
     public visible: boolean = false
     public disabled: boolean = false
+    public canZoomToExtent: boolean = false
     public sortable: boolean = true
     public hoverDescriptor?: HoverDescriptor
 
@@ -159,6 +176,10 @@ export class WmsLayer implements Layer {
         // render at full colour regardless of stacking position.
     }
 
+    getExtentCamera(_map: any | null): ExtentCamera | null {
+        return null
+    }
+
     isOutOfBounds(_map: any | null): boolean {
         return false
     }
@@ -168,8 +189,10 @@ export class VectorLayer implements Layer {
     public type: string = 'VectorLayer'
     public visible: boolean = false
     public disabled: boolean = false
+    public canZoomToExtent: boolean = false
     public sortable: boolean = true
     public hoverDescriptor?: HoverDescriptor
+    public extraHoverDescriptors?: HoverDescriptor[]
     // Externally-managed line layers (e.g. the durchfahrt cross overlay) that are not
     // part of layerDefinitions but must ghost in lockstep with this layer. Maps the
     // layer id to its original (emphasized) line colour.
@@ -298,6 +321,20 @@ export class VectorLayer implements Layer {
      * available while any part of the region is still on screen. Until the tilejson
      * has loaded (`bounds` undefined) the layer is treated as in-bounds.
      */
+    /**
+     * Frames the tilejson `bounds` of the source. Offered only when the zoom that fits
+     * the whole region on screen is a zoom this layer can actually render at.
+     */
+    getExtentCamera(map: any | null): ExtentCamera | null {
+        const bounds = map?.getSource(this.id)?.bounds
+        if (!bounds || typeof map?.cameraForBounds !== 'function') return null
+        const [west, south, east, north] = bounds
+        const camera = map.cameraForBounds([[west, south], [east, north]], { padding: 40 })
+        if (!camera || camera.zoom < this.minZoom || camera.zoom > this.maxZoom) return null
+        const { lng, lat } = camera.center
+        return { center: [lng, lat], zoom: camera.zoom }
+    }
+
     isOutOfBounds(map: any | null): boolean {
         const bounds = map?.getSource(this.id)?.bounds
         if (!bounds || typeof map?.getBounds !== 'function') return false
@@ -322,6 +359,7 @@ export class StaticLayer implements Layer {
     public type: string = 'StaticLayer'
     public visible: boolean = true
     public disabled: boolean = false
+    public canZoomToExtent: boolean = false
     public hoverDescriptor?: HoverDescriptor
     private _anchorId: string | undefined = undefined
     // Originals captured the first time a base-style layer is ghosted, so restoring
@@ -395,6 +433,10 @@ export class StaticLayer implements Layer {
                 this._ghostProp(map, id, 'text-opacity', emphasized, GHOST_TEXT_OPACITY)
             }
         }
+    }
+
+    getExtentCamera(_map: any | null): ExtentCamera | null {
+        return null
     }
 
     isOutOfBounds(_map: any | null): boolean {

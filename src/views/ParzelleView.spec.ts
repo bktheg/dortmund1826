@@ -116,3 +116,30 @@ describe('ParzelleView subareas table', () => {
         expect(rows[1].findAll('td')[1].text()).toBe('0,02')
     })
 })
+
+describe('ParzelleView area tooltips', () => {
+    beforeEach(() => {
+        setActivePinia(createPinia())
+        vi.clearAllMocks()
+    })
+
+    it('adds a square-meter title to the Größe values', async () => {
+        vi.mocked(axios.get).mockImplementation((url: string) => {
+            if (url.includes('/admin.json')) return Promise.resolve({ data: adminExport })
+            if (url.includes('/parzellen_')) {
+                return Promise.resolve({
+                    data: [parzelleExport({ f: '1.0.0', u: [{ e: 'Meyer, Fritz', a: '88', f: '0.5.0' }, { e: 'Schulte, Anna', a: '91' }] })]
+                })
+            }
+            return Promise.resolve({ data: [] })
+        })
+
+        const wrapper = await mountAt('245')
+
+        const dts = wrapper.findAll('dt').filter(d => d.text() === '1.0.0')
+        expect(dts[0].attributes('title')).toBe('≈ 2.553,2 m²')
+        const cells = wrapper.findAll('table.subareas tbody td:last-child')
+        expect(cells[0].attributes('title')).toBe('≈ 70,9 m²')
+    })
+})
+

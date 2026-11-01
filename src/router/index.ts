@@ -45,6 +45,11 @@ const router = createRouter({
       component: () => import('../views/LayerGewerbeTypeView.vue')
     },
     {
+      path: '/layer/:layername/addressdata/by-streetname/:streetname',
+      name: 'layer-street',
+      component: () => import('../views/LayerStreetView.vue')
+    },
+    {
       path: '/layer/:layername/:addr',
       name: 'layer-details',
       component: () => import('../views/LayerDetailsView.vue')

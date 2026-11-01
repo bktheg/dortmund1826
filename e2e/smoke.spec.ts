@@ -81,3 +81,70 @@ test('mutterrolle view renders name and table row', async ({ page }) => {
     await expect(page.locator('#contentview')).toContainText('Blömer zu Lütgendortmund', { timeout: 15000 })
     await expect(page.locator('#contentview')).toContainText('in der Voede')
 })
+
+test('phonetic search finds spelling variants only when enabled', async ({ page }) => {
+    await page.goto('/search/lage/schmitt')
+    await expect(page.locator('#searchresult li')).toHaveCount(0)
+
+    await page.goto('/search/lage/schmitt?ph=1')
+    await expect(page.getByLabel('Ähnlich klingende Namen')).toBeChecked()
+    await expect(page.locator('#searchresult')).toContainText('Schmidt')
+
+    await page.goto('/search/parzelle/1-2?ph=1')
+    await expect(page.getByLabel('Ähnlich klingende Namen')).toHaveCount(0)
+})
+
+test.describe('search result type filter', () => {
+    test('toggling a type hides its rows, is kept in the URL and survives a reload', async ({ page }) => {
+        await page.goto('/search/lage/bach')
+        const buttons = page.locator('.typefilter button')
+        await expect(buttons.nth(1)).toBeVisible({ timeout: 15000 })
+
+        const first = buttons.first()
+        const key = (await first.getAttribute('class'))!.match(/type-(\w+)/)![1]
+        await expect(first).toHaveAttribute('aria-pressed', 'true')
+        await expect(page.locator(`#searchresult li.type-${key}`).first()).toBeVisible()
+
+        await first.click()
+        await expect(first).toHaveAttribute('aria-pressed', 'false')
+        await expect(page.locator(`#searchresult li.type-${key}`)).toHaveCount(0)
+        await expect(page).toHaveURL(new RegExp(`hide=${key}`))
+
+        await page.reload()
+        await expect(page.locator('.typefilter button').first()).toHaveAttribute('aria-pressed', 'false', { timeout: 15000 })
+        await expect(page.locator(`#searchresult li.type-${key}`)).toHaveCount(0)
+
+        await page.locator('.typefilter button').first().click()
+        await expect(page.locator(`#searchresult li.type-${key}`).first()).toBeVisible()
+        await expect(page).not.toHaveURL(/hide=/)
+    })
+
+    test('a deep link hides the given types and a new search type clears them', async ({ page }) => {
+        await page.goto('/search/lage/bach?hide=flur,admin')
+        await expect(page.locator('#searchresult li').first()).toBeVisible({ timeout: 15000 })
+        await expect(page.locator('#searchresult li.type-flur')).toHaveCount(0)
+        await expect(page.locator('#searchresult li.type-admin')).toHaveCount(0)
+
+        await page.locator('.searchtype').click()
+        await page.getByText('nach Eigentümer').click()
+        await expect(page).not.toHaveURL(/hide=/)
+    })
+
+    test('hiding every type keeps the buttons and shows a hint', async ({ page }) => {
+        await page.goto('/search/lage/bach')
+        const buttons = page.locator('.typefilter button')
+        await expect(buttons.nth(1)).toBeVisible({ timeout: 15000 })
+
+        const count = await buttons.count()
+        for( let i = 0; i < count; i++ ) {
+            await buttons.nth(i).click()
+        }
+        await expect(page.getByText('Alle Ergebnistypen sind ausgeblendet.')).toBeVisible()
+        await expect(page.locator('#searchresult li')).toHaveCount(0)
+        await expect(page.locator('.typefilter button[aria-pressed="false"]')).toHaveCount(count)
+
+        await buttons.first().click()
+        await expect(page.getByText('Alle Ergebnistypen sind ausgeblendet.')).toHaveCount(0)
+        await expect(page.locator('#searchresult li').first()).toBeVisible()
+    })
+})

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { matchesHnr } from './addressComparatorService'
+import { matchesHnr, findHnrCandidates, findMatchingEntries } from './addressComparatorService'
 
 describe('matchesHnr', () => {
     it('matches identical house numbers', () => {
@@ -59,5 +59,52 @@ describe('matchesHnr', () => {
         expect(matchesHnr('10 1/2', '10 1/2')).toBe(true)
         expect(matchesHnr('10 1/2', '10-12')).toBe(true)
         expect(matchesHnr('10 1/2', '12-14')).toBe(false)
+    })
+})
+
+describe('matchesHnr letters vs fractions', () => {
+    it('keeps letter and fraction numbers distinct', () => {
+        expect(matchesHnr('17a', '17 1/2')).toBe(false)
+    })
+
+    it('orders letters before fractions before the next number', () => {
+        expect(matchesHnr('17b', '17a-17 1/2')).toBe(true)
+        expect(matchesHnr('17 3/2', '17-19')).toBe(true)
+        expect(matchesHnr('17 3/2', '17')).toBe(false)
+    })
+
+    it('matches inside a fraction range', () => {
+        expect(matchesHnr('40 1/2', '40 1/2-2/2')).toBe(true)
+        expect(matchesHnr('40 3/2', '40 1/2-2/2')).toBe(false)
+    })
+
+    it('handles raw unicode fractions', () => {
+        expect(matchesHnr('17 ⅓', '17 1/3')).toBe(true)
+    })
+})
+
+describe('findHnrCandidates', () => {
+    it('falls back to the letter/fraction synonym when nothing matches exactly', () => {
+        expect(findHnrCandidates('17 1/2', ['17a', '19'])).toEqual(['17a'])
+        expect(findHnrCandidates('17a', ['17 1/2', '19'])).toEqual(['17 1/2'])
+    })
+
+    it('returns nothing when the synonym is ambiguous', () => {
+        expect(findHnrCandidates('17 1/2', ['17a', '17a-c'])).toEqual([])
+    })
+
+    it('prefers an exact match over the synonym', () => {
+        expect(findHnrCandidates('17a', ['17a', '17 1/2'])).toEqual(['17a'])
+    })
+
+    it('returns nothing for an empty hnr', () => {
+        expect(findHnrCandidates(null, ['17a'])).toEqual([])
+    })
+})
+
+describe('findMatchingEntries', () => {
+    it('filters entries by their house number', () => {
+        const entries = [{ n: '17a' }, { n: '19' }]
+        expect(findMatchingEntries('17 1/2', entries, e => e.n)).toEqual([{ n: '17a' }])
     })
 })

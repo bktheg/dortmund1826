@@ -32,11 +32,11 @@ function filterDescriptor(): HoverDescriptor {
 
 function makeLayer(id: string, descriptor?: HoverDescriptor, visible = true): Layer {
     return {
-        id, type: 'X', visible, disabled: false, sortable: true, minZoom: 0, maxZoom: 24, name: id,
+        id, type: 'X', visible, disabled: false, canZoomToExtent: false, sortable: true, minZoom: 0, maxZoom: 24, name: id,
         hoverDescriptor: descriptor,
         addToMap() {}, show() {}, hide() {},
         getAnchorId() { return undefined }, getFloorAnchor() { return undefined }, reposition() {},
-        setEmphasis() {}, isOutOfBounds() { return false },
+        setEmphasis() {}, isOutOfBounds() { return false }, getExtentCamera() { return null },
     }
 }
 
@@ -134,6 +134,53 @@ describe('HoverController', () => {
         layers = [makeLayer('do1914', filterDescriptor()), makeLayer('1826', fsDescriptor())]
         map.handlers['mousemove']({ point: [0, 0] })
         expect(map.setFilter).toHaveBeenCalledWith('b-hl', ['==', ['get', 'k'], 'x'])
+    })
+
+    describe('extra hover descriptors', () => {
+        function extraDescriptor(): HoverDescriptor {
+            return {
+                ...filterDescriptor(),
+                hitLayerId: 'c-hit',
+                highlightLayerId: 'c-hl',
+                hitFilter: ['has', 'addr'],
+                buildClickRoute: (feature) => ({ name: 'route-c', params: { k: feature.properties.k } }),
+            }
+        }
+
+        function buildWithExtra(map: any, navigate = vi.fn()) {
+            const layer = makeLayer('do1914', filterDescriptor())
+            layer.extraHoverDescriptors = [extraDescriptor()]
+            layers = [layer]
+            const c = new HoverController({ map, getLayers: () => layers, isEnabled: () => true, navigate })
+            c.setup()
+            return navigate
+        }
+
+        it('adds the extra hit layer with its hitFilter', () => {
+            const map = makeMockMap({})
+            buildWithExtra(map)
+            const hit = map.addLayer.mock.calls.map(c => c[0]).find(l => l.id === 'c-hit')
+            expect(hit.filter).toEqual(['has', 'addr'])
+            const mainHit = map.addLayer.mock.calls.map(c => c[0]).find(l => l.id === 'b-hit')
+            expect('filter' in mainHit).toBe(false)
+        })
+
+        it('navigates via the extra descriptor when only it is hit', () => {
+            const map = makeMockMap({ 'b-hit': [], 'c-hit': [{ properties: { k: 'z' } }] })
+            const navigate = buildWithExtra(map)
+            map.handlers['click']({ point: [0, 0] })
+            expect(navigate).toHaveBeenCalledWith({ name: 'route-c', params: { k: 'z' } })
+        })
+
+        it('prefers the main descriptor when both are hit', () => {
+            const map = makeMockMap({
+                'b-hit': [{ properties: { k: 'x' } }],
+                'c-hit': [{ properties: { k: 'z' } }],
+            })
+            const navigate = buildWithExtra(map)
+            map.handlers['click']({ point: [0, 0] })
+            expect(navigate).toHaveBeenCalledWith({ name: 'route-b', params: { k: 'x' } })
+        })
     })
 
     it('honours selectFeature (prefers typ===0) for the click route', () => {

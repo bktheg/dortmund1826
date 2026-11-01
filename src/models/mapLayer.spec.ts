@@ -376,3 +376,33 @@ describe('StaticLayer — alwaysOff guard', () => {
         expect(calls).not.toContain(ALWAYS_OFF[0])
     })
 })
+
+describe('VectorLayer.getExtentCamera', () => {
+    const bounds = [7.4, 51.4, 7.6, 51.6]
+    const makeLayer = () => new VectorLayer('v', 'V', 'u', 10, 18, '', [])
+    const mapWith = (zoom: number | null, src: any = { bounds }) => ({
+        getSource: () => src,
+        cameraForBounds: vi.fn(() => zoom == null ? undefined : { center: { lng: 7.5, lat: 51.5 }, zoom }),
+    })
+
+    it('returns the framing camera when its zoom is within min/max', () => {
+        const map = mapWith(12)
+        expect(makeLayer().getExtentCamera(map)).toEqual({ center: [7.5, 51.5], zoom: 12 })
+        expect(map.cameraForBounds).toHaveBeenCalledWith([[7.4, 51.4], [7.6, 51.6]], expect.anything())
+    })
+
+    it('is unavailable when the framing zoom is below minZoom or above maxZoom', () => {
+        expect(makeLayer().getExtentCamera(mapWith(9))).toBeNull()
+        expect(makeLayer().getExtentCamera(mapWith(19))).toBeNull()
+    })
+
+    it('is unavailable without bounds or camera', () => {
+        expect(makeLayer().getExtentCamera(mapWith(12, {}))).toBeNull()
+        expect(makeLayer().getExtentCamera(mapWith(null))).toBeNull()
+        expect(makeLayer().getExtentCamera(null)).toBeNull()
+    })
+
+    it('WMS and static layers never offer zoom-to-extent', () => {
+        expect(new WmsLayer('w', 'W', 'u', 0, 24, '').getExtentCamera(mapWith(12))).toBeNull()
+    })
+})

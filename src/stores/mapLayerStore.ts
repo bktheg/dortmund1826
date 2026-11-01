@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { WmsLayer, VectorLayer, StaticLayer } from '@/models/mapLayer'
-import type { Layer } from '@/models/mapLayer'
+import type { Layer, ClickRoute } from '@/models/mapLayer'
 import { getDo1914LayerDefinitions } from '@/stores/do1914LayerStyles'
 import { getDo1610LayerDefinitions, getDo1610HatchImages } from '@/stores/do1610LayerStyles'
 import { buildGebaeudefHighlightFilter } from '@/utils/hoverUtils'
@@ -13,22 +13,20 @@ export const useMapLayerStore = defineStore('mapLayer', {
         layers: [] as Layer[],
     }),
     actions: {
-        initLayers(preview: boolean, serverUrl: string): void {
+        initLayers(serverUrl: string): void {
             const result: Layer[] = []
 
             // Listed first so the layer list reads chronologically (oldest on top).
-            if (preview) {
-                result.push(new VectorLayer(
-                    'vector-do1610',
-                    'Dortmund 1610',
-                    serverUrl + '/tilesets/do1610,do1610_labels/tilejson.json',
-                    3, 18,
-                    '',
-                    getDo1610LayerDefinitions(),
-                    undefined,
-                    getDo1610HatchImages(),
-                ))
-            }
+            result.push(new VectorLayer(
+                'vector-do1610',
+                'Dortmund 1610',
+                serverUrl + '/tilesets/do1610,do1610_labels/tilejson.json',
+                3, 18,
+                '',
+                getDo1610LayerDefinitions(),
+                undefined,
+                getDo1610HatchImages(),
+            ))
 
             const layer1826 = new StaticLayer(
                 '1826',
@@ -92,51 +90,66 @@ export const useMapLayerStore = defineStore('mapLayer', {
                 'Geobasis NRW',
             ))
 
-            if (preview) {
-                const do1914 = new VectorLayer(
-                    'vector-do1914',
-                    'Dortmund Zentrum (1914)',
-                    serverUrl + '/tilesets/flaechenf,gebaeudef,strassenf,hausnummernf/tilejson.json',
-                    3, 19,
-                    '',
-                    getDo1914LayerDefinitions(),
-                )
-                do1914.hoverDescriptor = {
-                    hitLayerId: 'vector-do1914-gebaeudef-hover',
-                    highlightLayerId: 'vector-do1914-gebaeudef-hovered',
-                    source: 'vector-do1914',
-                    sourceLayer: 'gebaeudef',
-                    highlight: {
-                        mechanism: 'filter',
-                        layerType: 'line',
-                        paint: {
-                            'line-color': '#BB5555',
-                            'line-width': 4,
-                        },
-                        buildFilter: (feature) => buildGebaeudefHighlightFilter(
-                            feature.properties?.street ?? '',
-                            feature.properties?.hnr ?? '',
-                        ),
-                    },
-                    buildClickRoute: (feature) => {
-                        const addr = feature.properties?.addr
-                        const param = addr
-                            ? addrPropertyToParam(addr)
-                            : encodeAddressParam([{
-                                strasse: feature.properties?.street ?? '',
-                                hnr: feature.properties?.hnr ?? '',
-                            }])
-                        return {
-                            name: 'layer-details',
-                            params: {
-                                layername: 'vector-do1914',
-                                addr: param,
-                            },
-                        }
+            const buildClickRoute = (feature: any): ClickRoute => {
+                const addr = feature.properties?.addr
+                const param = addr
+                    ? addrPropertyToParam(addr)
+                    : encodeAddressParam([{
+                        strasse: feature.properties?.street ?? '',
+                        hnr: feature.properties?.hnr ?? '',
+                    }])
+                return {
+                    name: 'layer-details',
+                    params: {
+                        layername: 'vector-do1914',
+                        addr: param,
                     },
                 }
-                result.push(do1914)
             }
+            const do1914 = new VectorLayer(
+                'vector-do1914',
+                'Dortmund Zentrum (1914)',
+                serverUrl + '/tilesets/flaechenf,gebaeudef,strassenf,hausnummernf/tilejson.json',
+                3, 19,
+                '',
+                getDo1914LayerDefinitions(),
+            )
+            do1914.hoverDescriptor = {
+                hitLayerId: 'vector-do1914-gebaeudef-hover',
+                highlightLayerId: 'vector-do1914-gebaeudef-hovered',
+                source: 'vector-do1914',
+                sourceLayer: 'gebaeudef',
+                highlight: {
+                    mechanism: 'filter',
+                    layerType: 'line',
+                    paint: {
+                        'line-color': '#BB5555',
+                        'line-width': 4,
+                    },
+                    buildFilter: (feature) => buildGebaeudefHighlightFilter(feature.properties?.gebaeude_id),
+                },
+                buildClickRoute,
+            }
+            // Areas without any building can carry an `addr` too; they are hit targets
+            // only then, and rank below gebaeudef (main descriptor wins ties).
+            do1914.extraHoverDescriptors = [{
+                hitLayerId: 'vector-do1914-flaechenf-hover',
+                highlightLayerId: 'vector-do1914-flaechenf-hovered',
+                source: 'vector-do1914',
+                sourceLayer: 'flaechenf',
+                hitFilter: ['has', 'addr'],
+                highlight: {
+                    mechanism: 'filter',
+                    layerType: 'line',
+                    paint: {
+                        'line-color': '#BB5555',
+                        'line-width': 4,
+                    },
+                    buildFilter: (feature) => ['==', ['get', 'addr'], feature.properties?.addr ?? ''],
+                },
+                buildClickRoute,
+            }]
+            result.push(do1914)
 
             result.push(new StaticLayer(
                 'heute',
@@ -265,7 +278,13 @@ export const useMapLayerStore = defineStore('mapLayer', {
             const zoom = map?.getZoom?.() ?? 0
             for (const layer of this.layers) {
                 layer.disabled = zoom < layer.minZoom || layer.isOutOfBounds(map)
+                layer.canZoomToExtent = layer.getExtentCamera(map) != null
             }
+        },
+
+        zoomToLayer(id: string, map: any): void {
+            const camera = this.layers.find(l => l.id === id)?.getExtentCamera(map)
+            if (camera) map?.easeTo(camera)
         },
     },
 })

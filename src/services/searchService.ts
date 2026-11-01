@@ -5,6 +5,22 @@ import { useBezeichnungStore } from '@/stores/bezeichnungStore'
 import { useEigentuemerStore } from '@/stores/eigentuemerStore'
 import { useAllParzellenStore } from '@/stores/allParzellenStore'
 import { useHaeuserbuchStore } from '@/stores/haeuserbuchStore'
+import { createPhoneticMatcher, classifyMatch, bestRank } from '@/utils/phoneticMatch'
+import type { PhoneticMatcher, MatchKind } from '@/utils/phoneticMatch'
+import { SearchResultType, countResultTypes, withoutHiddenTypes } from '@/utils/searchResultTypes'
+import type { ResultTypeCount } from '@/utils/searchResultTypes'
+
+export { SearchResultType }
+
+export type SearchOptions = {
+    phonetic?:boolean
+    // Result types (see getResultCss) to leave out. They are dropped before the
+    // maxResults cap, so the other types get the freed budget.
+    hiddenTypes?:ReadonlySet<string>
+    // Receives every type of the matches with its count, before hiding and before
+    // the cap, so the caller can still offer a hidden type for re-enabling.
+    onTypeCounts?:(types:ResultTypeCount[]) => void
+}
 
 export class SearchResult {
     public descriptions:string[] = []
@@ -15,6 +31,13 @@ export class SearchResult {
     // result types without SearchView having to know them.
     public typeLabel?:string
     public typeCss?:string
+    // A hit that matched only by sound ranks behind the exact hits and is
+    // highlighted word-wise, since the term itself does not occur in it.
+    public phoneticOnly = false
+    // 0 = exact, then 1 equal sound, 2 name at the start of a word, 3 name inside a
+    // compound (see MatchKind). Phonetic hits are listed best rank first.
+    public matchRank = 0
+    public phoneticMatcher?:PhoneticMatcher
 
     constructor(
         public term:string,
@@ -36,12 +59,24 @@ export class SearchResult {
     private highlight(text:string):string {
         const idx = text.toLocaleLowerCase().indexOf(this.term.toLocaleLowerCase())
         if( idx < 0 ) {
-            return escapeHtml(text)
+            return this.highlightRanges(text, this.phoneticMatcher?.(text)?.ranges ?? [], '<b><u class="phonetic" title="Klingt ähnlich">')
         }
-        const idx2 = idx + this.term.length
-        return escapeHtml(text.substring(0,idx))
-            + '<b><u>' + escapeHtml(text.substring(idx,idx2)) + '</u></b>'
-            + escapeHtml(text.substring(idx2))
+        return this.highlightRanges(text, [[idx, idx + this.term.length]], '<b><u>')
+    }
+
+    private highlightRanges(text:string, ranges:[number, number][], openTag:string):string {
+        const sorted = [...ranges].sort((a,b) => a[0]-b[0])
+        let html = ''
+        let pos = 0
+        for( const [start, end] of sorted ) {
+            if( start < pos ) {
+                continue
+            }
+            html += escapeHtml(text.substring(pos,start))
+                + openTag + escapeHtml(text.substring(start,end)) + '</u></b>'
+            pos = end
+        }
+        return html + escapeHtml(text.substring(pos))
     }
 }
 
@@ -52,26 +87,22 @@ function escapeHtml(text:string):string {
         .replace(/>/g, '&gt;')
 }
 
-export enum SearchResultType {
-    BEZEICHNUNG=1,
-    BEZEICHNUNG_LINE=2,
-    GEBAEUDE=3,
-    GEWAESSER=4,
-    ADMIN=5,
-    FLUR=6,
-    ORT=7,
-    OWNER=8,
-    PARZELLE=9,
-    GEWERBE=10,
-    BEHOERDE=11,
-    STRASSE=12,
-    ADRESSBUCH_BESITZER=13
-}
-
-
-export function searchByTerm(term:string, searchType:string, adminFilter:string[], maxResults:number):SearchResult[] {
+export function searchByTerm(term:string, searchType:string, adminFilter:string[], maxResults:number, options?:SearchOptions):SearchResult[] {
     if( !term ) {
         return [];
+    }
+
+    const matcher = options?.phonetic && searchType != "parzelle" ? createPhoneticMatcher(term) : undefined
+    // Collecting stops early at maxResults — with phonetic hits in play that would cut
+    // off exact hits that only come later in the data, so it must not stop.
+    // The same goes for type counts and hidden types: both need every match.
+    const stopAt = matcher || options?.onTypeCounts || options?.hiddenTypes?.size ? Infinity : maxResults
+    const kindOf = (text:string|undefined):MatchKind => classifyMatch(text, term, matcher)
+    const mark = (searchResult:SearchResult, ...kinds:MatchKind[]):SearchResult => {
+        searchResult.phoneticOnly = !kinds.includes('exact')
+        searchResult.matchRank = bestRank(kinds)
+        searchResult.phoneticMatcher = matcher
+        return searchResult
     }
 
     let result = [];
@@ -81,7 +112,8 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
         const bezeichnungStore = useBezeichnungStore();
 
         for( const bz of bezeichnungStore.bezeichnungen ) {
-            if( bz.n.toLocaleLowerCase().includes(term) ) {
+            const kind = kindOf(bz.n)
+            if( kind != 'none' ) {
                 const flur = flurStore.getFlurById(bz.g, bz.f);
                 const gemeinde = flurStore.getGemeindeById(bz.g);
                 const searchResult = new SearchResult(
@@ -92,11 +124,12 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     gemeinde
                 )
                 searchResult.location = bz.l
-                result.push(searchResult)
+                result.push(mark(searchResult, kind))
             }
         }
         for( const gemeinde of flurStore.gemeinden ) {
-            if( gemeinde.name.toLocaleLowerCase().includes(term) ) {
+            const kind = kindOf(gemeinde.name)
+            if( kind != 'none' ) {
                 const searchResult = new SearchResult(
                     term,
                     buildPath(gemeinde.buergermeisterei),
@@ -105,12 +138,13 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     gemeinde
                 )
                 searchResult.location = gemeinde.bbox
-                result.push(searchResult)
+                result.push(mark(searchResult, kind))
             }
         }
         for( const flur of flurStore.flure ) {
             const gemeinde = flur.gemeinde;
-            if( flur.name.toLocaleLowerCase().includes(term) ) {
+            const kind = kindOf(flur.name)
+            if( kind != 'none' ) {
                 const searchResult = new SearchResult(
                     term,
                     buildPath(gemeinde),
@@ -119,16 +153,17 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     gemeinde
                 )
                 searchResult.location = flur.bbox
-                result.push(searchResult)
+                result.push(mark(searchResult, kind))
             }
         }
 
-        result.sort((a,b) => b.typeEnum-a.typeEnum)
+        result.sort((a,b) => a.matchRank-b.matchRank || b.typeEnum-a.typeEnum)
     }
     else if( searchType == "owner" ) {
         const eigentuemerStore = useEigentuemerStore();
         for( const owner of eigentuemerStore.eigentuemer ) {
-            if( owner.name && owner.name.toLocaleLowerCase().includes(term) ) {
+            const kind = kindOf(owner.name)
+            if( kind != 'none' ) {
                 const gemeinde = flurStore.getGemeindeById(owner.gemeindeId);
                 const searchResult = new SearchResult(
                     term,
@@ -138,7 +173,7 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     gemeinde
                 )
                 searchResult.route = {name: "mutterrolle", params:{gemeinde:owner.gemeindeId, artikelNr: owner.id}}
-                result.push(searchResult);
+                result.push(mark(searchResult, kind));
             }
         }
     }
@@ -175,13 +210,17 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
         for( const hb of hbStore.haeuserbuecher.values() ) {
             for( const street of hb.streets ) {
                 const hits:string[] = []
-                if( street.name.toLocaleLowerCase().includes(term) ) {
-                    hits.push(street.name)
-                }
-                for( const info of street.infos ) {
-                    if( info.text.toLocaleLowerCase().includes(term) ) {
-                        hits.push(info.text)
+                const kinds:MatchKind[] = []
+                const collect = (text:string, hit:string = text) => {
+                    const kind = kindOf(text)
+                    if( kind != 'none' ) {
+                        hits.push(hit)
+                        kinds.push(kind)
                     }
+                }
+                collect(street.name)
+                for( const info of street.infos ) {
+                    collect(info.text)
                 }
 
                 if( hits.length > 0 ) {
@@ -195,9 +234,9 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     )
                     searchResult.route = {name: "haeuserbuch", params:{gemeinde:gemeinde.id, id: street.id}}
                     searchResult.descriptions = hits
-                    result.push(searchResult);
+                    result.push(mark(searchResult, ...kinds));
 
-                    if( result.length > maxResults ) {
+                    if( result.length > stopAt ) {
                         break;
                     }
                 }
@@ -205,20 +244,22 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
 
             for( const building of hb.buildings ) {
                 const hits:string[] = []
-                for( const info of building.infos ) {
-                    if( info.text.toLocaleLowerCase().includes(term) ) {
-                        hits.push(info.text)
+                const kinds:MatchKind[] = []
+                const collect = (text:string, hit:string = text) => {
+                    const kind = kindOf(text)
+                    if( kind != 'none' ) {
+                        hits.push(hit)
+                        kinds.push(kind)
                     }
+                }
+                for( const info of building.infos ) {
+                    collect(info.text)
                 }
                 for( const info of building.ownerList ) {
-                    if( info.text.toLocaleLowerCase().includes(term) ) {
-                        hits.push((info.year ? info.year+' ' : '') + info.text)
-                    }
+                    collect(info.text, (info.year ? info.year+' ' : '') + info.text)
                 }
                 for( const info of building.additionalInfos ) {
-                    if( info.text.toLocaleLowerCase().includes(term) ) {
-                        hits.push(info.text)
-                    }
+                    collect(info.text)
                 }
 
                 if( hits.length > 0 ) {
@@ -232,9 +273,9 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
                     )
                     searchResult.route = {name: "haeuserbuch", params:{gemeinde:gemeinde.id, id: building.id}}
                     searchResult.descriptions = hits
-                    result.push(searchResult);
+                    result.push(mark(searchResult, ...kinds));
 
-                    if( result.length > maxResults ) {
+                    if( result.length > stopAt ) {
                         break;
                     }
                 }
@@ -242,12 +283,17 @@ export function searchByTerm(term:string, searchType:string, adminFilter:string[
         }
     }
 
+    if( matcher ) {
+        result.sort((a,b) => a.matchRank-b.matchRank)
+    }
+
     if( !adminFilter.includes('__all') ) {
         result = result.filter(r => isIncludedInFilter(adminFilter, r.gemeinde));
     }
 
+    options?.onTypeCounts?.(countResultTypes(result))
 
-    return result.slice(0,maxResults);
+    return withoutHiddenTypes(result, options?.hiddenTypes).slice(0,maxResults);
 }
 
 function buildPath(admin:Gemeinde|Buergermeisterei|Flur):string {

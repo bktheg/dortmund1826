@@ -1,5 +1,11 @@
-export function buildGebaeudefHighlightFilter(street: string, hnr: string): any[] {
-    return ['all', ['==', ['get', 'street'], street], ['==', ['get', 'hnr'], hnr]]
+/**
+ * Highlights every gebaeudef feature sharing the hovered feature's `gebaeude_id`.
+ * Returns `false` (match nothing) when the feature carries no id, e.g. tiles
+ * exported before the column existed.
+ */
+export function buildGebaeudefHighlightFilter(gebaeudeId: number | null | undefined): any[] | false {
+    if (gebaeudeId == null) return false
+    return ['==', ['get', 'gebaeude_id'], gebaeudeId]
 }
 
 export interface HoverCandidate {

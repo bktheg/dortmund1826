@@ -51,9 +51,14 @@ describe('cleanHnr', () => {
         expect(cleanHnr('15/17')).toBe('15-17')
     })
 
-    it('converts fractions to letter suffixes by numerator (1->a, 2->b)', () => {
-        expect(cleanHnr('15 1/2')).toBe('15a')
-        expect(cleanHnr('15 2/3')).toBe('15b')
+    it('keeps fractions as fractions', () => {
+        expect(cleanHnr('15 1/2')).toBe('15 1/2')
+        expect(cleanHnr('17 ½')).toBe('17 1/2')
+        expect(cleanHnr('17½')).toBe('17 1/2')
+    })
+
+    it('keeps fraction ranges intact', () => {
+        expect(cleanHnr('40 1/2-2/2')).toBe('40 1/2-2/2')
     })
 })
 

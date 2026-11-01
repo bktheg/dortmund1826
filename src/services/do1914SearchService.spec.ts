@@ -125,6 +125,13 @@ describe('searchDo1914', () => {
         expect(strasse.zoom).toBe(16)
     })
 
+    it('routes a Straße result to its street page, other types not', () => {
+        const results = searchDo1914('m', 100)
+        const strasse = results.find(r => r.typeEnum === SearchResultType.STRASSE)!
+        expect(strasse.route).toEqual({ name: 'layer-street', params: { layername: 'vector-do1914', streetname: 'Musterstraße' } })
+        expect(results.filter(r => r.typeEnum !== SearchResultType.STRASSE).every(r => !r.route)).toBe(true)
+    })
+
     it('matches case-insensitively', () => {
         expect(searchDo1914('meier', 100).some(r => r.name === 'Meier')).toBe(true)
     })
@@ -254,5 +261,68 @@ describe('searchDo1914', () => {
 
     it('returns no hits for a term nothing matches', () => {
         expect(searchDo1914('gibtesnicht', 100)).toEqual([])
+    })
+})
+
+describe('searchDo1914 phonetic option', () => {
+    beforeEach(() => {
+        setActivePinia(createPinia())
+        const { nameStore } = seed()
+        nameStore.besitzer = [
+            new BesitzerEintrag('Meyer', 'Kaufmann', 'E', adresse(), [10], CENTER),
+            new BesitzerEintrag('Maier', 'Schmied', 'E', adresse(), [11], CENTER)
+        ]
+    })
+
+    it('finds nothing extra while the option is off', () => {
+        const results = searchDo1914('meyer', 100, { phonetic: false })
+        expect(results.map(r => r.name)).toEqual(['Meyer'])
+        expect(searchDo1914('meyer', 100).map(r => r.name)).toEqual(['Meyer'])
+    })
+
+    it('adds spelling variants across categories and marks them phonetic-only', () => {
+        const results = searchDo1914('meyer', 100, { phonetic: true })
+        expect(results.map(r => r.name).sort()).toEqual(['Maier', 'Meier', 'Meyer'])
+        expect(results.find(r => r.name === 'Meyer')!.phoneticOnly).toBe(false)
+        expect(results.find(r => r.name === 'Maier')!.phoneticOnly).toBe(true)
+        expect(results.find(r => r.name === 'Maier')!.getHighlightedName()).toBe('<b><u class="phonetic" title="Klingt ähnlich">Maier</u></b>')
+    })
+
+    it('drops phonetic-only hits first when the budget is exhausted', () => {
+        const names = searchDo1914('meyer', 2, { phonetic: true }).map(r => r.name)
+        expect(names).toContain('Meyer')
+        expect(names).not.toContain('Maier')
+    })
+
+    it('ignores a too-short code', () => {
+        expect(searchDo1914('m', 100, { phonetic: true }).map(r => r.name).sort())
+            .toEqual(searchDo1914('m', 100).map(r => r.name).sort())
+    })
+})
+
+describe('searchDo1914 type filter', () => {
+    beforeEach(() => {
+        setActivePinia(createPinia())
+        const { nameStore, adressdatenStore } = seed()
+        adressdatenStore.strassenIndex = Array.from({ length: 10 }, (_, i) =>
+            new StrasseIndexEintrag(`Meierstraße ${i}`, `m${i}.json`, CENTER))
+        nameStore.gewerbe = [new GewerbeEintrag('Meier', '', [], '', '', adresse(), [8], CENTER)]
+    })
+
+    it('counts all matches per type, uncapped', () => {
+        let counts:any[] = []
+        searchDo1914('meier', 3, { onTypeCounts: c => counts = c })
+
+        expect(counts.map(c => [c.key, c.count])).toEqual([['strasse', 10], ['gewerbe', 1]])
+    })
+
+    it('redistributes the budget of a hidden category', () => {
+        const all = searchDo1914('meier', 4)
+        expect(all.filter(r => r.typeEnum === SearchResultType.GEWERBE)).toHaveLength(1)
+        expect(all.filter(r => r.typeEnum === SearchResultType.STRASSE)).toHaveLength(3)
+
+        const withoutGewerbe = searchDo1914('meier', 4, { hiddenTypes: new Set(['gewerbe']) })
+        expect(withoutGewerbe).toHaveLength(4)
+        expect(withoutGewerbe.every(r => r.typeEnum === SearchResultType.STRASSE)).toBe(true)
     })
 })
